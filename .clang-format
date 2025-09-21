@@ -1,0 +1,9 @@
+IndentWidth: 4
+ColumnLimit: 120
+BreakBeforeBraces: Allman
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AlignConsecutiveAssignments : Consecutive
+
+AlignAfterOpenBracket: DontAlign
+BinPackParameters: false  # Each parameter on a new line.
