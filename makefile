@@ -10,9 +10,15 @@ TESTS_SRCS = \
 	tests/test_check_if_configuration_file_exists.cpp\
 	tests/test_utils.cpp\
 	tests/utils/utils.cpp\
+	source/executable_creation/executable_creation.cpp\
+	source/configuration_parsing/configuration_parsing.cpp\
 	source/utils/utils.cpp
 
-EASYMAKE_SRCS = source/main.cpp source/utils/utils.cpp
+EASYMAKE_SRCS = \
+	source/main.cpp \
+	source/executable_creation/executable_creation.cpp\
+	source/configuration_parsing/configuration_parsing.cpp\
+	source/utils/utils.cpp
 
 # Objects
 TESTS_OBJS = $(TESTS_SRCS:.cpp=.o)

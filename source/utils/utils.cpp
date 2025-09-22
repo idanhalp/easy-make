@@ -25,3 +25,9 @@ auto utils::check_if_configurations_file_exists(const std::string_view path) -> 
 
     return false;
 }
+
+auto utils::get_chosen_configuration([[maybe_unused]] const std::vector<const char *> &arguments)
+    -> std::optional<std::string>
+{
+    return "default";
+}

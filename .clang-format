@@ -7,5 +7,14 @@ AlignConsecutiveAssignments : Consecutive
 FixNamespaceComments: false
 NamespaceIndentation: All #intend content of namespace
 
-AlignAfterOpenBracket: DontAlign
-BinPackParameters: false  # Each parameter on a new line.
+# AlignAfterOpenBracket: DontAlign
+# BinPackParameters: false  # Each parameter on a new line.
+BinPackParameters: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AlwaysBreakAfterDefinitionReturnType: None
+AlwaysBreakAfterReturnType: None
+# PenaltyBreakParameter: 1
+PenaltyBreakBeforeFirstCallParameter: 1
+
+InsertNewlineAtEOF: true
+KeepEmptyLinesAtEOF: true
