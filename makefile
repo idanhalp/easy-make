@@ -8,10 +8,11 @@ TARGETS = tests easy-make
 TESTS_SRCS = \
 	tests/main.cpp\
 	tests/test_check_if_configuration_file_exists.cpp\
+	tests/test_get_chosen_configuration.cpp\
 	tests/test_utils.cpp\
 	tests/utils/utils.cpp\
-	source/executable_creation/executable_creation.cpp\
 	source/configuration_parsing/configuration_parsing.cpp\
+	source/executable_creation/executable_creation.cpp\
 	source/utils/utils.cpp
 
 EASYMAKE_SRCS = \
@@ -37,4 +38,3 @@ easy-make: $(EASYMAKE_OBJS)
 
 clean:
 	rm -f $(TESTS_OBJS) $(EASYMAKE_OBJS) $(TARGETS)
-

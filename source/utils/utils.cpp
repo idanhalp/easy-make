@@ -26,8 +26,17 @@ auto utils::check_if_configurations_file_exists(const std::string_view path) -> 
     return false;
 }
 
-auto utils::get_chosen_configuration([[maybe_unused]] const std::vector<const char *> &arguments)
-    -> std::optional<std::string>
+auto utils::get_chosen_configuration(const std::vector<const char *> &arguments) -> std::optional<std::string>
 {
-    return "default";
+    const auto too_many_arguments = arguments.size() > 2;
+
+    if (too_many_arguments)
+    {
+        return std::nullopt;
+    }
+
+    const auto configuration_name_explicitly_stated = arguments.size() == 2;
+    const auto configuration_name                   = configuration_name_explicitly_stated ? arguments[1] : "default";
+
+    return configuration_name;
 }
