@@ -4,6 +4,8 @@ BreakBeforeBraces: Allman
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 AlignConsecutiveAssignments : Consecutive
+FixNamespaceComments: false
+NamespaceIndentation: All #intend content of namespace
 
 AlignAfterOpenBracket: DontAlign
 BinPackParameters: false  # Each parameter on a new line.

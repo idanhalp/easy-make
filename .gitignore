@@ -1,1 +1,5 @@
 .vscode
+*.o
+format-all-files.py
+run-tests
+easy-make
