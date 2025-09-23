@@ -4,7 +4,7 @@
 #include <format>
 #include <source_location>
 
-auto tests::utils::get_path_to_resources_project(const int index) -> std::string
+auto tests::utils::get_path_to_resources_project(const int index) -> std::filesystem::path
 {
     const auto utils_directory_path     = std::filesystem::absolute(std::source_location::current().file_name());
     const auto tests_directory_path     = utils_directory_path.parent_path().parent_path();

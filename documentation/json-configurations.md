@@ -19,6 +19,14 @@ configurations:
 
 ## 2. Fields
 
+* `name`:
+  * Name of the configuration.
+  * **default** is reserved for the default configuration.
+  * Example:
+    ```json
+    "name": "release"
+    ```
+
 * `compiler`  
   * C++ compiler.  
   * Options: 
@@ -82,11 +90,13 @@ configurations:
   * All paths are relative to the JSON file.  
   * Duplicate files are allowed.  
   * Example:
-    ```json  
-    "files": ["src/dir_1/file_1.cpp", "src/dir_2/file_2.cpp"]  
-    "directories": ["src/dir_3", "src/dir_4"]
+    ```json
+    "sources": {  
+      "files": ["src/dir_1/file_1.cpp", "src/dir_2/file_2.cpp"],
+      "directories": ["src/dir_3", "src/dir_4"]
+    }
     ```
-* exclude  
+* `exclude`  
   * `files`: list of files to exclude.  
   * `directories`: list of directories to recursively exclude.  
   * Exclusions take precedence over inclusions in sources.  
@@ -108,17 +118,24 @@ configurations:
     ```
 ## 3. Configurations
 
+- `easy-make` supports several configurations in one `.json` file.
+- The default configuration has **default** for its `name` field.
 - Each configuration can override any default field.  
-- Configurations are optional; if none is specified, easy-make uses the defaults.  
+- Configurations are optional; if none is specified, easy-make uses the default configuration.  
 - Example:  
   ```json
-  "configurations": {  
-    "debug": {  
+    {  
+      "name": "debug",
       "optimization": "-O0",  
       "warnings": ["-Wall", "-Wextra", "-Wpedantic"],  
-      "output": { "name": "output.exe", "path": "build/debug" }  
-    }  
-  }
+      "output": { "name": "debug.exe", "path": "build/debug" }  
+    }
+    {  
+      "name": "release",
+      "optimization": "-O3",  
+      "warnings": ["-Wall", "-Wextra", "-Wpedantic"],  
+      "output": { "name": "release.exe", "path": "build/release" }  
+    }
   ```
 
 ## 4. Merge Rules
@@ -128,14 +145,15 @@ When easy-make reads a configuration, it overrides the default value.
 Example:  
 
 ```json
-"default": {  
+{
+  "name": "default",  
   "compiler": "g++",  
   "files": ["foo.cpp"],  
   "optimization": "-O2"  
-}  
-
-"configurations": {  
-  "debug": { "optimization": "-O0" }  
+},
+{
+  "name": "debug", 
+  "optimization": "-O0"
 }  
 ```
 

@@ -32,27 +32,28 @@ Default values are overridden when a configuration specifies something different
 Example configuration:
 
 ```json
-{  
-  "default": {  
-    "compiler": "g++",  
-    "standard": "c++23",  
-    "warnings": [ "-Wall", "-Wextra" ],  
-    "optimization": "-O2",  
-    "files": [ "src/main.cpp", "src/utils.cpp" ],  
-    "output": { "path": "build", "name": "my_app" }  
-  },  
-  "configurations": {  
-    "debug": {  
-      "optimization": "-O0",  
-      "warnings": [ "-Wall", "-Wextra", "-Wpedantic" ],  
-      "output": { "path": "build/debug" }  
-    },  
-    "release": {  
-      "optimization": "-O3",  
-      "output": { "path": "build/release" }  
-    }  
-  }  
-}  
+[
+  { 
+    "name": "default",
+    "compiler": "g++",
+    "standard": "c++23",
+    "warnings": ["-Wall", "-Wextra"],
+    "optimization": "-O2",
+    "files": ["src/main.cpp", "src/utils.cpp"],
+    "output": { "path": "build", "name": "my_app" }
+  },
+  {
+    "name": "debug",
+    "optimization": "-O0",
+    "warnings": ["-Wall", "-Wextra", "-Wpedantic"],
+    "output": { "path": "build/debug" }
+  },
+  {
+    "name": "release",
+    "optimization": "-O3",
+    "output": { "path": "build/release" }
+  }
+]
 ```
 
 ## 3. Run easy-make

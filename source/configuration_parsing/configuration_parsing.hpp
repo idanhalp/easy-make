@@ -1,6 +1,7 @@
-#ifndef SOURCE_PARSE_CONFIGURATIONS_PARSE_CONFIGURATIONS_HPP
-#define SOURCE_PARSE_CONFIGURATIONS_PARSE_CONFIGURATIONS_HPP
+#ifndef SOURCE_CONFIGURATIONS_PARSING_CONFIGURATIONS_PARSING_HPP
+#define SOURCE_CONFIGURATIONS_PARSING_CONFIGURATIONS_PARSING_HPP
 
+#include <filesystem>
 #include <optional>
 #include <string>
 #include <vector>
@@ -11,7 +12,7 @@ struct Configuration
     std::optional<std::string> compiler;
     std::optional<std::string> standard;
     std::vector<std::string> warnings;
-    std::optional<std::string> optimization_level;
+    std::optional<std::string> optimization;
     std::vector<std::string> defines;
     std::vector<std::string> source_files;
     std::vector<std::string> source_directories;
@@ -23,6 +24,6 @@ struct Configuration
     auto get_error_message() const -> std::optional<std::string>;
 };
 
-auto parse_configurations(std::string path_to_configurations_file) -> std::vector<Configuration>;
+auto parse_configurations(const std::filesystem::path& path_to_configurations_file) -> std::vector<Configuration>;
 
-#endif // SOURCE_PARSE_CONFIGURATIONS_PARSE_CONFIGURATIONS_HPP
+#endif // SOURCE_CONFIGURATIONS_PARSING_CONFIGURATIONS_PARSING_HPP

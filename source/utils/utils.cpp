@@ -3,7 +3,7 @@
 #include <filesystem>
 #include <string_view>
 
-auto utils::check_if_configurations_file_exists(const std::string_view path) -> bool
+auto utils::check_if_configurations_file_exists(const std::filesystem::path& path) -> bool
 {
     const auto path_is_valid = std::filesystem::exists(path) && std::filesystem::is_directory(path);
 
@@ -12,7 +12,7 @@ auto utils::check_if_configurations_file_exists(const std::string_view path) -> 
         return false;
     }
 
-    for (const auto &entry : std::filesystem::directory_iterator(path))
+    for (const auto& entry : std::filesystem::directory_iterator(path))
     {
         const auto is_configurations_file =
             entry.is_regular_file() && entry.path().filename() == CONFIGURATIONS_FILE_NAME;
@@ -26,7 +26,7 @@ auto utils::check_if_configurations_file_exists(const std::string_view path) -> 
     return false;
 }
 
-auto utils::get_chosen_configuration(const std::vector<const char *> &arguments) -> std::optional<std::string>
+auto utils::get_chosen_configuration(const std::vector<const char*>& arguments) -> std::optional<std::string>
 {
     const auto too_many_arguments = arguments.size() > 2;
 
