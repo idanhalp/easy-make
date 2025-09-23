@@ -44,12 +44,12 @@ static auto test_configuration_with_missing_fields() -> void
     const auto& default_configuration = configurations[0];
     assert(default_configuration.name == "default");
     assert(!default_configuration.compiler.has_value());
-    assert(default_configuration.warnings.empty());
+    assert(!default_configuration.warnings.has_value());
     assert(!default_configuration.optimization.has_value());
-    assert(default_configuration.source_files.empty());
-    assert(default_configuration.source_directories.empty());
-    assert(default_configuration.excluded_files.empty());
-    assert(default_configuration.excluded_directories.empty());
+    assert(!default_configuration.source_files.has_value());
+    assert(!default_configuration.source_directories.has_value());
+    assert(!default_configuration.excluded_files.has_value());
+    assert(!default_configuration.excluded_directories.has_value());
     assert(!default_configuration.output_name.has_value());
     assert(!default_configuration.output_path.has_value());
 }

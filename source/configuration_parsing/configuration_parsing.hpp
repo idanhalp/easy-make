@@ -11,13 +11,13 @@ struct Configuration
     std::optional<std::string> name;
     std::optional<std::string> compiler;
     std::optional<std::string> standard;
-    std::vector<std::string> warnings;
+    std::optional<std::vector<std::string>> warnings;
     std::optional<std::string> optimization;
-    std::vector<std::string> defines;
-    std::vector<std::string> source_files;
-    std::vector<std::string> source_directories;
-    std::vector<std::string> excluded_files;
-    std::vector<std::string> excluded_directories;
+    std::optional<std::vector<std::string>> defines;
+    std::optional<std::vector<std::string>> source_files;
+    std::optional<std::vector<std::string>> source_directories;
+    std::optional<std::vector<std::string>> excluded_files;
+    std::optional<std::vector<std::string>> excluded_directories;
     std::optional<std::string> output_name;
     std::optional<std::string> output_path;
 

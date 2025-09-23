@@ -1,0 +1,24 @@
+[
+	{
+		"name": "default",
+		"compiler": "g++",
+		"sources": {
+			"files": [
+				"main.cpp"
+			],
+			"directories": [
+				"source"
+			]
+		},
+		"exclude": {
+			"files": ["source/dir_2/f_5.cc"],
+			"directories": [
+				"source/dir_1"
+			]
+		},
+		"output": {
+			"name": "output",
+			"path": "build"
+		}
+	}
+]

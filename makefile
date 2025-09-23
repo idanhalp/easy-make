@@ -9,6 +9,7 @@ TESTS_SRCS = \
 	tests/main.cpp\
 	tests/test_check_if_configuration_file_exists.cpp\
 	tests/test_configuration_parsing.cpp\
+	tests/test_executable_creation.cpp\
 	tests/test_get_chosen_configuration.cpp\
 	tests/test_utils.cpp\
 	tests/utils/utils.cpp\

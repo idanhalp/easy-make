@@ -11,6 +11,7 @@ auto main() -> int
     tests::test_configuration_parsing();
     tests::test_get_chosen_configuration();
     tests::test_utils();
+    tests::test_executable_creation();
 
     std::println("All tests passed.");
 }
