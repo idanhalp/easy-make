@@ -15,6 +15,8 @@ auto get_actual_configuration(std::string_view configuration_name, const std::ve
 auto get_files_to_compile(const Configuration& configuration,
                           const std::filesystem::path& path_to_root) -> std::vector<std::string>;
 
+auto create_compilation_flags_string(const Configuration& configuration) -> std::string;
+
 auto create_executable(std::string_view configuration_name,
                        const std::filesystem::path& path_to_root,
                        const std::vector<Configuration>& configurations) -> std::optional<std::string>;

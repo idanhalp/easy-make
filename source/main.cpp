@@ -30,12 +30,14 @@ auto main(const int num_of_args, const char* arguments[]) -> int
         return EXIT_FAILURE;
     }
 
-    const auto executable_creation_error_message = create_executable(*chosen_configuration, configurations);
-    const auto created_executable_successfully   = !executable_creation_error_message.has_value();
+    const auto executable_creation_error_message =
+        create_executable(*chosen_configuration, current_path, configurations);
+    const auto created_executable_successfully = !executable_creation_error_message.has_value();
 
     if (!created_executable_successfully)
     {
-        // Print the reason.
+        std::println("{}", *executable_creation_error_message);
+
         return EXIT_FAILURE;
     }
 

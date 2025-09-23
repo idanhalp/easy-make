@@ -1,7 +1,10 @@
 #include "source/executable_creation/executable_creation.hpp"
 
 #include <algorithm>
+#include <cstdlib> // `std::system`
 #include <format>
+#include <iterator>
+#include <print>
 #include <ranges>
 #include <string>
 #include <unordered_set>
@@ -18,7 +21,7 @@ auto get_actual_configuration(std::string_view configuration_name, const std::ve
 
     if (!configuration_exists)
     {
-        return std::unexpected(std::format("'{}' does not contain a configuration named {}.",
+        return std::unexpected(std::format("'{}' does not contain a configuration named '{}'.",
                                            utils::CONFIGURATIONS_FILE_NAME, configuration_name));
     }
 
@@ -243,6 +246,43 @@ auto get_files_to_compile(const Configuration& configuration,
     return files_to_compile | std::ranges::to<std::vector>();
 }
 
+auto create_compilation_flags_string(const Configuration& configuration) -> std::string
+{
+    std::string result;
+
+    if (configuration.standard.has_value())
+    {
+        std::format_to(std::back_inserter(result), "-std={} ", *configuration.standard);
+    }
+
+    if (configuration.warnings.has_value())
+    {
+        for (const auto& warning : *configuration.warnings)
+        {
+            std::format_to(std::back_inserter(result), "{} ", warning);
+        }
+    }
+
+    if (configuration.optimization.has_value())
+    {
+        std::format_to(std::back_inserter(result), "{} ", *configuration.optimization);
+    }
+
+    if (configuration.defines.has_value())
+    {
+        for (const auto& define : *configuration.defines)
+        {
+            std::format_to(std::back_inserter(result), "-D{} ", define);
+        }
+    }
+
+    result += "-I. "; // TODO: Add to configuration.
+
+    result.pop_back(); // remove trailing whitespace.
+
+    return result;
+}
+
 auto create_executable(const std::string_view configuration_name,
                        const std::filesystem::path& path_to_root,
                        const std::vector<Configuration>& configurations) -> std::optional<std::string>
@@ -254,7 +294,34 @@ auto create_executable(const std::string_view configuration_name,
         return actual_configuration.error();
     }
 
-    const auto files_to_compile = get_files_to_compile(*actual_configuration, path_to_root);
+    std::filesystem::create_directory(utils::BUILD_DIRECTORY_NAME);
+
+    const auto compilation_flags = create_compilation_flags_string(*actual_configuration);
+    const auto files_to_compile  = get_files_to_compile(*actual_configuration, path_to_root);
+
+    // Create object files.
+    for (const auto& [index, file_name] : std::views::enumerate(files_to_compile) | std::views::as_const)
+    {
+        const auto object_file_hash = std::hash<std::string>{}(file_name);
+        const auto compilation_command =
+            std::format("{} {} -c {} -o {}/{}.o", *actual_configuration->compiler, compilation_flags, file_name,
+                        utils::BUILD_DIRECTORY_NAME, object_file_hash);
+
+        std::println("{}) Compiling '{}'.", index + 1, file_name);
+        std::system(compilation_command.c_str());
+    }
+
+    // Link.
+    std::filesystem::create_directory(*actual_configuration->output_path);
+
+    const auto link_command =
+        std::format("{} {}/*.o -o {}/{}", *actual_configuration->compiler, utils::BUILD_DIRECTORY_NAME,
+                    *actual_configuration->output_path, *actual_configuration->output_name);
+
+    std::println("Linking.");
+    std::system(link_command.c_str());
+
+    std::println("Compilation finished.");
 
     return std::nullopt;
 }

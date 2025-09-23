@@ -80,6 +80,18 @@ static auto test_get_files_to_compile() -> void
     assert(std::ranges::contains(files_to_compile, "source/dir_2/f_4.cxx"));
 }
 
+static auto test_create_compilation_flags_string() -> void
+{
+    Configuration configuration;
+    configuration.name         = "test";
+    configuration.standard     = "c++20";
+    configuration.warnings     = {"-Wall", "-Werror"};
+    configuration.optimization = "-O2";
+    configuration.defines      = {"DEBUG", "VERSION=12"};
+
+    assert(create_compilation_flags_string(configuration) == "-std=c++20 -Wall -Werror -O2 -DDEBUG -DVERSION=12 -I.");
+}
+
 auto tests::test_executable_creation() -> void
 {
     std::println("Running `create_executable_tests` tests.");
@@ -89,6 +101,7 @@ auto tests::test_executable_creation() -> void
     test_get_actual_configuration_without_output_path();
     test_actual_configuration_with_overridden_fields();
     test_get_files_to_compile();
+    test_create_compilation_flags_string();
 
     std::println("Done.");
 }

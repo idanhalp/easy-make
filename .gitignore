@@ -1,5 +1,7 @@
 .vscode
 *.o
+build/
+easy-make-configurations.json
 format-all-files.py
 run-tests
 easy-make
