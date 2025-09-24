@@ -162,10 +162,6 @@ auto get_actual_configuration(std::string_view configuration_name, const std::ve
         {
             actual_configuration.output_path = default_configuration->output_path;
         }
-        else
-        {
-            return std::unexpected(std::format("Could not resolve 'output.path' for '{}'.", configuration_name));
-        }
     }
 
     return actual_configuration;
@@ -312,16 +308,23 @@ auto create_executable(const std::string_view configuration_name,
     }
 
     // Link.
-    std::filesystem::create_directory(*actual_configuration->output_path);
+    const auto actual_output_path =
+        actual_configuration->output_path.has_value()
+            ? std::format("{}/{}", *actual_configuration->output_path, *actual_configuration->output_name)
+            : *actual_configuration->output_name;
 
-    const auto link_command =
-        std::format("{} {}/*.o -o {}/{}", *actual_configuration->compiler, utils::BUILD_DIRECTORY_NAME,
-                    *actual_configuration->output_path, *actual_configuration->output_name);
+    const auto link_command = std::format("{} {}/*.o -o {}", *actual_configuration->compiler,
+                                          utils::BUILD_DIRECTORY_NAME, actual_output_path);
 
     std::println("Linking.");
-    std::system(link_command.c_str());
 
-    std::println("Compilation finished.");
+    if (actual_configuration->output_path.has_value())
+    {
+        std::filesystem::create_directory(*actual_configuration->output_path);
+    }
+
+    std::system(link_command.c_str());
+    std::println("Compilation finished. Executable located at '{}'.", actual_output_path);
 
     return std::nullopt;
 }

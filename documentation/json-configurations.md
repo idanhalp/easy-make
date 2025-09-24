@@ -109,9 +109,9 @@ configurations:
     ```
 
 * output  
-  * Target executable information. Must have:  
-    * `name`: name of the executable  
-    * `path`: path to put the executable, relative to the JSON file  
+  * Target executable information:  
+    * `name`: name of the executable (Mandatory).
+    * `path`: path to put the executable, relative to the JSON file. If not specified, the executable is created at the root directory.  
   * Example:
     ```json 
     "output": { "name": "output.exe", "path": "build/release" }

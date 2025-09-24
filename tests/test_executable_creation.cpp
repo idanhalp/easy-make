@@ -31,17 +31,6 @@ static auto test_get_actual_configuration_without_output_name() -> void
     assert(!result.has_value() && result.error() == "Could not resolve 'output.name' for 'test-configuration'.");
 }
 
-static auto test_get_actual_configuration_without_output_path() -> void
-{
-    Configuration configuration;
-    configuration.name        = "test-configuration";
-    configuration.compiler    = "clang++";
-    configuration.output_name = "output";
-
-    const auto result = get_actual_configuration(*configuration.name, {configuration});
-    assert(!result.has_value() && result.error() == "Could not resolve 'output.path' for 'test-configuration'.");
-}
-
 static auto test_actual_configuration_with_overridden_fields() -> void
 {
     Configuration default_configuration;
@@ -98,7 +87,6 @@ auto tests::test_executable_creation() -> void
 
     test_get_actual_configuration_without_compiler();
     test_get_actual_configuration_without_output_name();
-    test_get_actual_configuration_without_output_path();
     test_actual_configuration_with_overridden_fields();
     test_get_files_to_compile();
     test_create_compilation_flags_string();
