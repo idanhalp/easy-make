@@ -40,6 +40,11 @@ static auto parse_configuration(const nlohmann::json& json) -> Configuration
         configuration.defines = json["defines"];
     }
 
+    if (json.contains("includeDirectories"))
+    {
+        configuration.include_directories = json["includeDirectories"];
+    }
+
     if (json.contains("sources"))
     {
         const auto& sources = json["sources"];

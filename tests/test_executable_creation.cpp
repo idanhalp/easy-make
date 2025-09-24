@@ -73,13 +73,15 @@ static auto test_get_files_to_compile() -> void
 static auto test_create_compilation_flags_string() -> void
 {
     Configuration configuration;
-    configuration.name         = "test";
-    configuration.standard     = "c++20";
-    configuration.warnings     = {"-Wall", "-Werror"};
-    configuration.optimization = "-O2";
-    configuration.defines      = {"DEBUG", "VERSION=12"};
+    configuration.name                = "test";
+    configuration.standard            = "c++20";
+    configuration.warnings            = {"-Wall", "-Werror"};
+    configuration.optimization        = "-O2";
+    configuration.defines             = {"DEBUG", "VERSION=12"};
+    configuration.include_directories = {".", "source", "test"};
 
-    assert(create_compilation_flags_string(configuration) == "-std=c++20 -Wall -Werror -O2 -DDEBUG -DVERSION=12 -I.");
+    assert(create_compilation_flags_string(configuration) ==
+           "-std=c++20 -Wall -Werror -O2 -DDEBUG -DVERSION=12 -I. -Isource -Itest");
 }
 
 auto tests::test_executable_creation() -> void

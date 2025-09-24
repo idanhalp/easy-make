@@ -39,7 +39,9 @@ Example configuration:
     "standard": "c++23",
     "warnings": ["-Wall", "-Wextra"],
     "optimization": "-O2",
-    "files": ["src/main.cpp", "src/utils.cpp"],
+    "sources": {
+      "files": ["src/main.cpp", "src/utils.cpp"],
+    },
     "output": { "path": "build", "name": "my_app" }
   },
   {

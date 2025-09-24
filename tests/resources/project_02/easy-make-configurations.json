@@ -36,6 +36,7 @@
 		"defines": [
 			"DDEBUG"
 		],
+		"includeDirectories": [".", "source"],
 		"output": {
 			"name": "my_app_debug",
 			"path": "build"

@@ -81,8 +81,17 @@ configurations:
 
 * `defines`  
   * Preprocessor defines.  
-  * Example:  
+  * Example: 
+    ```json 
     "defines": ["-DDEBUG=1"]
+    ```
+
+* `includeDirectories`
+* Directories in includes search path.
+* Example:
+  ```json
+  "includeDirectories": [".", "source"]
+  ```  
 
 * `sources`  
   * files: list of files to compile.  

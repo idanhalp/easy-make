@@ -30,6 +30,7 @@ static auto test_regular_configurations() -> void
     assert(debug_configuration.name == "debug");
     assert(debug_configuration.optimization == "-O0");
     assert((debug_configuration.defines == std::vector<std::string>{"DDEBUG"}));
+    assert((debug_configuration.include_directories == std::vector<std::string>{".", "source"}));
     assert(debug_configuration.output_name == "my_app_debug");
     assert(debug_configuration.output_path == "build");
 }

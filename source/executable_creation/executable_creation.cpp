@@ -94,6 +94,17 @@ auto get_actual_configuration(std::string_view configuration_name, const std::ve
         }
     }
 
+    if (!original_configuration->include_directories.has_value())
+    {
+        const auto should_fall_back_to_default_value =
+            default_configuration_exists && default_configuration->include_directories.has_value();
+
+        if (should_fall_back_to_default_value)
+        {
+            actual_configuration.include_directories = default_configuration->include_directories;
+        }
+    }
+
     if (!original_configuration->source_files.has_value())
     {
         const auto should_fall_back_to_default_value =
@@ -274,7 +285,13 @@ auto create_compilation_flags_string(const Configuration& configuration) -> std:
         }
     }
 
-    result += "-I. "; // TODO: Add to configuration.
+    if (configuration.include_directories.has_value())
+    {
+        for (const auto& directory : *configuration.include_directories)
+        {
+            std::format_to(std::back_inserter(result), "-I{} ", directory);
+        }
+    }
 
     result.pop_back(); // remove trailing whitespace.
 
