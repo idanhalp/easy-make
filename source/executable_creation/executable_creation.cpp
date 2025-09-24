@@ -6,8 +6,8 @@
 #include <iterator>
 #include <print>
 #include <ranges>
+#include <set>
 #include <string>
-#include <unordered_set>
 #include <vector>
 
 #include "source/utils/utils.hpp"
@@ -170,7 +170,9 @@ auto get_actual_configuration(std::string_view configuration_name, const std::ve
 auto get_files_to_compile(const Configuration& configuration,
                           const std::filesystem::path& path_to_root) -> std::vector<std::string>
 {
-    std::unordered_set<std::string> files_to_compile;
+    // Uses `std::set` instead of `std::unordered_set`
+    // to guarantee sorted output.
+    std::set<std::string> files_to_compile;
 
     if (configuration.source_files.has_value())
     {

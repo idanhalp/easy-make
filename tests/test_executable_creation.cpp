@@ -67,6 +67,7 @@ static auto test_get_files_to_compile() -> void
     assert(std::ranges::contains(files_to_compile, "main.cpp"));
     assert(std::ranges::contains(files_to_compile, "source/f_1.cpp"));
     assert(std::ranges::contains(files_to_compile, "source/dir_2/f_4.cxx"));
+    assert(std::ranges::is_sorted(files_to_compile));
 }
 
 static auto test_create_compilation_flags_string() -> void
