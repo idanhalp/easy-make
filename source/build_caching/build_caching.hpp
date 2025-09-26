@@ -15,8 +15,6 @@ namespace build_caching
         std::vector<std::filesystem::path> files_to_compile;
     };
 
-    const std::string_view BUILD_DATA_FILE_NAME = "build-data.json";
-
     auto hash_file_contents(const std::filesystem::path& path) -> std::uint64_t;
 
     auto get_old_file_hashes(std::string_view configuration_name, const std::filesystem::path& path_to_root)

@@ -3,8 +3,9 @@
 #include <fstream>
 #include <ranges>
 
-#include "source/utils/utils.hpp"
 #include "third_party/json.hpp"
+
+#include "source/parameters/parameters.hpp"
 
 static auto parse_configuration(const nlohmann::json& json) -> Configuration
 {
@@ -94,7 +95,7 @@ static auto parse_configuration(const nlohmann::json& json) -> Configuration
 
 auto parse_configurations(const std::filesystem::path& path_to_configurations_file) -> std::vector<Configuration>
 {
-    std::ifstream configurations_file(path_to_configurations_file / utils::CONFIGURATIONS_FILE_NAME);
+    std::ifstream configurations_file(path_to_configurations_file / params::CONFIGURATIONS_FILE_NAME);
     nlohmann::json json;
 
     configurations_file >> json;

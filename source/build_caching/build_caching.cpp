@@ -8,7 +8,7 @@
 
 #include "third_party/json.hpp"
 
-#include "source/utils/utils.hpp"
+#include "source/parameters/parameters.hpp"
 
 auto build_caching::hash_file_contents(const std::filesystem::path& path) -> std::uint64_t
 {
@@ -39,7 +39,7 @@ auto build_caching::get_old_file_hashes(const std::string_view configuration_nam
     -> std::unordered_map<std::filesystem::path, std::uint64_t>
 {
     const auto build_data_file_path =
-        path_to_root / utils::BUILD_DIRECTORY_NAME / configuration_name / BUILD_DATA_FILE_NAME;
+        path_to_root / params::BUILD_DIRECTORY_NAME / configuration_name / params::BUILD_DATA_FILE_NAME;
 
     if (!std::filesystem::exists(build_data_file_path))
     {
@@ -126,11 +126,11 @@ auto build_caching::write_info_to_build_data_file(
     const std::filesystem::path& path_to_root,
     const std::unordered_map<std::filesystem::path, std::uint64_t>& hashes) -> void
 {
-    std::filesystem::create_directory(path_to_root / utils::BUILD_DIRECTORY_NAME);
-    std::filesystem::create_directory(path_to_root / utils::BUILD_DIRECTORY_NAME / configuration_name);
+    std::filesystem::create_directory(path_to_root / params::BUILD_DIRECTORY_NAME);
+    std::filesystem::create_directory(path_to_root / params::BUILD_DIRECTORY_NAME / configuration_name);
 
     const auto build_data_file_path =
-        path_to_root / utils::BUILD_DIRECTORY_NAME / configuration_name / BUILD_DATA_FILE_NAME;
+        path_to_root / params::BUILD_DIRECTORY_NAME / configuration_name / params::BUILD_DATA_FILE_NAME;
 
     std::ofstream data_file(build_data_file_path, std::ios::trunc); // Override file if it exists.
 

@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "source/build_caching/build_caching.hpp"
-#include "source/utils/utils.hpp"
+#include "source/parameters/parameters.hpp"
 
 auto get_actual_configuration(std::string_view configuration_name, const std::vector<Configuration>& configurations)
     -> std::expected<Configuration, std::string>
@@ -23,7 +23,7 @@ auto get_actual_configuration(std::string_view configuration_name, const std::ve
     if (!configuration_exists)
     {
         return std::unexpected(std::format("'{}' does not contain a configuration named '{}'.",
-                                           utils::CONFIGURATIONS_FILE_NAME.native(), configuration_name));
+                                           params::CONFIGURATIONS_FILE_NAME.native(), configuration_name));
     }
 
     if (original_configuration->name == "default")
@@ -303,7 +303,7 @@ create_object_files(const Configuration& configuration,
                     const std::vector<std::filesystem::path>& files_to_compile) -> std::optional<std::string>
 {
     const auto compilation_flags = create_compilation_flags_string(configuration);
-    const auto object_files_path = path_to_root / utils::BUILD_DIRECTORY_NAME / *configuration.name;
+    const auto object_files_path = path_to_root / params::BUILD_DIRECTORY_NAME / *configuration.name;
 
     switch (files_to_compile.size())
     {
@@ -347,7 +347,7 @@ static auto link_object_files(const Configuration& configuration,
                                         ? std::format("{}/{}", *configuration.output_path, *configuration.output_name)
                                         : *configuration.output_name;
 
-    const auto object_files_path = path_to_root / utils::BUILD_DIRECTORY_NAME / *configuration.name;
+    const auto object_files_path = path_to_root / params::BUILD_DIRECTORY_NAME / *configuration.name;
     const auto link_command =
         std::format("{} {}/*.o -o {}", *configuration.compiler, object_files_path.native(), actual_output_path);
 

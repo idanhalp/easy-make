@@ -3,6 +3,8 @@
 #include <filesystem>
 #include <string_view>
 
+#include "source/parameters/parameters.hpp"
+
 auto utils::check_if_configurations_file_exists(const std::filesystem::path& path) -> bool
 {
     const auto path_is_valid = std::filesystem::exists(path) && std::filesystem::is_directory(path);
@@ -15,7 +17,7 @@ auto utils::check_if_configurations_file_exists(const std::filesystem::path& pat
     for (const auto& entry : std::filesystem::directory_iterator(path))
     {
         const auto is_configurations_file =
-            entry.is_regular_file() && entry.path().filename() == CONFIGURATIONS_FILE_NAME;
+            entry.is_regular_file() && entry.path().filename() == params::CONFIGURATIONS_FILE_NAME;
 
         if (is_configurations_file)
         {

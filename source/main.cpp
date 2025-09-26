@@ -5,6 +5,7 @@
 
 #include "source/configuration_parsing/configuration_parsing.hpp"
 #include "source/executable_creation/executable_creation.hpp"
+#include "source/parameters/parameters.hpp"
 #include "source/utils/utils.hpp"
 
 auto main(const int num_of_args, const char* arguments[]) -> int
@@ -14,7 +15,7 @@ auto main(const int num_of_args, const char* arguments[]) -> int
 
     if (!configuration_file_exists)
     {
-        std::println("The file '{}' could not be located in '{}'.", utils::CONFIGURATIONS_FILE_NAME.native(),
+        std::println("The file '{}' could not be located in '{}'.", params::CONFIGURATIONS_FILE_NAME.native(),
                      current_path.string());
 
         return EXIT_FAILURE;
