@@ -4,6 +4,7 @@
 #include <expected>
 #include <filesystem>
 #include <optional>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -12,8 +13,8 @@
 auto get_actual_configuration(std::string_view configuration_name, const std::vector<Configuration>& configurations)
     -> std::expected<Configuration, std::string>;
 
-auto get_files_to_compile(const Configuration& configuration,
-                          const std::filesystem::path& path_to_root) -> std::vector<std::string>;
+auto get_source_files(const Configuration& configuration,
+                      const std::filesystem::path& path_to_root) -> std::vector<std::filesystem::path>;
 
 auto create_compilation_flags_string(const Configuration& configuration) -> std::string;
 

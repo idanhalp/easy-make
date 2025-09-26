@@ -6,10 +6,11 @@
 #include <iterator>
 #include <print>
 #include <ranges>
-#include <set>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
+#include "source/build_caching/build_caching.hpp"
 #include "source/utils/utils.hpp"
 
 auto get_actual_configuration(std::string_view configuration_name, const std::vector<Configuration>& configurations)
@@ -22,7 +23,7 @@ auto get_actual_configuration(std::string_view configuration_name, const std::ve
     if (!configuration_exists)
     {
         return std::unexpected(std::format("'{}' does not contain a configuration named '{}'.",
-                                           utils::CONFIGURATIONS_FILE_NAME, configuration_name));
+                                           utils::CONFIGURATIONS_FILE_NAME.native(), configuration_name));
     }
 
     if (original_configuration->name == "default")
@@ -178,12 +179,10 @@ auto get_actual_configuration(std::string_view configuration_name, const std::ve
     return actual_configuration;
 }
 
-auto get_files_to_compile(const Configuration& configuration,
-                          const std::filesystem::path& path_to_root) -> std::vector<std::string>
+auto get_source_files(const Configuration& configuration,
+                      const std::filesystem::path& path_to_root) -> std::vector<std::filesystem::path>
 {
-    // Uses `std::set` instead of `std::unordered_set`
-    // to guarantee sorted output.
-    std::set<std::string> files_to_compile;
+    std::unordered_set<std::filesystem::path> files_to_compile;
 
     if (configuration.source_files.has_value())
     {
@@ -298,6 +297,79 @@ auto create_compilation_flags_string(const Configuration& configuration) -> std:
     return result;
 }
 
+static auto
+create_object_files(const Configuration& configuration,
+                    const std::filesystem::path& path_to_root,
+                    const std::vector<std::filesystem::path>& files_to_compile) -> std::optional<std::string>
+{
+    const auto compilation_flags = create_compilation_flags_string(configuration);
+    const auto object_files_path = path_to_root / utils::BUILD_DIRECTORY_NAME / *configuration.name;
+
+    switch (files_to_compile.size())
+    {
+    case 0:
+        std::println("No files to compile.");
+        break;
+
+    case 1:
+        std::println("Compiling one file.");
+        break;
+
+    default:
+        std::println("Compiling {} files.", files_to_compile.size());
+        break;
+    }
+
+    for (const auto& [index, file_name] : std::views::enumerate(files_to_compile) | std::views::as_const)
+    {
+        const auto object_file_hash = std::hash<std::string>{}(file_name);
+        const auto compilation_command =
+            std::format("{} {} -c {} -o {}/{}.o", *configuration.compiler, compilation_flags, file_name.native(),
+                        object_files_path.native(), object_file_hash);
+
+        std::println("{}) Compiling '{}'.", index + 1, file_name.native());
+
+        const auto compiled_successfully = std::system(compilation_command.c_str()) == EXIT_SUCCESS;
+
+        if (!compiled_successfully)
+        {
+            return std::format("Compilation of '{}' failed.", file_name.native());
+        }
+    }
+
+    return std::nullopt;
+}
+
+static auto link_object_files(const Configuration& configuration,
+                              const std::filesystem::path& path_to_root) -> std::optional<std::string>
+{
+    const auto actual_output_path = configuration.output_path.has_value()
+                                        ? std::format("{}/{}", *configuration.output_path, *configuration.output_name)
+                                        : *configuration.output_name;
+
+    const auto object_files_path = path_to_root / utils::BUILD_DIRECTORY_NAME / *configuration.name;
+    const auto link_command =
+        std::format("{} {}/*.o -o {}", *configuration.compiler, object_files_path.native(), actual_output_path);
+
+    if (configuration.output_path.has_value())
+    {
+        std::filesystem::create_directory(*configuration.output_path);
+    }
+
+    std::println("Linking.");
+
+    const auto linking_successful = std::system(link_command.c_str()) == EXIT_SUCCESS;
+
+    if (!linking_successful)
+    {
+        return "Linking failed.";
+    }
+
+    std::println("Finished linking. Executable located at '{}'.", actual_output_path);
+
+    return std::nullopt;
+}
+
 auto create_executable(const std::string_view configuration_name,
                        const std::filesystem::path& path_to_root,
                        const std::vector<Configuration>& configurations) -> std::optional<std::string>
@@ -309,41 +381,25 @@ auto create_executable(const std::string_view configuration_name,
         return actual_configuration.error();
     }
 
-    std::filesystem::create_directory(utils::BUILD_DIRECTORY_NAME);
+    const auto source_files = get_source_files(*actual_configuration, path_to_root);
+    const auto [files_to_delete, files_to_compile] =
+        build_caching::handle_build_caching(*actual_configuration->name, path_to_root, source_files);
 
-    const auto compilation_flags = create_compilation_flags_string(*actual_configuration);
-    const auto files_to_compile  = get_files_to_compile(*actual_configuration, path_to_root);
+    // TODO: delete object files of files that don't exist anymore (`files_to_delete`).
 
-    // Create object files.
-    for (const auto& [index, file_name] : std::views::enumerate(files_to_compile) | std::views::as_const)
+    const auto compilation_error = create_object_files(*actual_configuration, path_to_root, files_to_compile);
+
+    if (compilation_error.has_value())
     {
-        const auto object_file_hash = std::hash<std::string>{}(file_name);
-        const auto compilation_command =
-            std::format("{} {} -c {} -o {}/{}.o", *actual_configuration->compiler, compilation_flags, file_name,
-                        utils::BUILD_DIRECTORY_NAME, object_file_hash);
-
-        std::println("{}) Compiling '{}'.", index + 1, file_name);
-        std::system(compilation_command.c_str());
+        return *compilation_error;
     }
 
-    // Link.
-    const auto actual_output_path =
-        actual_configuration->output_path.has_value()
-            ? std::format("{}/{}", *actual_configuration->output_path, *actual_configuration->output_name)
-            : *actual_configuration->output_name;
+    const auto linking_error = link_object_files(*actual_configuration, path_to_root);
 
-    const auto link_command = std::format("{} {}/*.o -o {}", *actual_configuration->compiler,
-                                          utils::BUILD_DIRECTORY_NAME, actual_output_path);
-
-    std::println("Linking.");
-
-    if (actual_configuration->output_path.has_value())
+    if (linking_error.has_value())
     {
-        std::filesystem::create_directory(*actual_configuration->output_path);
+        return *linking_error;
     }
-
-    std::system(link_command.c_str());
-    std::println("Compilation finished. Executable located at '{}'.", actual_output_path);
 
     return std::nullopt;
 }

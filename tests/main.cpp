@@ -12,6 +12,7 @@ auto main() -> int
     tests::test_get_chosen_configuration();
     tests::test_utils();
     tests::test_executable_creation();
+    tests::test_build_caching();
 
     std::println("All tests passed.");
 }

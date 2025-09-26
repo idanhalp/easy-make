@@ -1,0 +1,14 @@
+[
+    {
+        "path": "f_1.cpp",
+        "hash": 1234
+    },
+    {
+        "path": "f_2.cpp",
+        "hash": 4321
+    },
+    {
+        "path": "dir/f_3.cpp",
+        "hash": 1357
+    }
+]

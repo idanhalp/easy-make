@@ -54,7 +54,7 @@ static auto test_actual_configuration_with_overridden_fields() -> void
     assert(actual_configuration->optimization == "-O3");
 }
 
-static auto test_get_files_to_compile() -> void
+static auto test_get_source_files() -> void
 {
     const auto project_5_path       = tests::utils::get_path_to_resources_project(5);
     const auto configurations       = parse_configurations(project_5_path);
@@ -62,12 +62,11 @@ static auto test_get_files_to_compile() -> void
 
     assert(actual_configuration.has_value());
 
-    const auto files_to_compile = get_files_to_compile(*actual_configuration, project_5_path);
+    const auto files_to_compile = get_source_files(*actual_configuration, project_5_path);
     assert(files_to_compile.size() == 3);
     assert(std::ranges::contains(files_to_compile, "main.cpp"));
     assert(std::ranges::contains(files_to_compile, "source/f_1.cpp"));
     assert(std::ranges::contains(files_to_compile, "source/dir_2/f_4.cxx"));
-    assert(std::ranges::is_sorted(files_to_compile));
 }
 
 static auto test_create_compilation_flags_string() -> void
@@ -91,7 +90,7 @@ auto tests::test_executable_creation() -> void
     test_get_actual_configuration_without_compiler();
     test_get_actual_configuration_without_output_name();
     test_actual_configuration_with_overridden_fields();
-    test_get_files_to_compile();
+    test_get_source_files();
     test_create_compilation_flags_string();
 
     std::println("Done.");

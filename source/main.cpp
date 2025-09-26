@@ -14,7 +14,7 @@ auto main(const int num_of_args, const char* arguments[]) -> int
 
     if (!configuration_file_exists)
     {
-        std::println("The file '{}' could not be located in '{}'.", utils::CONFIGURATIONS_FILE_NAME,
+        std::println("The file '{}' could not be located in '{}'.", utils::CONFIGURATIONS_FILE_NAME.native(),
                      current_path.string());
 
         return EXIT_FAILURE;
