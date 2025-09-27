@@ -5,6 +5,7 @@
 
 #include "source/argument_parsing/argument_parsing.hpp"
 #include "source/commands/clean/clean.hpp"
+#include "source/commands/print_version/print_version.hpp"
 #include "source/configuration_parsing/configuration_parsing.hpp"
 #include "source/executable_creation/executable_creation.hpp"
 #include "source/parameters/parameters.hpp"
@@ -33,7 +34,13 @@ auto main(const int num_of_arguments, const char* arguments[]) -> int
 
         return EXIT_FAILURE;
     }
-    else if (argument_info->clean_object_files)
+
+    if (argument_info->print_version) // Do not exit after printing.
+    {
+        commands::print_version();
+    }
+
+    if (argument_info->clean_object_files)
     {
         return commands::clean(argument_info->configuration_name, current_path);
     }
@@ -41,4 +48,6 @@ auto main(const int num_of_arguments, const char* arguments[]) -> int
     {
         return create_executable(argument_info->configuration_name, current_path, configurations);
     }
+
+    return EXIT_SUCCESS;
 }

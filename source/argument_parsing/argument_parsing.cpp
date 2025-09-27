@@ -4,9 +4,10 @@
 #include <ranges>
 #include <string_view>
 
-static const auto CLEAN_FLAG = "--clean";
+static const auto CLEAN_FLAG         = "--clean";
+static const auto PRINT_VERSION_FLAG = "--version";
 
-ArgumentInfo::ArgumentInfo() : configuration_name("default"), clean_object_files(false) {}
+ArgumentInfo::ArgumentInfo() : configuration_name("default"), clean_object_files(false), print_version(false) {}
 
 auto parse_arguments(const std::span<const char* const> arguments) -> std::expected<ArgumentInfo, std::string>
 {
@@ -42,6 +43,18 @@ auto parse_arguments(const std::span<const char* const> arguments) -> std::expec
             }
 
             argument_info.clean_object_files = true;
+        }
+        else if (argument == PRINT_VERSION_FLAG)
+        {
+            const auto already_supplied_print_version_flag = argument_info.clean_object_files;
+
+            if (already_supplied_print_version_flag)
+            {
+                return std::unexpected(
+                    std::format("Error: Flag '{}' was supplied more than once.", PRINT_VERSION_FLAG));
+            }
+
+            argument_info.print_version = true;
         }
         else
         {

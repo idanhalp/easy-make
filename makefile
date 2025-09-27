@@ -16,6 +16,7 @@ TESTS_SRCS = \
 	source/argument_parsing/configuration_parsing.cpp\
 	source/build_caching/build_caching.cpp\
 	source/commands/clean/clean.cpp\
+	source/commands/print_version/print_version.cpp\
 	source/configuration_parsing/configuration_parsing.cpp\
 	source/executable_creation/executable_creation.cpp\
 	source/utils/utils.cpp
@@ -25,6 +26,7 @@ EASYMAKE_SRCS = \
 	source/argument_parsing/argument_parsing.cpp\
 	source/build_caching/build_caching.cpp\
 	source/commands/clean/clean.cpp\
+	source/commands/print_version/print_version.cpp\
 	source/configuration_parsing/configuration_parsing.cpp\
 	source/executable_creation/executable_creation.cpp\
 	source/utils/utils.cpp

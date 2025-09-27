@@ -11,6 +11,7 @@ struct ArgumentInfo
 
     std::string configuration_name;
     bool clean_object_files;
+    bool print_version;
 };
 
 auto parse_arguments(std::span<const char* const> arguments) -> std::expected<ArgumentInfo, std::string>;

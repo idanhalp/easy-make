@@ -1,0 +1,9 @@
+#ifndef SOURCE_COMMANDS_PRINT_VERSION_PRINT_VERSION_HPP
+#define SOURCE_COMMANDS_PRINT_VERSION_PRINT_VERSION_HPP
+
+namespace commands
+{
+    auto print_version() -> void;
+}
+
+#endif // SOURCE_COMMANDS_PRINT_VERSION_PRINT_VERSION_HPP
