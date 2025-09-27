@@ -26,11 +26,6 @@ auto get_actual_configuration(std::string_view configuration_name, const std::ve
                                            params::CONFIGURATIONS_FILE_NAME.native(), configuration_name));
     }
 
-    if (original_configuration->name == "default")
-    {
-        return *original_configuration;
-    }
-
     const auto default_configuration = std::ranges::find_if(
         configurations, [&](const Configuration& configuration) { return configuration.name == "default"; });
     const auto default_configuration_exists = default_configuration != configurations.end();

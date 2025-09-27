@@ -54,6 +54,16 @@ static auto test_actual_configuration_with_overridden_fields() -> void
     assert(actual_configuration->optimization == "-O3");
 }
 
+static auto test_actual_configuration_with_invalid_default() -> void
+{
+    Configuration configuration;
+    configuration.name     = "default";
+    configuration.compiler = "clang++";
+
+    const auto result = get_actual_configuration(*configuration.name, {configuration});
+    assert(!result.has_value() && result.error() == "Could not resolve 'output.name' for 'default'.");
+}
+
 static auto test_get_source_files() -> void
 {
     const auto project_5_path       = tests::utils::get_path_to_resources_project(5);
@@ -90,6 +100,7 @@ auto tests::test_executable_creation() -> void
     test_get_actual_configuration_without_compiler();
     test_get_actual_configuration_without_output_name();
     test_actual_configuration_with_overridden_fields();
+    test_actual_configuration_with_invalid_default();
     test_get_source_files();
     test_create_compilation_flags_string();
 
