@@ -12,7 +12,7 @@ ArgumentInfo::ArgumentInfo() : configuration_name("default"), clean_object_files
 auto parse_arguments(const std::span<const char* const> arguments) -> std::expected<ArgumentInfo, std::string>
 {
     ArgumentInfo argument_info;
-    auto name_already_supplied = false;
+    auto name_already_specified = false;
 
     for (const std::string_view argument : arguments | std::views::drop(1)) // First argument is the program's name.
     {
@@ -21,37 +21,37 @@ auto parse_arguments(const std::span<const char* const> arguments) -> std::expec
 
         if (argument_is_configuration_name)
         {
-            if (name_already_supplied)
+            if (name_already_specified)
             {
                 const auto& name_1 = argument_info.configuration_name;
                 const auto& name_2 = argument;
 
                 return std::unexpected(
-                    std::format("Error: More than one configuration name supplied ('{}' and '{}')", name_1, name_2));
+                    std::format("Error: More than one configuration name specified ('{}' and '{}')", name_1, name_2));
             }
 
             argument_info.configuration_name = argument;
-            name_already_supplied            = true;
+            name_already_specified           = true;
         }
         else if (argument == CLEAN_FLAG)
         {
-            const auto already_supplied_clean_flag = argument_info.clean_object_files;
+            const auto already_specified_clean_flag = argument_info.clean_object_files;
 
-            if (already_supplied_clean_flag)
+            if (already_specified_clean_flag)
             {
-                return std::unexpected(std::format("Error: Flag '{}' was supplied more than once.", CLEAN_FLAG));
+                return std::unexpected(std::format("Error: Flag '{}' was specified more than once.", CLEAN_FLAG));
             }
 
             argument_info.clean_object_files = true;
         }
         else if (argument == PRINT_VERSION_FLAG)
         {
-            const auto already_supplied_print_version_flag = argument_info.clean_object_files;
+            const auto already_specified_print_version_flag = argument_info.print_version;
 
-            if (already_supplied_print_version_flag)
+            if (already_specified_print_version_flag)
             {
                 return std::unexpected(
-                    std::format("Error: Flag '{}' was supplied more than once.", PRINT_VERSION_FLAG));
+                    std::format("Error: Flag '{}' was specified more than once.", PRINT_VERSION_FLAG));
             }
 
             argument_info.print_version = true;
@@ -60,6 +60,18 @@ auto parse_arguments(const std::span<const char* const> arguments) -> std::expec
         {
             return std::unexpected(std::format("Error: Unknown argument '{}'.", argument));
         }
+    }
+
+    if (argument_info.clean_object_files && argument_info.print_version)
+    {
+        return std::unexpected(
+            std::format("Error: '{}' and '{}' cannot be used together.", CLEAN_FLAG, PRINT_VERSION_FLAG));
+    }
+
+    if (name_already_specified && argument_info.print_version)
+    {
+        return std::unexpected(std::format("Error: Cannot specify a configuration name ('{}') when '{}' is used.",
+                                           argument_info.configuration_name, PRINT_VERSION_FLAG));
     }
 
     return argument_info;

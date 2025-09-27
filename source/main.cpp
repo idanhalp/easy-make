@@ -35,14 +35,13 @@ auto main(const int num_of_arguments, const char* arguments[]) -> int
         return EXIT_FAILURE;
     }
 
-    if (argument_info->print_version) // Do not exit after printing.
-    {
-        commands::print_version();
-    }
-
     if (argument_info->clean_object_files)
     {
         return commands::clean(argument_info->configuration_name, current_path);
+    }
+    else if (argument_info->print_version)
+    {
+        return commands::print_version();
     }
     else
     {

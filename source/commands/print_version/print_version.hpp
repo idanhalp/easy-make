@@ -3,7 +3,7 @@
 
 namespace commands
 {
-    auto print_version() -> void;
+    auto print_version() -> int;
 }
 
 #endif // SOURCE_COMMANDS_PRINT_VERSION_PRINT_VERSION_HPP
