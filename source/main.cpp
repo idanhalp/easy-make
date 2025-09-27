@@ -3,12 +3,14 @@
 #include <print>
 #include <vector>
 
+#include "source/argument_parsing/argument_parsing.hpp"
+#include "source/commands/clean/clean.hpp"
 #include "source/configuration_parsing/configuration_parsing.hpp"
 #include "source/executable_creation/executable_creation.hpp"
 #include "source/parameters/parameters.hpp"
 #include "source/utils/utils.hpp"
 
-auto main(const int num_of_args, const char* arguments[]) -> int
+auto main(const int num_of_arguments, const char* arguments[]) -> int
 {
     const auto current_path              = std::filesystem::absolute(std::filesystem::current_path());
     const auto configuration_file_exists = utils::check_if_configurations_file_exists(current_path);
@@ -21,26 +23,22 @@ auto main(const int num_of_args, const char* arguments[]) -> int
         return EXIT_FAILURE;
     }
 
-    const auto configurations       = parse_configurations(current_path);
-    const auto chosen_configuration = utils::get_chosen_configuration(std::vector(arguments, arguments + num_of_args));
-    const auto arguments_are_valid  = chosen_configuration.has_value();
+    const auto configurations      = parse_configurations(current_path);
+    const auto argument_info       = parse_arguments(std::span(arguments, num_of_arguments));
+    const auto arguments_are_valid = argument_info.has_value();
 
     if (!arguments_are_valid)
     {
-        // Print something...
+        std::println("{}", argument_info.error());
+
         return EXIT_FAILURE;
     }
-
-    const auto executable_creation_error_message =
-        create_executable(*chosen_configuration, current_path, configurations);
-    const auto created_executable_successfully = !executable_creation_error_message.has_value();
-
-    if (!created_executable_successfully)
+    else if (argument_info->clean_object_files)
     {
-        std::println("{}", *executable_creation_error_message);
-
-        return EXIT_FAILURE;
+        return commands::clean(argument_info->configuration_name, current_path);
     }
-
-    return EXIT_SUCCESS;
+    else
+    {
+        return create_executable(argument_info->configuration_name, current_path, configurations);
+    }
 }

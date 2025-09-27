@@ -20,6 +20,6 @@ auto create_compilation_flags_string(const Configuration& configuration) -> std:
 
 auto create_executable(std::string_view configuration_name,
                        const std::filesystem::path& path_to_root,
-                       const std::vector<Configuration>& configurations) -> std::optional<std::string>;
+                       const std::vector<Configuration>& configurations) -> int;
 
 #endif // SOURCE_EXECUTABLE_CREATION_EXECUTABLE_CREATION_HPP

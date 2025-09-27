@@ -372,13 +372,15 @@ static auto link_object_files(const Configuration& configuration,
 
 auto create_executable(const std::string_view configuration_name,
                        const std::filesystem::path& path_to_root,
-                       const std::vector<Configuration>& configurations) -> std::optional<std::string>
+                       const std::vector<Configuration>& configurations) -> int
 {
     const auto actual_configuration = get_actual_configuration(configuration_name, configurations);
 
     if (!actual_configuration.has_value())
     {
-        return actual_configuration.error();
+        std::println("{}", actual_configuration.error());
+
+        return EXIT_FAILURE;
     }
 
     const auto source_files = get_source_files(*actual_configuration, path_to_root);
@@ -391,15 +393,19 @@ auto create_executable(const std::string_view configuration_name,
 
     if (compilation_error.has_value())
     {
-        return *compilation_error;
+        std::println("{}", *compilation_error);
+
+        return EXIT_FAILURE;
     }
 
     const auto linking_error = link_object_files(*actual_configuration, path_to_root);
 
     if (linking_error.has_value())
     {
-        return *linking_error;
+        std::println("{}", *linking_error);
+
+        return EXIT_FAILURE;
     }
 
-    return std::nullopt;
+    return EXIT_SUCCESS;
 }
