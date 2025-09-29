@@ -12,6 +12,7 @@
 
 #include "source/build_caching/build_caching.hpp"
 #include "source/parameters/parameters.hpp"
+#include "source/utils/utils.hpp"
 
 auto get_actual_configuration(std::string_view configuration_name, const std::vector<Configuration>& configurations)
     -> std::expected<Configuration, std::string>
@@ -317,10 +318,9 @@ create_object_files(const Configuration& configuration,
 
     for (const auto& [index, file_name] : std::views::enumerate(files_to_compile) | std::views::as_const)
     {
-        const auto object_file_hash = std::hash<std::string>{}(file_name);
-        const auto compilation_command =
-            std::format("{} {} -c {} -o {}/{}.o", *configuration.compiler, compilation_flags, file_name.native(),
-                        object_files_path.native(), object_file_hash);
+        const auto object_file_name    = utils::get_object_file_name(file_name);
+        const auto compilation_command = std::format("{} {} -c {} -o {}/{}", *configuration.compiler, compilation_flags,
+                                                     file_name.native(), object_files_path.native(), object_file_name);
 
         std::println("{}) Compiling '{}'.", index + 1, file_name.native());
 

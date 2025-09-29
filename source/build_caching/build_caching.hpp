@@ -27,7 +27,9 @@ namespace build_caching
                              const std::unordered_map<std::filesystem::path, std::uint64_t>& new_file_hashes)
         -> std::vector<std::filesystem::path>;
 
-    auto get_files_to_compile(const std::unordered_map<std::filesystem::path, std::uint64_t>& old_file_hashes,
+    auto get_files_to_compile(std::string_view configuration_name,
+                              const std::filesystem::path& path_to_root,
+                              const std::unordered_map<std::filesystem::path, std::uint64_t>& old_file_hashes,
                               const std::unordered_map<std::filesystem::path, std::uint64_t>& new_file_hashes)
         -> std::vector<std::filesystem::path>;
 

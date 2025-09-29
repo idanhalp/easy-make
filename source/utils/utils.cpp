@@ -1,6 +1,8 @@
 #include "source/utils/utils.hpp"
 
+#include <algorithm>
 #include <filesystem>
+#include <format>
 #include <string_view>
 
 #include "source/parameters/parameters.hpp"
@@ -28,3 +30,10 @@ auto utils::check_if_configurations_file_exists(const std::filesystem::path& pat
     return false;
 }
 
+auto utils::get_object_file_name(const std::filesystem::path& path) -> std::string
+{
+    auto result = std::format("{}.o", path.string());
+    std::ranges::replace(result, std::filesystem::path::preferred_separator, '-');
+
+    return result;
+}

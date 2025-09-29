@@ -9,6 +9,7 @@
 #include "third_party/json.hpp"
 
 #include "source/parameters/parameters.hpp"
+#include "source/utils/utils.hpp"
 
 auto build_caching::hash_file_contents(const std::filesystem::path& path) -> std::uint64_t
 {
@@ -99,6 +100,8 @@ auto build_caching::get_files_to_delete(const std::unordered_map<std::filesystem
 }
 
 auto build_caching::get_files_to_compile(
+    std::string_view configuration_name,
+    const std::filesystem::path& path_to_root,
     const std::unordered_map<std::filesystem::path, std::uint64_t>& old_file_hashes,
     const std::unordered_map<std::filesystem::path, std::uint64_t>& new_file_hashes)
     -> std::vector<std::filesystem::path>
@@ -107,7 +110,10 @@ auto build_caching::get_files_to_compile(
 
     for (const auto& [file, contents_hash] : new_file_hashes)
     {
-        const auto old_object_file_exists = old_file_hashes.contains(file);
+        const auto object_file_path =
+            path_to_root / params::BUILD_DIRECTORY_NAME / configuration_name / utils::get_object_file_name(file);
+
+        const auto old_object_file_exists = old_file_hashes.contains(file) && std::filesystem::exists(object_file_path);
         const auto file_contents_changed  = old_object_file_exists && old_file_hashes.at(file) != contents_hash;
 
         if (!old_object_file_exists || file_contents_changed)
@@ -155,10 +161,11 @@ auto build_caching::handle_build_caching(const std::string_view configuration_na
                                          const std::filesystem::path& path_to_root,
                                          const std::vector<std::filesystem::path>& source_files) -> Info
 {
-    const auto old_file_hashes  = get_old_file_hashes(configuration_name, path_to_root);
-    const auto new_file_hashes  = get_new_file_hashes(source_files);
-    const auto files_to_delete  = get_files_to_delete(old_file_hashes, new_file_hashes);
-    const auto files_to_compile = get_files_to_compile(old_file_hashes, new_file_hashes);
+    const auto old_file_hashes = get_old_file_hashes(configuration_name, path_to_root);
+    const auto new_file_hashes = get_new_file_hashes(source_files);
+    const auto files_to_delete = get_files_to_delete(old_file_hashes, new_file_hashes);
+    const auto files_to_compile =
+        get_files_to_compile(configuration_name, path_to_root, old_file_hashes, new_file_hashes);
 
     write_info_to_build_data_file(configuration_name, path_to_root, new_file_hashes);
 

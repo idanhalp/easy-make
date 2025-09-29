@@ -1,8 +1,9 @@
 .vscode
 *.o
 build/
-easy-make-build/
 easy-make-configurations.json
 format-all-files.py
 run-tests
 easy-make
+easy-make-build/**
+!tests/resources/project_08/easy-make-build/conf/*.o

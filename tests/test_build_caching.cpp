@@ -70,18 +70,24 @@ static auto test_get_files_to_delete() -> void
 
 static auto test_get_files_to_compile() -> void
 {
-    const std::unordered_map<std::filesystem::path, std::uint64_t> old_file_hashes{
-        {"a", 1}, {"b", 2}, {"c", 3}, {"d", 4}, {"aa", 11}};
+    const std::unordered_map<std::filesystem::path, std::uint64_t> old_file_hashes{{"a", 1}, {"b", 2},   {"c", 3},
+                                                                                   {"d", 4}, {"aa", 11}, {"bb", 22}};
 
-    const std::unordered_map<std::filesystem::path, std::uint64_t> new_file_hashes{
-        {"a", 1}, {"b", 2}, {"c", 4}, {"e", 5}, {"aa", 12}};
+    const std::unordered_map<std::filesystem::path, std::uint64_t> new_file_hashes{{"a", 1}, {"b", 2},   {"c", 4},
+                                                                                   {"e", 5}, {"aa", 12}, {"bb", 22}};
 
-    const auto files_to_compile = build_caching::get_files_to_compile(old_file_hashes, new_file_hashes);
+    const auto path_to_project_8 = tests::utils::get_path_to_resources_project(8);
+    const auto files_to_compile =
+        build_caching::get_files_to_compile("conf", path_to_project_8, old_file_hashes, new_file_hashes);
 
-    assert(files_to_compile.size() == 3);
-    assert(std::ranges::contains(files_to_compile, "c"));
-    assert(std::ranges::contains(files_to_compile, "e"));
-    assert(std::ranges::contains(files_to_compile, "aa"));
+    assert(files_to_compile.size() == 4);
+    assert(std::ranges::contains(files_to_compile, "a"));   // Hash didn't change, no object file.
+    assert(!std::ranges::contains(files_to_compile, "b"));  // Hash didn't change,  object file exists.
+    assert(std::ranges::contains(files_to_compile, "c"));   // Hash changed, object file exists.
+    assert(std::ranges::contains(files_to_compile, "e"));   // No previous hash, object file exists.
+    assert(std::ranges::contains(files_to_compile, "aa"));  // Hash changed, object file exists.
+    assert(!std::ranges::contains(files_to_compile, "bb")); // Hash didn't change,  object file exists.
+
     assert(std::ranges::is_sorted(files_to_compile));
 }
 
