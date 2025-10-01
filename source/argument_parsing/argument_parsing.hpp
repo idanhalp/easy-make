@@ -10,7 +10,8 @@ struct ArgumentInfo
     ArgumentInfo();
 
     std::string configuration_name;
-    bool clean_object_files;
+    bool clean_configuration;
+    bool clean_all_configurations;
     bool print_version;
 };
 

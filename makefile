@@ -7,15 +7,17 @@ TARGETS = tests easy-make
 # Sources
 TESTS_SRCS = \
 	tests/main.cpp\
+	tests/test_argument_parsing.cpp\
 	tests/test_build_caching.cpp\
 	tests/test_check_if_configuration_file_exists.cpp\
 	tests/test_configuration_parsing.cpp\
 	tests/test_executable_creation.cpp\
 	tests/test_utils.cpp\
 	tests/utils/utils.cpp\
-	source/argument_parsing/configuration_parsing.cpp\
+	source/argument_parsing/argument_parsing.cpp\
 	source/build_caching/build_caching.cpp\
 	source/commands/clean/clean.cpp\
+	source/commands/clean_all/clean_all.cpp\
 	source/commands/print_version/print_version.cpp\
 	source/configuration_parsing/configuration_parsing.cpp\
 	source/executable_creation/executable_creation.cpp\
@@ -26,6 +28,7 @@ EASYMAKE_SRCS = \
 	source/argument_parsing/argument_parsing.cpp\
 	source/build_caching/build_caching.cpp\
 	source/commands/clean/clean.cpp\
+	source/commands/clean_all/clean_all.cpp\
 	source/commands/print_version/print_version.cpp\
 	source/configuration_parsing/configuration_parsing.cpp\
 	source/executable_creation/executable_creation.cpp\
