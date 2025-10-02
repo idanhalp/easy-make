@@ -38,11 +38,11 @@ auto main(const int num_of_arguments, const char* arguments[]) -> int
 
     if (argument_info->clean_configuration)
     {
-        return commands::clean(argument_info->configuration_name, current_path);
+        return commands::clean(argument_info->configuration_name, configurations, current_path);
     }
     if (argument_info->clean_all_configurations)
     {
-        return commands::clean_all(current_path);
+        return commands::clean_all(configurations, current_path);
     }
     else if (argument_info->print_version)
     {
