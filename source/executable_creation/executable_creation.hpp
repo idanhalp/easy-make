@@ -6,11 +6,17 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <vector>
 
 #include "source/configuration_parsing/configuration_parsing.hpp"
 
-auto get_actual_configuration(std::string_view configuration_name, const std::vector<Configuration>& configurations)
+auto check_names_validity(const std::vector<Configuration>& configurations) -> std::optional<std::string>;
+
+auto check_parents_validity(const std::unordered_map<std::string, Configuration>& name_to_configuration)
+    -> std::optional<std::string>;
+
+auto get_actual_configuration(std::string configuration_name, const std::vector<Configuration>& configurations)
     -> std::expected<Configuration, std::string>;
 
 auto get_source_files(const Configuration& configuration,

@@ -9,6 +9,105 @@
 #include "source/executable_creation/executable_creation.hpp"
 #include "tests/utils/utils.hpp"
 
+static auto test_check_names_validity_1() -> void
+{
+    std::vector<Configuration> configurations(3);
+    configurations[0].name = "name-1";
+    configurations[2].name = "name-3";
+
+    const auto names_error = check_names_validity(configurations);
+    assert(names_error.has_value() && *names_error == "Error: The 2nd configuration does not have a name.");
+}
+
+static auto test_check_names_validity_2() -> void
+{
+    std::vector<Configuration> configurations(3);
+    configurations[0].name = "name-1";
+    configurations[1].name = "name-1";
+    configurations[2].name = "name-3";
+
+    const auto names_error = check_names_validity(configurations);
+    assert(names_error.has_value() &&
+           *names_error == "Error: Both the 1st and 2nd configurations have 'name-1' as name.");
+}
+
+static auto test_check_names_validity_3() -> void
+{
+    std::vector<Configuration> configurations(3);
+    configurations[0].name = "name-1";
+    configurations[1].name = "name-2";
+    configurations[2].name = "name-3";
+
+    const auto names_error = check_names_validity(configurations);
+    assert(!names_error.has_value());
+}
+
+static auto test_check_parents_validity_1() -> void
+{
+    std::vector<Configuration> configurations(3);
+    configurations[0].name = "name-1";
+    configurations[1].name = "name-2";
+    configurations[2].name = "name-3";
+
+    configurations[1].parent = "name-2";
+    configurations[2].parent = "name-1";
+
+    std::unordered_map<std::string, Configuration> name_to_configuration;
+
+    for (const auto& configuration : configurations)
+    {
+        name_to_configuration[*configuration.name] = configuration;
+    }
+
+    const auto parent_error = check_parents_validity(name_to_configuration);
+    assert(parent_error.has_value() && *parent_error == "Error: Configuration 'name-2' has itself as a parent.");
+}
+
+static auto test_check_parents_validity_2() -> void
+{
+    std::vector<Configuration> configurations(3);
+    configurations[0].name = "name-1";
+    configurations[1].name = "name-2";
+    configurations[2].name = "name-3";
+
+    configurations[0].parent = "non-existent";
+    configurations[1].parent = "name-1";
+    configurations[2].parent = "name-1";
+
+    std::unordered_map<std::string, Configuration> name_to_configuration;
+
+    for (const auto& configuration : configurations)
+    {
+        name_to_configuration[*configuration.name] = configuration;
+    }
+
+    const auto parent_error = check_parents_validity(name_to_configuration);
+    assert(parent_error.has_value() &&
+           *parent_error ==
+               "Error: Configuration 'name-1' has a non-existent configuration as its parent ('non-existent').");
+}
+
+static auto test_check_parents_validity_3() -> void
+{
+    std::vector<Configuration> configurations(3);
+    configurations[0].name = "name-1";
+    configurations[1].name = "name-2";
+    configurations[2].name = "name-3";
+
+    configurations[1].parent = "name-1";
+    configurations[2].parent = "name-2";
+
+    std::unordered_map<std::string, Configuration> name_to_configuration;
+
+    for (const auto& configuration : configurations)
+    {
+        name_to_configuration[*configuration.name] = configuration;
+    }
+
+    const auto parent_error = check_parents_validity(name_to_configuration);
+    assert(!parent_error.has_value());
+}
+
 static auto test_get_actual_configuration_without_compiler() -> void
 {
     Configuration configuration;
@@ -31,7 +130,7 @@ static auto test_get_actual_configuration_without_output_name() -> void
     assert(!result.has_value() && result.error() == "Could not resolve 'output.name' for 'test-configuration'.");
 }
 
-static auto test_actual_configuration_with_overridden_fields() -> void
+static auto test_actual_configuration_with_overridden_fields_1() -> void
 {
     Configuration default_configuration;
     default_configuration.name         = "default";
@@ -42,6 +141,7 @@ static auto test_actual_configuration_with_overridden_fields() -> void
 
     Configuration test_configuration;
     test_configuration.name         = "test";
+    test_configuration.parent       = "default";
     test_configuration.optimization = "-O3";
     test_configuration.output_name  = "test-output";
 
@@ -52,6 +152,33 @@ static auto test_actual_configuration_with_overridden_fields() -> void
     assert(actual_configuration->output_name == "test-output");
     assert(actual_configuration->output_path == "build");
     assert(actual_configuration->optimization == "-O3");
+}
+
+static auto test_actual_configuration_with_overridden_fields_2() -> void
+{
+    Configuration configuration_0;
+    configuration_0.name        = "config-0";
+    configuration_0.compiler    = "g++";
+    configuration_0.defines     = {"DEF0"};
+    configuration_0.output_name = "output.exe";
+
+    Configuration configuration_1;
+    configuration_1.name    = "config-1";
+    configuration_1.parent  = "config-0";
+    configuration_1.defines = {"DEF0", "DEF1"};
+
+    Configuration configuration_2;
+    configuration_2.name     = "config-2";
+    configuration_2.parent   = "config-1";
+    configuration_2.compiler = "clang++";
+
+    const auto actual_configuration =
+        get_actual_configuration("config-2", {configuration_0, configuration_1, configuration_2});
+    assert(actual_configuration.has_value());
+    assert(actual_configuration->name == configuration_2.name);
+    assert(actual_configuration->compiler == configuration_2.compiler);
+    assert(actual_configuration->defines == configuration_1.defines);
+    assert(actual_configuration->output_name == configuration_0.output_name);
 }
 
 static auto test_actual_configuration_with_invalid_default() -> void
@@ -97,9 +224,16 @@ auto tests::test_executable_creation() -> void
 {
     std::println("Running `create_executable_tests` tests.");
 
+    test_check_names_validity_1();
+    test_check_names_validity_2();
+    test_check_names_validity_3();
+    test_check_parents_validity_1();
+    test_check_parents_validity_2();
+    test_check_parents_validity_3();
     test_get_actual_configuration_without_compiler();
     test_get_actual_configuration_without_output_name();
-    test_actual_configuration_with_overridden_fields();
+    test_actual_configuration_with_overridden_fields_1();
+    test_actual_configuration_with_overridden_fields_2();
     test_actual_configuration_with_invalid_default();
     test_get_source_files();
     test_create_compilation_flags_string();

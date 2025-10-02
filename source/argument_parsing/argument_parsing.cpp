@@ -11,7 +11,7 @@ static const std::string_view CLEAN_ALL_FLAG     = "--clean-all";
 static const std::string_view PRINT_VERSION_FLAG = "--version";
 
 ArgumentInfo::ArgumentInfo()
-    : configuration_name("default"), clean_configuration(false), clean_all_configurations(false), print_version(false)
+    : configuration_name(""), clean_configuration(false), clean_all_configurations(false), print_version(false)
 {
 }
 
@@ -50,19 +50,24 @@ static auto
 check_for_flags_incompatible_with_name_argument(const bool configuration_name_specified,
                                                 const ArgumentInfo& argument_info) -> std::optional<std::string>
 {
-    if (!configuration_name_specified)
-    {
-        return std::nullopt;
-    }
-    else if (argument_info.clean_all_configurations)
+    if (configuration_name_specified && argument_info.clean_all_configurations)
     {
         return std::format("Error: Cannot specify a configuration name ('{}') when '{}' is used.",
                            argument_info.configuration_name, CLEAN_ALL_FLAG);
     }
-    else if (argument_info.print_version)
+    else if (configuration_name_specified && argument_info.print_version)
     {
         return std::format("Error: Cannot specify a configuration name ('{}') when '{}' is used.",
                            argument_info.configuration_name, PRINT_VERSION_FLAG);
+    }
+    else if (!configuration_name_specified && argument_info.clean_configuration)
+    {
+        return std::format("Error: Must specify a configuration name when '{}' is used.", CLEAN_FLAG);
+    }
+    else if (!configuration_name_specified && !argument_info.clean_configuration &&
+             !argument_info.clean_all_configurations && !argument_info.print_version)
+    {
+        return "Error: Must specify a configuration name when building.";
     }
     else
     {

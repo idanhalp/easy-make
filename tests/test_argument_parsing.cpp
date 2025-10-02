@@ -18,18 +18,6 @@ static auto test_valid_arguments() -> void
     assert(!argument_info->print_version);
 }
 
-static auto test_defaults() -> void
-{
-    const std::vector arguments = {"./easy-make"};
-    const auto argument_info    = parse_arguments(arguments);
-
-    assert(argument_info.has_value());
-    assert(argument_info->configuration_name == "default");
-    assert(!argument_info->clean_configuration);
-    assert(!argument_info->clean_all_configurations);
-    assert(!argument_info->print_version);
-}
-
 static auto test_valid_configuration_1() -> void
 {
     const std::vector arguments = {"./easy-make", "release"};
@@ -144,12 +132,29 @@ static auto test_no_configuration_name_with_print_version() -> void
            argument_info.error() == "Error: Cannot specify a configuration name ('name') when '--version' is used.");
 }
 
+static auto test_no_configuration_name_for_build() -> void
+{
+    const std::vector arguments = {"./easy-make"};
+    const auto argument_info    = parse_arguments(arguments);
+
+    assert(!argument_info.has_value() &&
+           argument_info.error() == "Error: Must specify a configuration name when building.");
+}
+
+static auto test_no_configuration_name_for_clean() -> void
+{
+    const std::vector arguments = {"./easy-make", "--clean"};
+    const auto argument_info    = parse_arguments(arguments);
+
+    assert(!argument_info.has_value() &&
+           argument_info.error() == "Error: Must specify a configuration name when '--clean' is used.");
+}
+
 auto tests::test_argument_parsing() -> void
 {
     std::println("Running `prase_arguments` tests.");
 
     test_valid_arguments();
-    test_defaults();
     test_valid_configuration_1();
     test_valid_configuration_2();
     test_valid_configuration_3();
@@ -162,6 +167,8 @@ auto tests::test_argument_parsing() -> void
     test_conflicting_flags_3();
     test_no_configuration_name_with_clean_all();
     test_no_configuration_name_with_print_version();
+    test_no_configuration_name_for_build();
+    test_no_configuration_name_for_clean();
 
     std::println("Done.");
 }

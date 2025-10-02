@@ -9,6 +9,7 @@
 struct Configuration
 {
     std::optional<std::string> name;
+    std::optional<std::string> parent;
     std::optional<std::string> compiler;
     std::optional<std::string> standard;
     std::optional<std::vector<std::string>> warnings;

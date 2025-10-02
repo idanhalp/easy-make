@@ -1,12 +1,12 @@
 #include "source/executable_creation/executable_creation.hpp"
 
-#include <algorithm>
 #include <cstdlib> // `std::system`
 #include <format>
 #include <iterator>
 #include <print>
 #include <ranges>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -14,12 +14,165 @@
 #include "source/parameters/parameters.hpp"
 #include "source/utils/utils.hpp"
 
-auto get_actual_configuration(std::string_view configuration_name, const std::vector<Configuration>& configurations)
+auto check_names_validity(const std::vector<Configuration>& configurations) -> std::optional<std::string>
+{
+    std::unordered_map<std::string, std::ptrdiff_t> configuration_to_index;
+
+    for (const auto [index, configuration] : std::views::enumerate(configurations) | std::views::as_const)
+    {
+        const auto actual_index = index + 1;
+        if (!configuration.name.has_value())
+        {
+            return std::format("Error: The {}{} configuration does not have a name.", actual_index,
+                               utils::get_ordinal_indicator(actual_index));
+        }
+
+        const auto& name = *configuration.name;
+
+        if (configuration_to_index.contains(name))
+        {
+            return std::format("Error: Both the {}{} and {}{} configurations have '{}' as name.",
+                               configuration_to_index.at(name),
+                               utils::get_ordinal_indicator(configuration_to_index.at(name)), actual_index,
+                               utils::get_ordinal_indicator(actual_index), name);
+        }
+
+        configuration_to_index[name] = index + 1;
+    }
+
+    return std::nullopt;
+}
+
+auto check_parents_validity(const std::unordered_map<std::string, Configuration>& name_to_configuration)
+    -> std::optional<std::string>
+{
+    for (const auto& configuration : std::views::values(name_to_configuration))
+    {
+        if (configuration.parent == configuration.name)
+        {
+            return std::format("Error: Configuration '{}' has itself as a parent.", *configuration.name);
+        }
+
+        if (configuration.parent.has_value() && !name_to_configuration.contains(*configuration.parent))
+        {
+            return std::format("Error: Configuration '{}' has a non-existent configuration as its parent ('{}').",
+                               *configuration.name, *configuration.parent);
+        }
+    }
+
+    return std::nullopt;
+}
+
+static auto merge_configuration_with_parent(const Configuration& original, const Configuration& parent) -> Configuration
+{
+    auto result = original;
+
+    if (!original.compiler.has_value())
+    {
+        result.compiler = parent.compiler;
+    }
+
+    if (!original.standard.has_value())
+    {
+        result.standard = parent.standard;
+    }
+
+    if (!original.warnings.has_value())
+    {
+        result.warnings = parent.warnings;
+    }
+
+    if (!original.optimization.has_value())
+    {
+        result.optimization = parent.optimization;
+    }
+
+    if (!original.defines.has_value())
+    {
+        result.defines = parent.defines;
+    }
+
+    if (!original.include_directories.has_value())
+    {
+        result.include_directories = parent.include_directories;
+    }
+
+    if (!original.source_files.has_value())
+    {
+        result.source_files = parent.source_files;
+    }
+
+    if (!original.source_directories.has_value())
+    {
+        result.source_directories = parent.source_directories;
+    }
+
+    if (!original.excluded_files.has_value())
+    {
+        result.excluded_files = parent.excluded_files;
+    }
+
+    if (!original.excluded_directories.has_value())
+    {
+        result.excluded_directories = parent.excluded_directories;
+    }
+
+    if (!original.output_name.has_value())
+    {
+        result.output_name = parent.output_name;
+    }
+
+    if (!original.output_path.has_value())
+    {
+        result.output_path = parent.output_path;
+    }
+
+    result.parent = parent.parent;
+
+    return result;
+}
+
+static auto check_configuration_validity(const Configuration& configuration) -> std::optional<std::string>
+{
+    if (!configuration.compiler.has_value())
+    {
+        return std::format("Could not resolve 'compiler' for '{}'.", *configuration.name);
+    }
+
+    if (!configuration.output_name.has_value())
+    {
+        return std::format("Could not resolve 'output.name' for '{}'.", *configuration.name);
+    }
+
+    return std::nullopt;
+}
+
+auto get_actual_configuration(std::string configuration_name, const std::vector<Configuration>& configurations)
     -> std::expected<Configuration, std::string>
 {
-    const auto original_configuration = std::ranges::find_if(
-        configurations, [&](const Configuration& configuration) { return configuration.name == configuration_name; });
-    const auto configuration_exists = original_configuration != configurations.end();
+    const auto name_error        = check_names_validity(configurations);
+    const auto name_error_exists = name_error.has_value();
+
+    if (name_error_exists)
+    {
+        return std::unexpected(*name_error);
+    }
+
+    const auto get_name_configuration_pair = [](const auto& config) { return std::make_pair(*config.name, config); };
+    const auto name_to_configuration =
+        configurations | std::views::transform(get_name_configuration_pair) | std::ranges::to<std::unordered_map>();
+
+    const auto parent_error        = check_parents_validity(name_to_configuration);
+    const auto parent_error_exists = parent_error.has_value();
+
+    if (parent_error_exists)
+    {
+        return std::unexpected(*parent_error);
+    }
+
+    // TODO: Make sure parents do not create a cycle.
+
+    const auto configuration_exists = name_to_configuration.contains(configuration_name);
 
     if (!configuration_exists)
     {
@@ -27,152 +180,22 @@ auto get_actual_configuration(std::string_view configuration_name, const std::ve
                                            params::CONFIGURATIONS_FILE_NAME.native(), configuration_name));
     }
 
-    const auto default_configuration = std::ranges::find_if(
-        configurations, [&](const Configuration& configuration) { return configuration.name == "default"; });
-    const auto default_configuration_exists = default_configuration != configurations.end();
-    auto actual_configuration               = *original_configuration;
+    auto current_configuration = name_to_configuration.at(configuration_name);
 
-    if (!original_configuration->compiler.has_value())
+    while (current_configuration.parent.has_value())
     {
-        const auto should_fall_back_to_default_value =
-            default_configuration_exists && default_configuration->compiler.has_value();
-
-        if (should_fall_back_to_default_value)
-        {
-            actual_configuration.compiler = default_configuration->compiler;
-        }
-        else
-        {
-            return std::unexpected(std::format("Could not resolve 'compiler' for '{}'.", configuration_name));
-        }
+        const auto& parent_configuration = name_to_configuration.at(*current_configuration.parent);
+        current_configuration            = merge_configuration_with_parent(current_configuration, parent_configuration);
     }
 
-    if (!original_configuration->standard.has_value())
-    {
-        const auto should_fall_back_to_default_value =
-            default_configuration_exists && default_configuration->standard.has_value();
+    const auto error_with_merged_configuration = check_configuration_validity(current_configuration);
 
-        if (should_fall_back_to_default_value)
-        {
-            actual_configuration.standard = default_configuration->standard;
-        }
+    if (error_with_merged_configuration.has_value())
+    {
+        return std::unexpected(*error_with_merged_configuration);
     }
 
-    if (!original_configuration->warnings.has_value())
-    {
-        const auto should_fall_back_to_default_value =
-            default_configuration_exists && default_configuration->warnings.has_value();
-
-        if (should_fall_back_to_default_value)
-        {
-            actual_configuration.warnings = default_configuration->warnings;
-        }
-    }
-
-    if (!original_configuration->optimization.has_value())
-    {
-        const auto should_fall_back_to_default_value =
-            default_configuration_exists && default_configuration->optimization.has_value();
-
-        if (should_fall_back_to_default_value)
-        {
-            actual_configuration.optimization = default_configuration->optimization;
-        }
-    }
-
-    if (!original_configuration->defines.has_value())
-    {
-        const auto should_fall_back_to_default_value =
-            default_configuration_exists && default_configuration->defines.has_value();
-
-        if (should_fall_back_to_default_value)
-        {
-            actual_configuration.defines = default_configuration->defines;
-        }
-    }
-
-    if (!original_configuration->include_directories.has_value())
-    {
-        const auto should_fall_back_to_default_value =
-            default_configuration_exists && default_configuration->include_directories.has_value();
-
-        if (should_fall_back_to_default_value)
-        {
-            actual_configuration.include_directories = default_configuration->include_directories;
-        }
-    }
-
-    if (!original_configuration->source_files.has_value())
-    {
-        const auto should_fall_back_to_default_value =
-            default_configuration_exists && default_configuration->source_files.has_value();
-
-        if (should_fall_back_to_default_value)
-        {
-            actual_configuration.source_files = default_configuration->source_files;
-        }
-    }
-
-    if (!original_configuration->source_directories.has_value())
-    {
-        const auto should_fall_back_to_default_value =
-            default_configuration_exists && default_configuration->source_directories.has_value();
-
-        if (should_fall_back_to_default_value)
-        {
-            actual_configuration.source_directories = default_configuration->source_directories;
-        }
-    }
-
-    if (!original_configuration->excluded_files.has_value())
-    {
-        const auto should_fall_back_to_default_value =
-            default_configuration_exists && default_configuration->excluded_files.has_value();
-
-        if (should_fall_back_to_default_value)
-        {
-            actual_configuration.excluded_files = default_configuration->excluded_files;
-        }
-    }
-
-    if (!original_configuration->excluded_directories.has_value())
-    {
-        const auto should_fall_back_to_default_value =
-            default_configuration_exists && default_configuration->excluded_directories.has_value();
-
-        if (should_fall_back_to_default_value)
-        {
-            actual_configuration.excluded_directories = default_configuration->excluded_directories;
-        }
-    }
-
-    if (!original_configuration->output_name.has_value())
-    {
-        const auto should_fall_back_to_default_value =
-            default_configuration_exists && default_configuration->output_name.has_value();
-
-        if (should_fall_back_to_default_value)
-        {
-            actual_configuration.output_name = default_configuration->output_name;
-        }
-        else
-        {
-            return std::unexpected(std::format("Could not resolve 'output.name' for '{}'.", configuration_name));
-        }
-    }
-
-    if (!original_configuration->output_path.has_value())
-    {
-        const auto should_fall_back_to_default_value =
-            default_configuration_exists && default_configuration->output_path.has_value();
-
-        if (should_fall_back_to_default_value)
-        {
-            actual_configuration.output_path = default_configuration->output_path;
-        }
-    }
-
-    return actual_configuration;
+    return current_configuration;
 }
 
 auto get_source_files(const Configuration& configuration,
@@ -369,7 +392,7 @@ auto create_executable(const std::string_view configuration_name,
                        const std::filesystem::path& path_to_root,
                        const std::vector<Configuration>& configurations) -> int
 {
-    const auto actual_configuration = get_actual_configuration(configuration_name, configurations);
+    const auto actual_configuration = get_actual_configuration(std::string(configuration_name), configurations);
 
     if (!actual_configuration.has_value())
     {

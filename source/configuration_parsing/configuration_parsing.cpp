@@ -16,6 +16,11 @@ static auto parse_configuration(const nlohmann::json& json) -> Configuration
         configuration.name = json["name"];
     }
 
+    if (json.contains("parent"))
+    {
+        configuration.parent = json["parent"];
+    }
+
     if (json.contains("compiler"))
     {
         configuration.compiler = json["compiler"];

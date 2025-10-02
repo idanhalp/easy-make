@@ -37,3 +37,27 @@ auto utils::get_object_file_name(const std::filesystem::path& path) -> std::stri
 
     return result;
 }
+
+auto utils::get_ordinal_indicator(int index) -> const char*
+{
+    // Special cases.
+    if (index == 11 || index == 12 || index == 13)
+    {
+        return "th";
+    }
+
+    switch (index % 10)
+    {
+    case 1:
+        return "st";
+
+    case 2:
+        return "nd";
+
+    case 3:
+        return "rd";
+
+    default:
+        return "th";
+    }
+}
