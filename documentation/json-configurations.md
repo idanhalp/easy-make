@@ -41,17 +41,17 @@ configurations:
 * `standard`  
   * C++ standard.  
   * Options: 
-    * c++98
-    * c++03
-    * c++11
-    * c++14
-    * c++17
-    * c++20
-    * c++23
-    * c++26  
+    * "98"
+    * "03"
+    * "11"
+    * "14"
+    * "17"
+    * "20"
+    * "23"
+    * "26"  
   * Example:
     ```json
-    "standard": "c++20"
+    "standard": "20"
     ```
 
 * `warnings`  
@@ -63,17 +63,22 @@ configurations:
 
 * `optimization`  
   * Compiler optimization flag.  
-  * Options: 
-    * -O0
-    * -O1
-    * -O2
-    * -O3
-    * -Ofast
-    * -Os
-    * /Od
-    * /O1
-    * /O2
-    * /Ox  
+  * Options:
+    * g++ and clang++ 
+      * "0"
+      * "1"
+      * "2"
+      * "3"
+      * "fast"
+    * cl
+      * "d"
+      * "1"
+      * "2"
+      * "3"
+      * "s"
+      * "x"
+
+
   * Example:
     ```json
     "optimization": "-O2"

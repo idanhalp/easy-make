@@ -116,7 +116,7 @@ static auto test_get_actual_configuration_without_compiler() -> void
     configuration.output_path = "build";
 
     const auto result = get_actual_configuration(*configuration.name, {configuration});
-    assert(!result.has_value() && result.error() == "Could not resolve 'compiler' for 'test-configuration'.");
+    assert(!result.has_value() && result.error() == "Error: Could not resolve 'compiler' for 'test-configuration'.");
 }
 
 static auto test_get_actual_configuration_without_output_name() -> void
@@ -127,7 +127,7 @@ static auto test_get_actual_configuration_without_output_name() -> void
     configuration.output_path = "build";
 
     const auto result = get_actual_configuration(*configuration.name, {configuration});
-    assert(!result.has_value() && result.error() == "Could not resolve 'output.name' for 'test-configuration'.");
+    assert(!result.has_value() && result.error() == "Error: Could not resolve 'output.name' for 'test-configuration'.");
 }
 
 static auto test_actual_configuration_with_overridden_fields_1() -> void
@@ -137,12 +137,12 @@ static auto test_actual_configuration_with_overridden_fields_1() -> void
     default_configuration.compiler     = "clang++";
     default_configuration.output_name  = "output";
     default_configuration.output_path  = "build";
-    default_configuration.optimization = "-O2";
+    default_configuration.optimization = "2";
 
     Configuration test_configuration;
     test_configuration.name         = "test";
     test_configuration.parent       = "default";
-    test_configuration.optimization = "-O3";
+    test_configuration.optimization = "3";
     test_configuration.output_name  = "test-output";
 
     const auto actual_configuration = get_actual_configuration("test", {test_configuration, default_configuration});
@@ -151,7 +151,7 @@ static auto test_actual_configuration_with_overridden_fields_1() -> void
     assert(actual_configuration->compiler == "clang++");
     assert(actual_configuration->output_name == "test-output");
     assert(actual_configuration->output_path == "build");
-    assert(actual_configuration->optimization == "-O3");
+    assert(actual_configuration->optimization == "3");
 }
 
 static auto test_actual_configuration_with_overridden_fields_2() -> void
@@ -181,14 +181,106 @@ static auto test_actual_configuration_with_overridden_fields_2() -> void
     assert(actual_configuration->output_name == configuration_0.output_name);
 }
 
-static auto test_actual_configuration_with_invalid_default() -> void
+static auto test_actual_configuration_with_invalid_name() -> void
 {
     Configuration configuration;
-    configuration.name     = "default";
-    configuration.compiler = "clang++";
+    configuration.compiler    = "g++";
+    configuration.name        = ""; // Invalid.
+    configuration.output_name = "test.exe";
 
     const auto result = get_actual_configuration(*configuration.name, {configuration});
-    assert(!result.has_value() && result.error() == "Could not resolve 'output.name' for 'default'.");
+    assert(!result.has_value() && result.error() == "Error: empty configuration name.");
+}
+
+static auto test_actual_configuration_with_invalid_compiler() -> void
+{
+    Configuration configuration;
+    configuration.compiler    = "rustc"; // Invalid!!
+    configuration.name        = "test";
+    configuration.output_name = "test.exe";
+
+    const auto result = get_actual_configuration(*configuration.name, {configuration});
+    assert(!result.has_value() && result.error() == "Error: Configuration 'test' - unknown compiler 'rustc'.");
+}
+
+static auto test_actual_configuration_with_invalid_standard() -> void
+{
+    Configuration configuration;
+    configuration.compiler    = "g++";
+    configuration.name        = "test";
+    configuration.output_name = "test.exe";
+    configuration.standard    = "27"; // Invalid
+
+    const auto result = get_actual_configuration(*configuration.name, {configuration});
+    assert(!result.has_value() && result.error() == "Error: Configuration 'test' - unknown standard '27'.");
+}
+
+static auto test_actual_configuration_with_invalid_warnings_1() -> void
+{
+    Configuration configuration;
+    configuration.compiler    = "cl";
+    configuration.name        = "test";
+    configuration.output_name = "test.exe";
+    configuration.warnings    = {"/W3", "/Wall", "/wd4996", "invalid-warning", "/WX"}; // Invalid
+
+    const auto result = get_actual_configuration(*configuration.name, {configuration});
+    assert(!result.has_value() &&
+           result.error() ==
+               "Error: Configuration 'test' - warning 'invalid-warning' is invalid when compiling with 'cl'.");
+}
+
+static auto test_actual_configuration_with_invalid_warnings_2() -> void
+{
+    Configuration configuration;
+    configuration.compiler    = "g++";
+    configuration.name        = "test";
+    configuration.output_name = "test.exe";
+    configuration.warnings    = {"-Wall", "-Wextra", "-pedantic", "invalid-warning", "-pedantic-errors"}; // Invalid
+
+    const auto result = get_actual_configuration(*configuration.name, {configuration});
+    assert(!result.has_value() &&
+           result.error() ==
+               "Error: Configuration 'test' - warning 'invalid-warning' is invalid when compiling with 'g++'.");
+}
+
+static auto test_actual_configuration_with_invalid_optimization() -> void
+{
+    Configuration configuration;
+    configuration.compiler     = "g++";
+    configuration.name         = "test";
+    configuration.output_name  = "test.exe";
+    configuration.optimization = "4";
+
+    const auto result = get_actual_configuration(*configuration.name, {configuration});
+    assert(!result.has_value() && result.error() == "Error: Configuration 'test' - unknown optimization '4'.");
+}
+
+static auto test_actual_configuration_with_mismatched_optimization_1() -> void
+{
+    Configuration configuration;
+    configuration.compiler     = "g++";
+    configuration.name         = "test";
+    configuration.output_name  = "test.exe";
+    configuration.optimization = "d";
+
+    const auto result = get_actual_configuration(*configuration.name, {configuration});
+    assert(!result.has_value() &&
+           result.error() == "Error: Configuration 'test' - optimization 'd' does not match specified compiler 'g++'. "
+                             "Did you mean to compile with 'cl' instead?");
+}
+
+static auto test_actual_configuration_with_mismatched_optimization_2() -> void
+{
+    Configuration configuration;
+    configuration.compiler     = "cl";
+    configuration.name         = "test";
+    configuration.output_name  = "test.exe";
+    configuration.optimization = "0";
+
+    const auto result = get_actual_configuration(*configuration.name, {configuration});
+    assert(!result.has_value() &&
+           result.error() == "Error: Configuration 'test' - optimization '0' does not match specified compiler 'cl'. "
+                             "Did you mean to compile with 'g++' or 'clang++' instead?");
 }
 
 static auto test_get_source_files() -> void
@@ -206,18 +298,32 @@ static auto test_get_source_files() -> void
     assert(std::ranges::contains(files_to_compile, "source/dir_2/f_4.cxx"));
 }
 
-static auto test_create_compilation_flags_string() -> void
+static auto test_create_compilation_flags_string_1() -> void
 {
     Configuration configuration;
     configuration.name                = "test";
-    configuration.standard            = "c++20";
+    configuration.compiler            = "clang++";
+    configuration.standard            = "20";
     configuration.warnings            = {"-Wall", "-Werror"};
-    configuration.optimization        = "-O2";
+    configuration.optimization        = "2";
     configuration.defines             = {"DEBUG", "VERSION=12"};
     configuration.include_directories = {".", "source", "test"};
 
     assert(create_compilation_flags_string(configuration) ==
            "-std=c++20 -Wall -Werror -O2 -DDEBUG -DVERSION=12 -I. -Isource -Itest");
+}
+
+static auto test_create_compilation_flags_string_2() -> void
+{
+    Configuration configuration;
+    configuration.name                = "test";
+    configuration.compiler            = "cl";
+    configuration.standard            = "98";
+    configuration.optimization        = "d";
+    configuration.defines             = {"DEBUG", "VERSION=12"};
+    configuration.include_directories = {".", "source", "test"};
+
+    assert(create_compilation_flags_string(configuration) == "-std=c++98 /Od -DDEBUG -DVERSION=12 -I. -Isource -Itest");
 }
 
 auto tests::test_executable_creation() -> void
@@ -234,9 +340,17 @@ auto tests::test_executable_creation() -> void
     test_get_actual_configuration_without_output_name();
     test_actual_configuration_with_overridden_fields_1();
     test_actual_configuration_with_overridden_fields_2();
-    test_actual_configuration_with_invalid_default();
+    test_actual_configuration_with_invalid_name();
+    test_actual_configuration_with_invalid_compiler();
+    test_actual_configuration_with_invalid_standard();
+    test_actual_configuration_with_invalid_warnings_1();
+    test_actual_configuration_with_invalid_warnings_2();
+    test_actual_configuration_with_invalid_optimization();
+    test_actual_configuration_with_mismatched_optimization_1();
+    test_actual_configuration_with_mismatched_optimization_2();
     test_get_source_files();
-    test_create_compilation_flags_string();
+    test_create_compilation_flags_string_1();
+    test_create_compilation_flags_string_2();
 
     std::println("Done.");
 }

@@ -36,7 +36,7 @@ Example configuration:
   { 
     "name": "default",
     "compiler": "g++",
-    "standard": "c++23",
+    "standard": "23",
     "warnings": ["-Wall", "-Wextra"],
     "optimization": "-O2",
     "sources": {

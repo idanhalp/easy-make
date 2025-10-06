@@ -132,21 +132,6 @@ static auto merge_configuration_with_parent(const Configuration& original, const
     return result;
 }
 
-static auto check_configuration_validity(const Configuration& configuration) -> std::optional<std::string>
-{
-    if (!configuration.compiler.has_value())
-    {
-        return std::format("Could not resolve 'compiler' for '{}'.", *configuration.name);
-    }
-
-    if (!configuration.output_name.has_value())
-    {
-        return std::format("Could not resolve 'output.name' for '{}'.", *configuration.name);
-    }
-
-    return std::nullopt;
-}
-
 auto get_actual_configuration(std::string configuration_name, const std::vector<Configuration>& configurations)
     -> std::expected<Configuration, std::string>
 {
@@ -188,7 +173,7 @@ auto get_actual_configuration(std::string configuration_name, const std::vector<
         current_configuration            = merge_configuration_with_parent(current_configuration, parent_configuration);
     }
 
-    const auto error_with_merged_configuration = check_configuration_validity(current_configuration);
+    const auto error_with_merged_configuration = current_configuration.check_for_errors();
 
     if (error_with_merged_configuration.has_value())
     {
@@ -279,7 +264,7 @@ auto create_compilation_flags_string(const Configuration& configuration) -> std:
 
     if (configuration.standard.has_value())
     {
-        std::format_to(std::back_inserter(result), "-std={} ", *configuration.standard);
+        std::format_to(std::back_inserter(result), "-std=c++{} ", *configuration.standard);
     }
 
     if (configuration.warnings.has_value())
@@ -292,7 +277,14 @@ auto create_compilation_flags_string(const Configuration& configuration) -> std:
 
     if (configuration.optimization.has_value())
     {
-        std::format_to(std::back_inserter(result), "{} ", *configuration.optimization);
+        if (*configuration.compiler == "cl") // MSVC.
+        {
+            std::format_to(std::back_inserter(result), "/O{} ", *configuration.optimization);
+        }
+        else
+        {
+            std::format_to(std::back_inserter(result), "-O{} ", *configuration.optimization);
+        }
     }
 
     if (configuration.defines.has_value())
