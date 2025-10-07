@@ -12,6 +12,7 @@ TESTS_SRCS = \
 	tests/test_check_if_configuration_file_exists.cpp\
 	tests/test_configuration_parsing.cpp\
 	tests/test_executable_creation.cpp\
+	tests/test_find_closest_word.cpp\
 	tests/test_utils.cpp\
 	tests/utils/utils.cpp\
 	source/argument_parsing/argument_parsing.cpp\
@@ -21,6 +22,7 @@ TESTS_SRCS = \
 	source/commands/print_version/print_version.cpp\
 	source/configuration_parsing/configuration_parsing.cpp\
 	source/executable_creation/executable_creation.cpp\
+	source/utils/find_closest_word.cpp\
 	source/utils/utils.cpp
 
 EASYMAKE_SRCS = \
@@ -32,6 +34,7 @@ EASYMAKE_SRCS = \
 	source/commands/print_version/print_version.cpp\
 	source/configuration_parsing/configuration_parsing.cpp\
 	source/executable_creation/executable_creation.cpp\
+	source/utils/find_closest_word.cpp\
 	source/utils/utils.cpp
 
 # Objects

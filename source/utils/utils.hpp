@@ -9,7 +9,9 @@
 namespace utils
 {
     auto check_if_configurations_file_exists(const std::filesystem::path& path) -> bool;
+
     auto get_object_file_name(const std::filesystem::path& path) -> std::string;
+
     auto get_ordinal_indicator(int index) -> const char*;
 }
 

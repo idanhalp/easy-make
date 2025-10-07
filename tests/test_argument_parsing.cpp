@@ -72,6 +72,15 @@ static auto test_invalid_flag() -> void
     assert(!argument_info.has_value() && argument_info.error() == "Error: Unknown argument '--nonexistent'.");
 }
 
+static auto test_invalid_flag_with_close_match() -> void
+{
+    const std::vector arguments = {"./easy-make", "--versio"};
+    const auto argument_info    = parse_arguments(arguments);
+
+    assert(!argument_info.has_value() &&
+           argument_info.error() == "Error: Unknown argument '--versio'. Did you mean '--version'?");
+}
+
 static auto test_duplicate_flag_1() -> void
 {
     const std::vector arguments = {"./easy-make", "debug", "--clean", "--clean"};
@@ -160,6 +169,7 @@ auto tests::test_argument_parsing() -> void
     test_valid_configuration_3();
     test_valid_configuration_4();
     test_invalid_flag();
+    test_invalid_flag_with_close_match();
     test_duplicate_flag_1();
     test_duplicate_flag_2();
     test_conflicting_flags_1();

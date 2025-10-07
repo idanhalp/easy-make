@@ -108,6 +108,45 @@ static auto test_check_parents_validity_3() -> void
     assert(!parent_error.has_value());
 }
 
+static auto test_get_actual_configuration_with_missing_configuration() -> void
+{
+    Configuration configuration;
+    configuration.output_name = "output";
+    configuration.output_path = "build";
+
+    Configuration configuration_1 = configuration;
+    Configuration configuration_2 = configuration;
+    Configuration configuration_3 = configuration;
+
+    configuration_1.name = "aaaa";
+    configuration_2.name = "bbbb";
+    configuration_3.name = "cccc";
+
+    const auto result = get_actual_configuration("dddd", {configuration_1, configuration_2, configuration_3});
+    assert(!result.has_value() &&
+           result.error() == "'easy-make-configurations.json' does not contain a configuration named 'dddd'.");
+}
+
+static auto test_get_actual_configuration_with_missing_configuration_with_close_match() -> void
+{
+    Configuration configuration;
+    configuration.output_name = "output";
+    configuration.output_path = "build";
+
+    Configuration configuration_1 = configuration;
+    Configuration configuration_2 = configuration;
+    Configuration configuration_3 = configuration;
+
+    configuration_1.name = "aaaa";
+    configuration_2.name = "bbbb";
+    configuration_3.name = "cccc";
+
+    const auto result = get_actual_configuration("ccdc", {configuration_1, configuration_2, configuration_3});
+    assert(!result.has_value() &&
+           result.error() ==
+               "'easy-make-configurations.json' does not contain a configuration named 'ccdc'. Did you mean 'cccc'?");
+}
+
 static auto test_get_actual_configuration_without_compiler() -> void
 {
     Configuration configuration;
@@ -336,6 +375,8 @@ auto tests::test_executable_creation() -> void
     test_check_parents_validity_1();
     test_check_parents_validity_2();
     test_check_parents_validity_3();
+    test_get_actual_configuration_with_missing_configuration();
+    test_get_actual_configuration_with_missing_configuration_with_close_match();
     test_get_actual_configuration_without_compiler();
     test_get_actual_configuration_without_output_name();
     test_actual_configuration_with_overridden_fields_1();

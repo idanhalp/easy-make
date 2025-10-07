@@ -12,6 +12,7 @@
 
 #include "source/build_caching/build_caching.hpp"
 #include "source/parameters/parameters.hpp"
+#include "source/utils/find_closest_word.hpp"
 #include "source/utils/utils.hpp"
 
 auto check_names_validity(const std::vector<Configuration>& configurations) -> std::optional<std::string>
@@ -55,8 +56,15 @@ auto check_parents_validity(const std::unordered_map<std::string, Configuration>
 
         if (configuration.parent.has_value() && !name_to_configuration.contains(*configuration.parent))
         {
-            return std::format("Error: Configuration '{}' has a non-existent configuration as its parent ('{}').",
-                               *configuration.name, *configuration.parent);
+            const auto configuration_names = std::views::keys(name_to_configuration) | std::ranges::to<std::vector>();
+            const auto closest_parent      = utils::find_closest_word(*configuration.parent, configuration_names);
+
+            return closest_parent.has_value()
+                       ? std::format("Error: Configuration '{}' has a non-existent configuration as its parent ('{}'). "
+                                     "Did you mean '{}'?",
+                                     *configuration.name, *configuration.parent, *closest_parent)
+                       : std::format("Error: Configuration '{}' has a non-existent configuration as its parent ('{}').",
+                                     *configuration.name, *configuration.parent);
         }
     }
 
@@ -161,8 +169,16 @@ auto get_actual_configuration(std::string configuration_name, const std::vector<
 
     if (!configuration_exists)
     {
-        return std::unexpected(std::format("'{}' does not contain a configuration named '{}'.",
-                                           params::CONFIGURATIONS_FILE_NAME.native(), configuration_name));
+        const auto configuration_names = std::views::keys(name_to_configuration) | std::ranges::to<std::vector>();
+        const auto closest_name        = utils::find_closest_word(configuration_name, configuration_names);
+        const auto error_message =
+            closest_name.has_value()
+                ? std::format("'{}' does not contain a configuration named '{}'. Did you mean '{}'?",
+                              params::CONFIGURATIONS_FILE_NAME.native(), configuration_name, *closest_name)
+                : std::format("'{}' does not contain a configuration named '{}'.",
+                              params::CONFIGURATIONS_FILE_NAME.native(), configuration_name);
+
+        return std::unexpected(error_message);
     }
 
     auto current_configuration = name_to_configuration.at(configuration_name);

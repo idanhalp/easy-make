@@ -6,9 +6,11 @@
 #include <string_view>
 #include <vector>
 
-static const std::string_view CLEAN_FLAG         = "--clean";
-static const std::string_view CLEAN_ALL_FLAG     = "--clean-all";
-static const std::string_view PRINT_VERSION_FLAG = "--version";
+#include "source/utils/find_closest_word.hpp"
+
+static const auto CLEAN_FLAG         = "--clean";
+static const auto CLEAN_ALL_FLAG     = "--clean-all";
+static const auto PRINT_VERSION_FLAG = "--version";
 
 ArgumentInfo::ArgumentInfo()
     : configuration_name(""), clean_configuration(false), clean_all_configurations(false), print_version(false)
@@ -135,7 +137,14 @@ auto parse_arguments(const std::span<const char* const> arguments) -> std::expec
         }
         else
         {
-            return std::unexpected(std::format("Error: Unknown argument '{}'.", argument));
+            const std::vector<std::string> FLAGS = {CLEAN_FLAG, CLEAN_ALL_FLAG, PRINT_VERSION_FLAG};
+            const auto closest_flag              = utils::find_closest_word(std::string(argument), FLAGS);
+            const auto error_message =
+                closest_flag.has_value()
+                    ? std::format("Error: Unknown argument '{}'. Did you mean '{}'?", argument, *closest_flag)
+                    : std::format("Error: Unknown argument '{}'.", argument);
+
+            return std::unexpected(error_message);
         }
     }
 

@@ -8,6 +8,7 @@
 #include "third_party/json.hpp"
 
 #include "source/parameters/parameters.hpp"
+#include "source/utils/find_closest_word.hpp"
 
 auto Configuration::check_for_errors() const -> std::optional<std::string>
 {
@@ -34,12 +35,17 @@ auto Configuration::check_for_errors() const -> std::optional<std::string>
     }
 
     // --- Compiler ---
-    static const auto valid_compilers = {"g++", "clang++", "cl"};
-    const auto compiler_is_valid      = std::ranges::contains(valid_compilers, *compiler);
+    static const std::vector<std::string> valid_compilers = {"g++", "clang++", "cl"};
+    const auto compiler_is_valid                          = std::ranges::contains(valid_compilers, *compiler);
 
     if (!compiler_is_valid)
     {
-        return std::format("Error: Configuration '{}' - unknown compiler '{}'.", *name, *compiler);
+        const auto closest_compiler = utils::find_closest_word(*compiler, valid_compilers);
+
+        return closest_compiler.has_value()
+                   ? std::format("Error: Configuration '{}' - unknown compiler '{}'. Did you mean '{}'?", *name,
+                                 *compiler, *closest_compiler)
+                   : std::format("Error: Configuration '{}' - unknown compiler '{}'.", *name, *compiler);
     }
 
     // --- Standard ---
