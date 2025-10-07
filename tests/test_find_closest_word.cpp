@@ -1,36 +1,26 @@
-#include "tests/tests.hpp"
-
-#include <cassert>
-#include <print>
+#include "third_party/doctest/doctest.hpp"
 
 #include "source/utils/find_closest_word.hpp"
 
-static auto test_find_closest_word() -> void
+TEST_SUITE("find_closest_word")
 {
+    TEST_CASE("Exact match")
     {
-        // Exact match.
         const auto result = utils::find_closest_word("release", {"release", "test", "easy-make"});
-        assert(result.has_value() && *result == "release");
+        REQUIRE(result.has_value());
+        CHECK_EQ(*result, "release");
     }
 
+    TEST_CASE("Close match")
     {
-        // Close match.
         const auto result = utils::find_closest_word("relea", {"release", "test", "easy-make"});
-        assert(result.has_value() && *result == "release");
+        REQUIRE(result.has_value());
+        CHECK_EQ(*result, "release");
     }
 
+    TEST_CASE("Too far match")
     {
-        // Too far.
         const auto result = utils::find_closest_word("t", {"release", "test", "easy-make"});
-        assert(!result.has_value());
+        REQUIRE_FALSE(result.has_value());
     }
-}
-
-auto tests::test_find_closest_word() -> void
-{
-    std::println("Running `find_closest_word` tests.");
-
-    ::test_find_closest_word();
-
-    std::println("Done.");
 }

@@ -5,7 +5,7 @@
 #include <fstream>
 #include <ranges>
 
-#include "third_party/json.hpp"
+#include "third_party/nlohmann/json.hpp"
 
 #include "source/parameters/parameters.hpp"
 #include "source/utils/find_closest_word.hpp"
