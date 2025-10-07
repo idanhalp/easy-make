@@ -5,7 +5,7 @@
 
 namespace params
 {
-    const std::string_view VERSION = "0.2.0";
+    const std::string_view VERSION = "0.3.0";
 }
 
 #endif // SOURCE_PARAMETERS_VERSION_HPP
