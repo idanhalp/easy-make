@@ -35,8 +35,10 @@ auto Configuration::check_for_errors() const -> std::optional<std::string>
     }
 
     // --- Compiler ---
-    static const std::vector<std::string> valid_compilers = {"g++", "clang++", "cl"};
-    const auto compiler_is_valid                          = std::ranges::contains(valid_compilers, *compiler);
+    static const auto valid_compilers = (params::ENABLE_MSVC ? std::vector<std::string>{"g++", "clang++", "cl"}
+                                                             : std::vector<std::string>{"g++", "clang++"});
+
+    const auto compiler_is_valid = std::ranges::contains(valid_compilers, *compiler);
 
     if (!compiler_is_valid)
     {
@@ -92,7 +94,7 @@ auto Configuration::check_for_errors() const -> std::optional<std::string>
             (*compiler == "cl" && std::ranges::contains(gcc_and_clang_optimizations, *optimization)) ||
             (*compiler != "cl" && std::ranges::contains(msvc_optimizations, *optimization));
 
-        if (optimization_mismatched_with_compiler)
+        if (params::ENABLE_MSVC && optimization_mismatched_with_compiler)
         {
             const auto correct_compiler = *compiler == "cl" ? "'g++' or 'clang++'" : "'cl'";
 

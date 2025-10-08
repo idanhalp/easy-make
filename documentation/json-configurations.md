@@ -32,7 +32,7 @@ configurations:
   * Options: 
     * g++
     * clang++
-    * cl  
+    <!-- * cl   -->
   * Example:
     ```json
     "compiler": "g++"
@@ -64,19 +64,19 @@ configurations:
 * `optimization`  
   * Compiler optimization flag.  
   * Options:
-    * g++ and clang++ 
+    <!-- * g++ and clang++  -->
       * "0"
       * "1"
       * "2"
       * "3"
       * "fast"
-    * cl
+    <!-- * cl
       * "d"
       * "1"
       * "2"
       * "3"
       * "s"
-      * "x"
+      * "x" -->
 
 
   * Example:

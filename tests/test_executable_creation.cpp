@@ -6,6 +6,7 @@
 
 #include "source/configuration_parsing/configuration_parsing.hpp"
 #include "source/executable_creation/executable_creation.hpp"
+#include "source/parameters/parameters.hpp"
 #include "tests/utils/utils.hpp"
 
 TEST_SUITE("executable_creation")
@@ -257,6 +258,7 @@ TEST_SUITE("executable_creation")
 
     TEST_CASE("Actual configuration invalid warnings and optimizations")
     {
+        if (params::ENABLE_MSVC)
         {
             Configuration configuration;
             configuration.compiler    = "cl";
@@ -295,6 +297,7 @@ TEST_SUITE("executable_creation")
             CHECK_EQ(result.error(), "Error: Configuration 'test' - unknown optimization '4'.");
         }
 
+        if (params::ENABLE_MSVC)
         {
             Configuration configuration;
             configuration.compiler     = "g++";
@@ -308,6 +311,7 @@ TEST_SUITE("executable_creation")
                                      "'g++'. Did you mean to compile with 'cl' instead?");
         }
 
+        if (params::ENABLE_MSVC)
         {
             Configuration configuration;
             configuration.compiler     = "cl";
@@ -353,6 +357,7 @@ TEST_SUITE("executable_creation")
                      "-std=c++20 -Wall -Werror -O2 -DDEBUG -DVERSION=12 -I. -Isource -Itest");
         }
 
+        if (params::ENABLE_MSVC)
         {
             Configuration configuration;
             configuration.name                = "test";
