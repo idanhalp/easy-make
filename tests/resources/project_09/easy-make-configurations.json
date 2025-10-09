@@ -1,0 +1,9 @@
+[
+	{
+		"name": "test",
+		"compiler": "clang++"
+		"output": {
+			"name": "output.exe"
+		}
+	}
+]

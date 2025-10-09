@@ -1,0 +1,47 @@
+[
+  {
+    "name": "default",
+    "compiler": "g++",
+    "standard": "23",
+    "warnings": ["-Wall", "-Wextra"],
+    "includeDirectories": ["."],
+    "sources": {
+      "directories": ["."]
+    },
+    "exclude": {
+      "directories": ["tests/resources"]
+    }
+  },
+  {
+    "name": "test",
+    "parent": "default",
+    "optimization": "0",
+    "exclude": {
+      "files": ["source/main.cpp"]
+    },
+    "output": {
+      "name": "run-tests"
+    }
+  },
+  {
+    "name": "easy-make",
+    "parent": "default",
+    "exclude": {
+      "directories": ["tests/"]
+    },
+    "output": {
+      "name": "easy-make"
+    }
+  },
+  {
+    "name": "debug",
+    "parent": "easy-make",
+    "optimization": "0"
+  },
+  {
+    "name": "release",
+    "parent": "easy-make",
+    "optimization": "3",
+    "warnings": ["-Wall", "-Wextra", "-Werror"]
+  }
+]

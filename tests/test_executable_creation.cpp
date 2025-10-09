@@ -328,11 +328,14 @@ TEST_SUITE("executable_creation")
 
     TEST_CASE("Get source files")
     {
-        const auto project_5_path       = tests::utils::get_path_to_resources_project(5);
-        const auto configurations       = parse_configurations(project_5_path);
-        const auto actual_configuration = get_actual_configuration("default", configurations);
+        const auto project_5_path = tests::utils::get_path_to_resources_project(5);
+        const auto configurations = parse_configurations(project_5_path);
 
-        CHECK(actual_configuration.has_value());
+        REQUIRE(configurations.has_value());
+
+        const auto actual_configuration = get_actual_configuration("default", *configurations);
+
+        REQUIRE(actual_configuration.has_value());
 
         const auto files_to_compile = get_source_files(*actual_configuration, project_5_path);
         CHECK_EQ(files_to_compile.size(), 3);

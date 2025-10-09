@@ -1,0 +1,13 @@
+[
+  {
+    "name": "test",
+    "compiler": "clang++",
+    "sources": {
+      "files": ["main.cpp", "foo.cpp"],
+      "directori": ["test"]
+    },
+    "output": {
+      "name": "output.exe"
+    }
+  }
+]

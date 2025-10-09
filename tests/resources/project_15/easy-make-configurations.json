@@ -1,0 +1,15 @@
+[
+  {
+    "name": "test",
+    "compiler": "clang++",
+    "sources": {
+      "files": ["main.cpp", "foo.cpp"]
+    },
+    "exclude": {
+      "file": []
+    },
+    "output": {
+      "name": "output.exe"
+    }
+  }
+]

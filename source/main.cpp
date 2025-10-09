@@ -25,7 +25,16 @@ auto main(const int num_of_arguments, const char* arguments[]) -> int
         return EXIT_FAILURE;
     }
 
-    const auto configurations      = parse_configurations(current_path);
+    const auto configurations              = parse_configurations(current_path);
+    const auto configuration_file_is_valid = configurations.has_value();
+
+    if (!configuration_file_is_valid)
+    {
+        std::println("{}", configurations.error());
+
+        return EXIT_FAILURE;
+    }
+
     const auto argument_info       = parse_arguments(std::span(arguments, num_of_arguments));
     const auto arguments_are_valid = argument_info.has_value();
 
@@ -38,11 +47,11 @@ auto main(const int num_of_arguments, const char* arguments[]) -> int
 
     if (argument_info->clean_configuration)
     {
-        return commands::clean(argument_info->configuration_name, configurations, current_path);
+        return commands::clean(argument_info->configuration_name, *configurations, current_path);
     }
     if (argument_info->clean_all_configurations)
     {
-        return commands::clean_all(configurations, current_path);
+        return commands::clean_all(*configurations, current_path);
     }
     else if (argument_info->print_version)
     {
@@ -50,7 +59,7 @@ auto main(const int num_of_arguments, const char* arguments[]) -> int
     }
     else
     {
-        return create_executable(argument_info->configuration_name, current_path, configurations);
+        return create_executable(argument_info->configuration_name, current_path, *configurations);
     }
 
     return EXIT_SUCCESS;

@@ -1,6 +1,7 @@
 #ifndef SOURCE_CONFIGURATIONS_PARSING_CONFIGURATIONS_PARSING_HPP
 #define SOURCE_CONFIGURATIONS_PARSING_CONFIGURATIONS_PARSING_HPP
 
+#include <expected>
 #include <filesystem>
 #include <optional>
 #include <string>
@@ -26,6 +27,7 @@ struct Configuration
     auto check_for_errors() const -> std::optional<std::string>;
 };
 
-auto parse_configurations(const std::filesystem::path& path_to_configurations_file) -> std::vector<Configuration>;
+auto parse_configurations(const std::filesystem::path& path_to_configurations_file)
+    -> std::expected<std::vector<Configuration>, std::string>;
 
 #endif // SOURCE_CONFIGURATIONS_PARSING_CONFIGURATIONS_PARSING_HPP
