@@ -199,10 +199,10 @@ auto get_actual_configuration(std::string configuration_name, const std::vector<
     return current_configuration;
 }
 
-auto get_source_files(const Configuration& configuration,
-                      const std::filesystem::path& path_to_root) -> std::vector<std::filesystem::path>
+auto get_code_files(const Configuration& configuration,
+                    const std::filesystem::path& path_to_root) -> std::vector<std::filesystem::path>
 {
-    std::unordered_set<std::filesystem::path> files_to_compile;
+    std::unordered_set<std::filesystem::path> code_files;
 
     if (configuration.source_files.has_value())
     {
@@ -212,7 +212,7 @@ auto get_source_files(const Configuration& configuration,
 
             if (std::filesystem::exists(full_path_to_file))
             {
-                files_to_compile.insert(file);
+                code_files.insert(file);
             }
         }
     }
@@ -223,18 +223,10 @@ auto get_source_files(const Configuration& configuration,
         {
             for (const auto& entry : std::filesystem::recursive_directory_iterator(path_to_root / directory))
             {
-                if (!entry.is_regular_file())
-                {
-                    continue;
-                }
-
-                const auto is_source_file = entry.path().extension() == ".cpp" || entry.path().extension() == ".cc" ||
-                                            entry.path().extension() == ".cxx";
-
-                if (is_source_file)
+                if (entry.is_regular_file() && utils::is_code_file(entry))
                 {
                     auto relative_path = std::filesystem::relative(entry, path_to_root);
-                    files_to_compile.insert(std::move(relative_path));
+                    code_files.insert(std::move(relative_path));
                 }
             }
         }
@@ -244,7 +236,7 @@ auto get_source_files(const Configuration& configuration,
     {
         for (const auto& file : *configuration.excluded_files)
         {
-            files_to_compile.erase(file);
+            code_files.erase(file);
         }
     }
 
@@ -254,24 +246,16 @@ auto get_source_files(const Configuration& configuration,
         {
             for (const auto& entry : std::filesystem::recursive_directory_iterator(path_to_root / directory))
             {
-                if (!entry.is_regular_file())
-                {
-                    continue;
-                }
-
-                const auto is_source_file = entry.path().extension() == ".cpp" || entry.path().extension() == ".cc" ||
-                                            entry.path().extension() == ".cxx";
-
-                if (is_source_file)
+                if (entry.is_regular_file() && utils::is_code_file(entry))
                 {
                     auto relative_path = std::filesystem::relative(entry, path_to_root);
-                    files_to_compile.erase(std::move(relative_path));
+                    code_files.erase(std::move(relative_path));
                 }
             }
         }
     }
 
-    return files_to_compile | std::ranges::to<std::vector>();
+    return code_files | std::ranges::to<std::vector>();
 }
 
 auto create_compilation_flags_string(const Configuration& configuration) -> std::string
@@ -409,9 +393,18 @@ auto create_executable(const std::string_view configuration_name,
         return EXIT_FAILURE;
     }
 
-    const auto source_files = get_source_files(*actual_configuration, path_to_root);
-    const auto [files_to_delete, files_to_compile] =
-        build_caching::handle_build_caching(*actual_configuration->name, path_to_root, source_files);
+    const auto code_files = get_code_files(*actual_configuration, path_to_root);
+    const auto build_info = build_caching::handle_build_caching(*actual_configuration->name, path_to_root, code_files);
+    const auto error_exists_in_build = !build_info.has_value();
+
+    if (error_exists_in_build)
+    {
+        std::println("{}", build_info.error());
+
+        return EXIT_FAILURE;
+    }
+
+    const auto [files_to_delete, files_to_compile] = *build_info;
 
     // TODO: delete object files of files that don't exist anymore (`files_to_delete`).
 

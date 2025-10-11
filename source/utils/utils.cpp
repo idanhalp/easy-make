@@ -61,3 +61,22 @@ auto utils::get_ordinal_indicator(int index) -> const char*
         return "th";
     }
 }
+
+auto utils::is_header_file(const std::filesystem::path& path) -> bool
+{
+    const auto extension = path.extension();
+
+    return extension == ".h" || extension == ".hpp" || extension == ".hh" || extension == ".hxx";
+}
+
+auto utils::is_source_file(const std::filesystem::path& path) -> bool
+{
+    const auto extension = path.extension();
+
+    return extension == ".cpp" || extension == ".cc" || extension == ".cxx";
+}
+
+auto utils::is_code_file(const std::filesystem::path& path) -> bool
+{
+    return is_header_file(path) || is_source_file(path);
+}

@@ -65,26 +65,25 @@ TEST_SUITE("build_caching")
         CHECK(std::ranges::contains(files_to_delete, "d"));
     }
 
-    TEST_CASE("'get_files_to_compile' works correctly.")
+    TEST_CASE("'get_changed_files' works correctly.")
     {
         const std::unordered_map<std::filesystem::path, std::uint64_t> old_file_hashes{
-            {"a", 1}, {"b", 2}, {"c", 3}, {"d", 4}, {"aa", 11}, {"bb", 22}};
+            {"a.cpp", 1}, {"b.cpp", 2}, {"c.cpp", 3}, {"d.cpp", 4}, {"aa.cpp", 11}, {"bb.cpp", 22}, {"f.hpp", 4}};
 
         const std::unordered_map<std::filesystem::path, std::uint64_t> new_file_hashes{
-            {"a", 1}, {"b", 2}, {"c", 4}, {"e", 5}, {"aa", 12}, {"bb", 22}};
+            {"a.cpp", 1}, {"b.cpp", 2}, {"c.cpp", 4}, {"e.cpp", 5}, {"aa.cpp", 12}, {"bb.cpp", 22}, {"f.hpp", 4}};
 
         const auto path_to_project_8 = tests::utils::get_path_to_resources_project(8);
-        const auto files_to_compile =
-            build_caching::get_files_to_compile("conf", path_to_project_8, old_file_hashes, new_file_hashes);
+        const auto changed_files =
+            build_caching::get_changed_files("conf", path_to_project_8, old_file_hashes, new_file_hashes);
 
-        CHECK_EQ(files_to_compile.size(), 4);
-        CHECK(std::ranges::contains(files_to_compile, "a"));
-        CHECK_FALSE(std::ranges::contains(files_to_compile, "b"));
-        CHECK(std::ranges::contains(files_to_compile, "c"));
-        CHECK(std::ranges::contains(files_to_compile, "e"));
-        CHECK(std::ranges::contains(files_to_compile, "aa"));
-        CHECK_FALSE(std::ranges::contains(files_to_compile, "bb"));
-
-        CHECK(std::ranges::is_sorted(files_to_compile));
+        CHECK_EQ(changed_files.size(), 4);
+        CHECK(std::ranges::contains(changed_files, "a.cpp"));
+        CHECK_FALSE(std::ranges::contains(changed_files, "b.cpp"));
+        CHECK(std::ranges::contains(changed_files, "c.cpp"));
+        CHECK(std::ranges::contains(changed_files, "e.cpp"));
+        CHECK(std::ranges::contains(changed_files, "aa.cpp"));
+        CHECK_FALSE(std::ranges::contains(changed_files, "bb.cpp"));
+        CHECK_FALSE(std::ranges::contains(changed_files, "f.hpp"));
     }
 }

@@ -2,6 +2,7 @@
 #define SOURCE_BUILD_CACHING_BUILD_CACHING_HPP
 
 #include <cstdint>
+#include <expected>
 #include <filesystem>
 #include <string_view>
 #include <unordered_map>
@@ -20,18 +21,23 @@ namespace build_caching
     auto get_old_file_hashes(std::string_view configuration_name, const std::filesystem::path& path_to_root)
         -> std::unordered_map<std::filesystem::path, std::uint64_t>;
 
-    auto get_new_file_hashes(const std::vector<std::filesystem::path>& source_files)
+    auto get_new_file_hashes(const std::vector<std::filesystem::path>& code_files)
         -> std::unordered_map<std::filesystem::path, std::uint64_t>;
 
     auto get_files_to_delete(const std::unordered_map<std::filesystem::path, std::uint64_t>& old_file_hashes,
                              const std::unordered_map<std::filesystem::path, std::uint64_t>& new_file_hashes)
         -> std::vector<std::filesystem::path>;
 
-    auto get_files_to_compile(std::string_view configuration_name,
-                              const std::filesystem::path& path_to_root,
-                              const std::unordered_map<std::filesystem::path, std::uint64_t>& old_file_hashes,
-                              const std::unordered_map<std::filesystem::path, std::uint64_t>& new_file_hashes)
+    auto get_changed_files(std::string_view configuration_name,
+                           const std::filesystem::path& path_to_root,
+                           const std::unordered_map<std::filesystem::path, std::uint64_t>& old_file_hashes,
+                           const std::unordered_map<std::filesystem::path, std::uint64_t>& new_file_hashes)
         -> std::vector<std::filesystem::path>;
+
+    auto get_files_to_compile(const std::filesystem::path& path_to_root,
+                              const std::vector<std::filesystem::path>& code_files,
+                              const std::vector<std::filesystem::path>& changed_files)
+        -> std::expected<std::vector<std::filesystem::path>, std::string>;
 
     auto write_info_to_build_data_file(std::string_view configuration_name,
                                        const std::filesystem::path& path_to_root,
@@ -39,7 +45,7 @@ namespace build_caching
 
     auto handle_build_caching(std::string_view configuration_name,
                               const std::filesystem::path& path_to_root,
-                              const std::vector<std::filesystem::path>& source_files) -> Info;
+                              const std::vector<std::filesystem::path>& code_files) -> std::expected<Info, std::string>;
 }
 
 #endif // SOURCE_BUILD_CACHING_BUILD_CACHING_HPP

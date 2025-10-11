@@ -337,7 +337,7 @@ TEST_SUITE("executable_creation")
 
         REQUIRE(actual_configuration.has_value());
 
-        const auto files_to_compile = get_source_files(*actual_configuration, project_5_path);
+        const auto files_to_compile = get_code_files(*actual_configuration, project_5_path);
         CHECK_EQ(files_to_compile.size(), 3);
         CHECK(std::ranges::contains(files_to_compile, "main.cpp"));
         CHECK(std::ranges::contains(files_to_compile, "source/f_1.cpp"));

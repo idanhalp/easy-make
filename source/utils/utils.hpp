@@ -13,6 +13,12 @@ namespace utils
     auto get_object_file_name(const std::filesystem::path& path) -> std::string;
 
     auto get_ordinal_indicator(int index) -> const char*;
+
+    auto is_header_file(const std::filesystem::path& path) -> bool;
+
+    auto is_source_file(const std::filesystem::path& path) -> bool;
+
+    auto is_code_file(const std::filesystem::path& path) -> bool;
 }
 
 #endif // SOURCE_UTILS_UTILS_HPP

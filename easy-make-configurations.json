@@ -27,7 +27,7 @@
     "name": "easy-make",
     "parent": "default",
     "exclude": {
-      "directories": ["tests/"]
+      "directories": ["tests/", "third_party/"]
     },
     "output": {
       "name": "easy-make"
@@ -42,6 +42,7 @@
     "name": "release",
     "parent": "easy-make",
     "optimization": "3",
+    "defines": ["NDEBUG"],
     "warnings": ["-Wall", "-Wextra", "-Werror"]
   }
 ]

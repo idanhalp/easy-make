@@ -13,10 +13,12 @@ TESTS_SRCS = \
 	tests/test_configuration_parsing.cpp\
 	tests/test_executable_creation.cpp\
 	tests/test_find_closest_word.cpp\
+	tests/test_graph.cpp\
 	tests/test_utils.cpp\
 	tests/utils/utils.cpp\
 	source/argument_parsing/argument_parsing.cpp\
 	source/build_caching/build_caching.cpp\
+	source/build_caching/dependency_graph.cpp\
 	source/commands/clean/clean.cpp\
 	source/commands/clean_all/clean_all.cpp\
 	source/commands/print_version/print_version.cpp\
@@ -30,6 +32,7 @@ EASYMAKE_SRCS = \
 	source/main.cpp \
 	source/argument_parsing/argument_parsing.cpp\
 	source/build_caching/build_caching.cpp\
+	source/build_caching/dependency_graph.cpp\
 	source/commands/clean/clean.cpp\
 	source/commands/clean_all/clean_all.cpp\
 	source/commands/print_version/print_version.cpp\

@@ -8,7 +8,9 @@
 
 #include "third_party/nlohmann/json.hpp"
 
+#include "source/build_caching/dependency_graph.hpp"
 #include "source/parameters/parameters.hpp"
+#include "source/utils/graph.hpp"
 #include "source/utils/utils.hpp"
 
 auto build_caching::hash_file_contents(const std::filesystem::path& path) -> std::uint64_t
@@ -69,12 +71,12 @@ auto build_caching::get_old_file_hashes(const std::string_view configuration_nam
     return old_hashes;
 }
 
-auto build_caching::get_new_file_hashes(const std::vector<std::filesystem::path>& source_files)
+auto build_caching::get_new_file_hashes(const std::vector<std::filesystem::path>& code_files)
     -> std::unordered_map<std::filesystem::path, std::uint64_t>
 {
     std::unordered_map<std::filesystem::path, std::uint64_t> file_hashes;
 
-    for (const auto& file : source_files)
+    for (const auto& file : code_files)
     {
         file_hashes[file] = hash_file_contents(file);
     }
@@ -99,14 +101,13 @@ auto build_caching::get_files_to_delete(const std::unordered_map<std::filesystem
     return files_to_delete;
 }
 
-auto build_caching::get_files_to_compile(
-    std::string_view configuration_name,
-    const std::filesystem::path& path_to_root,
-    const std::unordered_map<std::filesystem::path, std::uint64_t>& old_file_hashes,
-    const std::unordered_map<std::filesystem::path, std::uint64_t>& new_file_hashes)
+auto build_caching::get_changed_files(std::string_view configuration_name,
+                                      const std::filesystem::path& path_to_root,
+                                      const std::unordered_map<std::filesystem::path, std::uint64_t>& old_file_hashes,
+                                      const std::unordered_map<std::filesystem::path, std::uint64_t>& new_file_hashes)
     -> std::vector<std::filesystem::path>
 {
-    std::vector<std::filesystem::path> files_to_compile;
+    std::vector<std::filesystem::path> changed_files;
 
     for (const auto& [file, contents_hash] : new_file_hashes)
     {
@@ -114,14 +115,44 @@ auto build_caching::get_files_to_compile(
             path_to_root / params::BUILD_DIRECTORY_NAME / configuration_name / utils::get_object_file_name(file);
 
         const auto old_object_file_exists = old_file_hashes.contains(file) && std::filesystem::exists(object_file_path);
-        const auto file_contents_changed  = old_object_file_exists && old_file_hashes.at(file) != contents_hash;
+        const auto file_contents_changed =
+            old_file_hashes.contains(file) && (old_file_hashes.at(file) != contents_hash);
 
-        if (!old_object_file_exists || file_contents_changed)
+        if ((utils::is_source_file(file) && !old_object_file_exists) || file_contents_changed)
         {
-            files_to_compile.push_back(file);
+            changed_files.push_back(file);
         }
     }
 
+    return changed_files;
+}
+
+auto build_caching::get_files_to_compile(const std::filesystem::path& path_to_root,
+                                         const std::vector<std::filesystem::path>& code_files,
+                                         const std::vector<std::filesystem::path>& changed_files)
+    -> std::expected<std::vector<std::filesystem::path>, std::string>
+{
+    const auto dependency_graph      = get_dependency_graph(path_to_root, code_files);
+    const auto cycle                 = dependency_graph.check_for_cycle();
+    const auto cycle_exists_on_graph = cycle.has_value();
+
+    if (cycle_exists_on_graph)
+    {
+        const auto error = std::format("Error: Circular header dependency detected.\n\n"
+                                       "The following headers form a cycle:\n"
+                                       "{}\n\n"
+                                       "Consider restructuring the code to break the circular dependency.",
+                                       *cycle);
+
+        return std::unexpected(error);
+    }
+
+    // Find all files affected by changes (including transitive dependencies).
+    const auto affected_files = dependency_graph.get_reachable_nodes(changed_files);
+    auto files_to_compile =
+        affected_files | std::views::filter(&utils::is_source_file) | std::ranges::to<std::vector>();
+
+    // Make sure the files are compiled in lexicographic order.
     std::ranges::sort(files_to_compile);
 
     return files_to_compile;
@@ -159,15 +190,23 @@ auto build_caching::write_info_to_build_data_file(
 
 auto build_caching::handle_build_caching(const std::string_view configuration_name,
                                          const std::filesystem::path& path_to_root,
-                                         const std::vector<std::filesystem::path>& source_files) -> Info
+                                         const std::vector<std::filesystem::path>& code_files)
+    -> std::expected<Info, std::string>
 {
-    const auto old_file_hashes = get_old_file_hashes(configuration_name, path_to_root);
-    const auto new_file_hashes = get_new_file_hashes(source_files);
-    const auto files_to_delete = get_files_to_delete(old_file_hashes, new_file_hashes);
-    const auto files_to_compile =
-        get_files_to_compile(configuration_name, path_to_root, old_file_hashes, new_file_hashes);
+    const auto old_file_hashes  = get_old_file_hashes(configuration_name, path_to_root);
+    const auto new_file_hashes  = get_new_file_hashes(code_files);
+    const auto files_to_delete  = get_files_to_delete(old_file_hashes, new_file_hashes);
+    const auto changed_files    = get_changed_files(configuration_name, path_to_root, old_file_hashes, new_file_hashes);
+    const auto files_to_compile = get_files_to_compile(path_to_root, code_files, changed_files);
+
+    const auto circular_header_dependency_detected = !files_to_compile.has_value();
+
+    if (circular_header_dependency_detected)
+    {
+        return std::unexpected(files_to_compile.error());
+    }
 
     write_info_to_build_data_file(configuration_name, path_to_root, new_file_hashes);
 
-    return {.files_to_delete = files_to_delete, .files_to_compile = files_to_compile};
+    return Info{.files_to_delete = files_to_delete, .files_to_compile = *files_to_compile};
 }
