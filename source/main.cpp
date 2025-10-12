@@ -1,6 +1,5 @@
 #include <cstdlib>
 #include <filesystem>
-#include <print>
 #include <vector>
 
 #include "source/argument_parsing/argument_parsing.hpp"
@@ -10,6 +9,7 @@
 #include "source/configuration_parsing/configuration_parsing.hpp"
 #include "source/executable_creation/executable_creation.hpp"
 #include "source/parameters/parameters.hpp"
+#include "source/utils/print.hpp"
 #include "source/utils/utils.hpp"
 
 auto main(const int num_of_arguments, const char* arguments[]) -> int
@@ -19,8 +19,8 @@ auto main(const int num_of_arguments, const char* arguments[]) -> int
 
     if (!configuration_file_exists)
     {
-        std::println("The file '{}' could not be located in '{}'.", params::CONFIGURATIONS_FILE_NAME.native(),
-                     current_path.string());
+        utils::print_error("The file '{}' could not be located in '{}'.", params::CONFIGURATIONS_FILE_NAME.native(),
+                           current_path.string());
 
         return EXIT_FAILURE;
     }
@@ -30,7 +30,7 @@ auto main(const int num_of_arguments, const char* arguments[]) -> int
 
     if (!configuration_file_is_valid)
     {
-        std::println("{}", configurations.error());
+        utils::print_error("{}", configurations.error());
 
         return EXIT_FAILURE;
     }
@@ -40,7 +40,7 @@ auto main(const int num_of_arguments, const char* arguments[]) -> int
 
     if (!arguments_are_valid)
     {
-        std::println("{}", argument_info.error());
+        utils::print_error("{}", argument_info.error());
 
         return EXIT_FAILURE;
     }

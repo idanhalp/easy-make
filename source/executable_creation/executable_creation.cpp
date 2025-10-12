@@ -13,6 +13,7 @@
 #include "source/build_caching/build_caching.hpp"
 #include "source/parameters/parameters.hpp"
 #include "source/utils/find_closest_word.hpp"
+#include "source/utils/print.hpp"
 #include "source/utils/utils.hpp"
 
 auto check_names_validity(const std::vector<Configuration>& configurations) -> std::optional<std::string>
@@ -323,21 +324,25 @@ create_object_files(const Configuration& configuration,
         break;
 
     case 1:
-        std::println("Compiling one file.");
+        std::println("Compiling one file...");
         break;
 
     default:
-        std::println("Compiling {} files.", files_to_compile.size());
+        std::println("Compiling {} files...", files_to_compile.size());
         break;
     }
 
+    const auto max_num_of_digits = std::to_string(files_to_compile.size()).length();
+
     for (const auto& [index, file_name] : std::views::enumerate(files_to_compile) | std::views::as_const)
     {
+        const auto completion_percentage = 100 * (index + 1) / files_to_compile.size();
+        std::println("{0:>{2}}/{1} [{3:>3}%] {4}", index + 1, files_to_compile.size(), max_num_of_digits,
+                     completion_percentage, file_name.native());
+
         const auto object_file_name    = utils::get_object_file_name(file_name);
         const auto compilation_command = std::format("{} {} -c {} -o {}/{}", *configuration.compiler, compilation_flags,
                                                      file_name.native(), object_files_path.native(), object_file_name);
-
-        std::println("{}) Compiling '{}'.", index + 1, file_name.native());
 
         const auto compiled_successfully = std::system(compilation_command.c_str()) == EXIT_SUCCESS;
 
@@ -346,6 +351,8 @@ create_object_files(const Configuration& configuration,
             return std::format("Compilation of '{}' failed.", file_name.native());
         }
     }
+
+    utils::print_success("Compilation complete.");
 
     return std::nullopt;
 }
@@ -366,7 +373,7 @@ static auto link_object_files(const Configuration& configuration,
         std::filesystem::create_directory(*configuration.output_path);
     }
 
-    std::println("Linking.");
+    std::println("Linking...");
 
     const auto linking_successful = std::system(link_command.c_str()) == EXIT_SUCCESS;
 
@@ -375,7 +382,7 @@ static auto link_object_files(const Configuration& configuration,
         return "Linking failed.";
     }
 
-    std::println("Finished linking. Executable located at '{}'.", actual_output_path);
+    utils::print_success("Linking complete. Executable located at '{}'.", actual_output_path);
 
     return std::nullopt;
 }
@@ -388,7 +395,7 @@ auto create_executable(const std::string_view configuration_name,
 
     if (!actual_configuration.has_value())
     {
-        std::println("{}", actual_configuration.error());
+        utils::print_error("{}", actual_configuration.error());
 
         return EXIT_FAILURE;
     }
@@ -399,7 +406,7 @@ auto create_executable(const std::string_view configuration_name,
 
     if (error_exists_in_build)
     {
-        std::println("{}", build_info.error());
+        utils::print_error("{}", build_info.error());
 
         return EXIT_FAILURE;
     }
@@ -412,7 +419,7 @@ auto create_executable(const std::string_view configuration_name,
 
     if (compilation_error.has_value())
     {
-        std::println("{}", *compilation_error);
+        utils::print_error("{}", *compilation_error);
 
         return EXIT_FAILURE;
     }
@@ -421,7 +428,7 @@ auto create_executable(const std::string_view configuration_name,
 
     if (linking_error.has_value())
     {
-        std::println("{}", *linking_error);
+        utils::print_error("{}", *linking_error);
 
         return EXIT_FAILURE;
     }
