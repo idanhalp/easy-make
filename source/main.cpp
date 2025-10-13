@@ -6,6 +6,7 @@
 #include "source/commands/clean/clean.hpp"
 #include "source/commands/clean_all/clean_all.hpp"
 #include "source/commands/print_version/print_version.hpp"
+#include "source/configuration_parsing/configuration.hpp"
 #include "source/configuration_parsing/configuration_parsing.hpp"
 #include "source/executable_creation/executable_creation.hpp"
 #include "source/parameters/parameters.hpp"

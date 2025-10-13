@@ -22,6 +22,7 @@ TESTS_SRCS = \
 	source/commands/clean/clean.cpp\
 	source/commands/clean_all/clean_all.cpp\
 	source/commands/print_version/print_version.cpp\
+	source/configuration_parsing/configuration.cpp\
 	source/configuration_parsing/configuration_parsing.cpp\
 	source/configuration_parsing/json_keys.cpp\
 	source/executable_creation/executable_creation.cpp\
@@ -36,6 +37,7 @@ EASYMAKE_SRCS = \
 	source/commands/clean/clean.cpp\
 	source/commands/clean_all/clean_all.cpp\
 	source/commands/print_version/print_version.cpp\
+	source/configuration_parsing/configuration.cpp\
 	source/configuration_parsing/configuration_parsing.cpp\
 	source/configuration_parsing/json_keys.cpp\
 	source/executable_creation/executable_creation.cpp\

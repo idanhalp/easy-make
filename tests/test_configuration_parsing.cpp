@@ -2,6 +2,7 @@
 
 #include "third_party/doctest/doctest.hpp"
 
+#include "source/configuration_parsing/configuration.hpp"
 #include "source/configuration_parsing/configuration_parsing.hpp"
 #include "tests/utils/utils.hpp"
 

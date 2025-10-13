@@ -5,7 +5,7 @@
 #include <string_view>
 #include <vector>
 
-#include "source/configuration_parsing/configuration_parsing.hpp"
+#include "source/configuration_parsing/configuration.hpp"
 
 namespace commands
 {

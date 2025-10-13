@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "source/configuration_parsing/configuration_parsing.hpp"
+#include "source/configuration_parsing/configuration.hpp"
 
 auto check_names_validity(const std::vector<Configuration>& configurations) -> std::optional<std::string>;
 

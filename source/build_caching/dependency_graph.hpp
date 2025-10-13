@@ -5,7 +5,6 @@
 #include <optional>
 #include <vector>
 
-#include "source/configuration_parsing/configuration_parsing.hpp"
 #include "source/utils/graph.hpp"
 
 namespace build_caching

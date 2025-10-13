@@ -4,6 +4,7 @@
 
 #include "third_party/doctest/doctest.hpp"
 
+#include "source/configuration_parsing/configuration.hpp"
 #include "source/configuration_parsing/configuration_parsing.hpp"
 #include "source/executable_creation/executable_creation.hpp"
 #include "source/parameters/parameters.hpp"
