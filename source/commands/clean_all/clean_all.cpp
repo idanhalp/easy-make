@@ -17,10 +17,8 @@ auto commands::clean_all(const std::vector<Configuration>& configurations,
             continue;
         }
 
-        const auto path_to_executable =
-            configuration.output_path.has_value()
-                ? std::filesystem::path(*configuration.output_path) / *configuration.output_path
-                : std::filesystem::path(".") / *configuration.output_name;
+        const auto output_path        = configuration.output_path.value_or("");
+        const auto path_to_executable = std::filesystem::path(path_to_root) / output_path / *configuration.output_name;
 
         std::filesystem::remove(path_to_executable);
     }

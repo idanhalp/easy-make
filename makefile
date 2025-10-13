@@ -10,6 +10,7 @@ TESTS_SRCS = \
 	tests/test_argument_parsing.cpp\
 	tests/test_build_caching.cpp\
 	tests/test_check_if_configuration_file_exists.cpp\
+	tests/test_clean.cpp\
 	tests/test_configuration_parsing.cpp\
 	tests/test_executable_creation.cpp\
 	tests/test_find_closest_word.cpp\

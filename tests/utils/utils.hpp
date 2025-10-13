@@ -6,6 +6,8 @@
 
 namespace tests::utils
 {
+    const auto MAX_PROJECT_INDEX = 99;
+
     auto get_path_to_resources_project(int index) -> std::filesystem::path;
 }
 
