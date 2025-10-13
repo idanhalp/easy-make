@@ -16,7 +16,7 @@ auto check_names_validity(const std::vector<Configuration>& configurations) -> s
 auto check_parents_validity(const std::unordered_map<std::string, Configuration>& name_to_configuration)
     -> std::optional<std::string>;
 
-auto get_actual_configuration(std::string configuration_name, const std::vector<Configuration>& configurations)
+auto get_actual_configuration(const std::string& configuration_name, const std::vector<Configuration>& configurations)
     -> std::expected<Configuration, std::string>;
 
 auto get_code_files(const Configuration& configuration,
@@ -24,7 +24,7 @@ auto get_code_files(const Configuration& configuration,
 
 auto create_compilation_flags_string(const Configuration& configuration) -> std::string;
 
-auto create_executable(std::string_view configuration_name,
+auto create_executable(const std::string& configuration_name,
                        const std::filesystem::path& path_to_root,
                        const std::vector<Configuration>& configurations) -> int;
 

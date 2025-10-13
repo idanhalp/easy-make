@@ -141,7 +141,7 @@ static auto merge_configuration_with_parent(const Configuration& original, const
     return result;
 }
 
-auto get_actual_configuration(std::string configuration_name, const std::vector<Configuration>& configurations)
+auto get_actual_configuration(const std::string& configuration_name, const std::vector<Configuration>& configurations)
     -> std::expected<Configuration, std::string>
 {
     const auto name_error        = check_names_validity(configurations);
@@ -387,7 +387,7 @@ static auto link_object_files(const Configuration& configuration,
     return std::nullopt;
 }
 
-auto create_executable(const std::string_view configuration_name,
+auto create_executable(const std::string& configuration_name,
                        const std::filesystem::path& path_to_root,
                        const std::vector<Configuration>& configurations) -> int
 {
@@ -401,7 +401,7 @@ auto create_executable(const std::string_view configuration_name,
     }
 
     const auto code_files = get_code_files(*actual_configuration, path_to_root);
-    const auto build_info = build_caching::handle_build_caching(*actual_configuration->name, path_to_root, code_files);
+    const auto build_info = build_caching::handle_build_caching(*actual_configuration, path_to_root, code_files);
     const auto error_exists_in_build = !build_info.has_value();
 
     if (error_exists_in_build)

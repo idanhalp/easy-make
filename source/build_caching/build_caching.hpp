@@ -8,6 +8,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "source/configuration_parsing/configuration_parsing.hpp"
+
 namespace build_caching
 {
     struct Info
@@ -36,14 +38,15 @@ namespace build_caching
 
     auto get_files_to_compile(const std::filesystem::path& path_to_root,
                               const std::vector<std::filesystem::path>& code_files,
-                              const std::vector<std::filesystem::path>& changed_files)
+                              const std::vector<std::filesystem::path>& changed_files,
+                              const std::vector<std::string>& include_directories)
         -> std::expected<std::vector<std::filesystem::path>, std::string>;
 
     auto write_info_to_build_data_file(std::string_view configuration_name,
                                        const std::filesystem::path& path_to_root,
                                        const std::unordered_map<std::filesystem::path, std::uint64_t>& info) -> void;
 
-    auto handle_build_caching(std::string_view configuration_name,
+    auto handle_build_caching(const Configuration& configuration,
                               const std::filesystem::path& path_to_root,
                               const std::vector<std::filesystem::path>& code_files) -> std::expected<Info, std::string>;
 }

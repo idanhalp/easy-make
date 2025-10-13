@@ -23,6 +23,8 @@ namespace utils
       public:
         DirectedGraph() = default;
 
+        auto add_node(const T& node) -> void;
+
         auto add_edge(const T& from, const T& to) -> void;
 
         auto check_for_cycle() const -> std::optional<std::string>;
@@ -49,16 +51,21 @@ namespace utils
     };
 }
 
+template <typename T> auto utils::DirectedGraph<T>::add_node(const T& node) -> void
+{
+    if (!edges.contains(node))
+    {
+        edges[node] = {};
+    }
+}
+
 template <typename T> auto utils::DirectedGraph<T>::add_edge(const T& from, const T& to) -> void
 {
     edges[from].insert(to);
 
-    if (!edges.contains(to))
-    {
-        // Make sure `to` is in `edges` even if it does not have outgoing edges
-        // to prevent out-of-bounds problems.
-        edges[to] = {};
-    }
+    // Make sure `to` is in `edges` even if it does not have outgoing edges
+    // to prevent out-of-bounds problems.
+    add_node(to);
 }
 
 // Returns `true` if `node` is part of a cycle.

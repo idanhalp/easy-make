@@ -129,10 +129,11 @@ auto build_caching::get_changed_files(std::string_view configuration_name,
 
 auto build_caching::get_files_to_compile(const std::filesystem::path& path_to_root,
                                          const std::vector<std::filesystem::path>& code_files,
-                                         const std::vector<std::filesystem::path>& changed_files)
+                                         const std::vector<std::filesystem::path>& changed_files,
+                                         const std::vector<std::string>& include_directories)
     -> std::expected<std::vector<std::filesystem::path>, std::string>
 {
-    const auto dependency_graph      = get_dependency_graph(path_to_root, code_files);
+    const auto dependency_graph      = get_dependency_graph(path_to_root, code_files, include_directories);
     const auto cycle                 = dependency_graph.check_for_cycle();
     const auto cycle_exists_on_graph = cycle.has_value();
 
@@ -188,16 +189,17 @@ auto build_caching::write_info_to_build_data_file(
     data_file << json.dump(4); // Write to file.
 }
 
-auto build_caching::handle_build_caching(const std::string_view configuration_name,
+auto build_caching::handle_build_caching(const Configuration& configuration,
                                          const std::filesystem::path& path_to_root,
                                          const std::vector<std::filesystem::path>& code_files)
     -> std::expected<Info, std::string>
 {
-    const auto old_file_hashes  = get_old_file_hashes(configuration_name, path_to_root);
-    const auto new_file_hashes  = get_new_file_hashes(code_files);
-    const auto files_to_delete  = get_files_to_delete(old_file_hashes, new_file_hashes);
-    const auto changed_files    = get_changed_files(configuration_name, path_to_root, old_file_hashes, new_file_hashes);
-    const auto files_to_compile = get_files_to_compile(path_to_root, code_files, changed_files);
+    const auto old_file_hashes = get_old_file_hashes(*configuration.name, path_to_root);
+    const auto new_file_hashes = get_new_file_hashes(code_files);
+    const auto files_to_delete = get_files_to_delete(old_file_hashes, new_file_hashes);
+    const auto changed_files   = get_changed_files(*configuration.name, path_to_root, old_file_hashes, new_file_hashes);
+    const auto files_to_compile =
+        get_files_to_compile(path_to_root, code_files, changed_files, configuration.include_directories.value_or({}));
 
     const auto circular_header_dependency_detected = !files_to_compile.has_value();
 
@@ -206,7 +208,7 @@ auto build_caching::handle_build_caching(const std::string_view configuration_na
         return std::unexpected(files_to_compile.error());
     }
 
-    write_info_to_build_data_file(configuration_name, path_to_root, new_file_hashes);
+    write_info_to_build_data_file(*configuration.name, path_to_root, new_file_hashes);
 
     return Info{.files_to_delete = files_to_delete, .files_to_compile = *files_to_compile};
 }
