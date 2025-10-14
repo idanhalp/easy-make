@@ -48,51 +48,14 @@ TEST_SUITE("executable_creation")
 
     TEST_CASE("Check parents validity")
     {
+        SUBCASE("Configuration with itself as parent")
         {
             std::vector<Configuration> configurations(3);
-            configurations[0].name = "name-1";
-            configurations[1].name = "name-2";
-            configurations[2].name = "name-3";
+            configurations[0].name = "name-0";
+            configurations[1].name = "name-1";
+            configurations[2].name = "name-2";
 
-            configurations[1].parent = "name-2";
-            configurations[2].parent = "name-1";
-
-            std::unordered_map<std::string, Configuration> name_to_configuration;
-            for (const auto& configuration : configurations)
-                name_to_configuration[*configuration.name] = configuration;
-
-            const auto parent_error = check_parents_validity(name_to_configuration);
-            CHECK(parent_error.has_value());
-            CHECK_EQ(*parent_error, "Error: Configuration 'name-2' has itself as a parent.");
-        }
-
-        {
-            std::vector<Configuration> configurations(3);
-            configurations[0].name = "name-1";
-            configurations[1].name = "name-2";
-            configurations[2].name = "name-3";
-
-            configurations[0].parent = "non-existent";
-            configurations[1].parent = "name-1";
-            configurations[2].parent = "name-1";
-
-            std::unordered_map<std::string, Configuration> name_to_configuration;
-            for (const auto& configuration : configurations)
-                name_to_configuration[*configuration.name] = configuration;
-
-            const auto parent_error = check_parents_validity(name_to_configuration);
-            CHECK(parent_error.has_value());
-            CHECK_EQ(*parent_error,
-                     "Error: Configuration 'name-1' has a non-existent configuration as its parent ('non-existent').");
-        }
-
-        {
-            std::vector<Configuration> configurations(3);
-            configurations[0].name = "name-1";
-            configurations[1].name = "name-2";
-            configurations[2].name = "name-3";
-
-            configurations[1].parent = "name-1";
+            configurations[1].parent = "name-0";
             configurations[2].parent = "name-2";
 
             std::unordered_map<std::string, Configuration> name_to_configuration;
@@ -100,7 +63,68 @@ TEST_SUITE("executable_creation")
                 name_to_configuration[*configuration.name] = configuration;
 
             const auto parent_error = check_parents_validity(name_to_configuration);
-            CHECK_FALSE(parent_error.has_value());
+            REQUIRE(parent_error.has_value());
+            CHECK_EQ(*parent_error, "Error: Configuration 'name-2' has itself as a parent.");
+        }
+
+        SUBCASE("Configuration with nonexistent parent")
+        {
+            std::vector<Configuration> configurations(3);
+            configurations[0].name = "name-0";
+            configurations[1].name = "name-1";
+            configurations[2].name = "name-2";
+
+            configurations[0].parent = "non-existent";
+            configurations[1].parent = "name-0";
+            configurations[2].parent = "name-0";
+
+            std::unordered_map<std::string, Configuration> name_to_configuration;
+            for (const auto& configuration : configurations)
+                name_to_configuration[*configuration.name] = configuration;
+
+            const auto parent_error = check_parents_validity(name_to_configuration);
+            REQUIRE(parent_error.has_value());
+            CHECK_EQ(*parent_error,
+                     "Error: Configuration 'name-0' has a non-existent configuration as its parent ('non-existent').");
+        }
+
+        SUBCASE("Circular parent dependency")
+        {
+            std::vector<Configuration> configurations(3);
+            configurations[0].name = "name-0";
+            configurations[1].name = "name-1";
+            configurations[2].name = "name-2";
+
+            configurations[0].parent = "name-1";
+            configurations[1].parent = "name-2";
+            configurations[2].parent = "name-0";
+
+            std::unordered_map<std::string, Configuration> name_to_configuration;
+            for (const auto& configuration : configurations)
+                name_to_configuration[*configuration.name] = configuration;
+
+            const auto parent_error = check_parents_validity(name_to_configuration);
+            REQUIRE(parent_error.has_value());
+            REQUIRE(parent_error->starts_with("Error:"));
+            REQUIRE(parent_error->contains("name-0 -> name-1 -> name-2"));
+        }
+
+        SUBCASE("Valid parents")
+        {
+            std::vector<Configuration> configurations(3);
+            configurations[0].name = "name-0";
+            configurations[1].name = "name-1";
+            configurations[2].name = "name-2";
+
+            configurations[1].parent = "name-0";
+            configurations[2].parent = "name-1";
+
+            std::unordered_map<std::string, Configuration> name_to_configuration;
+            for (const auto& configuration : configurations)
+                name_to_configuration[*configuration.name] = configuration;
+
+            const auto parent_error = check_parents_validity(name_to_configuration);
+            REQUIRE_FALSE(parent_error.has_value());
         }
     }
 

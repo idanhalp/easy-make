@@ -13,6 +13,7 @@
 #include "source/build_caching/build_caching.hpp"
 #include "source/parameters/parameters.hpp"
 #include "source/utils/find_closest_word.hpp"
+#include "source/utils/graph.hpp"
 #include "source/utils/print.hpp"
 #include "source/utils/utils.hpp"
 
@@ -45,6 +46,22 @@ auto check_names_validity(const std::vector<Configuration>& configurations) -> s
     return std::nullopt;
 }
 
+static auto check_for_parent_cycles(const std::unordered_map<std::string, Configuration>& name_to_configuration)
+    -> std::optional<std::string>
+{
+    utils::DirectedGraph<std::string> parent_graph;
+
+    for (const auto& [name, configuration] : name_to_configuration)
+    {
+        if (configuration.parent.has_value())
+        {
+            parent_graph.add_edge(name, *configuration.parent);
+        }
+    }
+
+    return parent_graph.check_for_cycle();
+}
+
 auto check_parents_validity(const std::unordered_map<std::string, Configuration>& name_to_configuration)
     -> std::optional<std::string>
 {
@@ -69,7 +86,21 @@ auto check_parents_validity(const std::unordered_map<std::string, Configuration>
         }
     }
 
-    return std::nullopt;
+    const auto cycle_info   = check_for_parent_cycles(name_to_configuration);
+    const auto cycle_exists = cycle_info.has_value();
+
+    if (cycle_exists)
+    {
+        return std::format("Error: Circular parent dependency detected.\n\n"
+                           "The following configurations form a cycle:\n"
+                           "{}\n\n"
+                           "Consider restructuring the code to break the circular dependency.",
+                           *cycle_info);
+    }
+    else
+    {
+        return std::nullopt;
+    }
 }
 
 static auto merge_configuration_with_parent(const Configuration& original, const Configuration& parent) -> Configuration
@@ -163,8 +194,6 @@ auto get_actual_configuration(const std::string& configuration_name, const std::
     {
         return std::unexpected(*parent_error);
     }
-
-    // TODO: Make sure parents do not create a cycle.
 
     const auto configuration_exists = name_to_configuration.contains(configuration_name);
 
