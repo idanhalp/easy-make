@@ -371,6 +371,7 @@ TEST_SUITE("executable_creation")
 
     TEST_CASE("Create compilation flags string")
     {
+        SUBCASE("Simple functionality check (clang++/g++)")
         {
             Configuration configuration;
             configuration.name                = "test";
@@ -385,18 +386,30 @@ TEST_SUITE("executable_creation")
                      "-std=c++20 -Wall -Werror -O2 -DDEBUG -DVERSION=12 -I. -Isource -Itest");
         }
 
-        if (params::ENABLE_MSVC)
+        SUBCASE("Simple functionality check (cl)")
+        {
+            if (params::ENABLE_MSVC)
+            {
+                Configuration configuration;
+                configuration.name                = "test";
+                configuration.compiler            = "cl";
+                configuration.standard            = "98";
+                configuration.optimization        = "d";
+                configuration.defines             = {"DEBUG", "VERSION=12"};
+                configuration.include_directories = {".", "source", "test"};
+
+                CHECK_EQ(create_compilation_flags_string(configuration),
+                         "-std=c++98 /Od -DDEBUG -DVERSION=12 -I. -Isource -Itest");
+            }
+        }
+
+        SUBCASE("No flags")
         {
             Configuration configuration;
-            configuration.name                = "test";
-            configuration.compiler            = "cl";
-            configuration.standard            = "98";
-            configuration.optimization        = "d";
-            configuration.defines             = {"DEBUG", "VERSION=12"};
-            configuration.include_directories = {".", "source", "test"};
+            configuration.name     = "test";
+            configuration.compiler = "cl";
 
-            CHECK_EQ(create_compilation_flags_string(configuration),
-                     "-std=c++98 /Od -DDEBUG -DVERSION=12 -I. -Isource -Itest");
+            CHECK_EQ(create_compilation_flags_string(configuration), "");
         }
     }
 }

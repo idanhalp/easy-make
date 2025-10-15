@@ -333,7 +333,10 @@ auto create_compilation_flags_string(const Configuration& configuration) -> std:
         }
     }
 
-    result.pop_back(); // remove trailing whitespace.
+    if (result.ends_with(" "))
+    {
+        result.pop_back();
+    }
 
     return result;
 }
