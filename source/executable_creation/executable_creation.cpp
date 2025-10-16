@@ -17,6 +17,9 @@
 #include "source/utils/print.hpp"
 #include "source/utils/utils.hpp"
 
+/// @brief  Validates that all configurations have unique names.
+/// @param  configurations  A collection of configuration objects to validate.
+/// @return `std::nullopt` if all names are valid, or a `std::string` with the relevant error otherwise.
 auto check_names_validity(const std::vector<Configuration>& configurations) -> std::optional<std::string>
 {
     std::unordered_map<std::string, std::ptrdiff_t> configuration_to_index;
@@ -24,6 +27,7 @@ auto check_names_validity(const std::vector<Configuration>& configurations) -> s
     for (const auto [index, configuration] : std::views::enumerate(configurations) | std::views::as_const)
     {
         const auto actual_index = index + 1;
+
         if (!configuration.name.has_value())
         {
             return std::format("Error: The {}{} configuration does not have a name.", actual_index,
@@ -103,6 +107,13 @@ auto check_parents_validity(const std::unordered_map<std::string, Configuration>
     }
 }
 
+/// @brief  Creates a new configuration by merging fields from a parent hierarchy.
+///         Missing fields in `original` are populated from `parent`. If `parent`
+///         also lacks a field, the lookup continues recursively through `parent`'s
+///         parent chain until a value is found or the chain ends.
+/// @param  original  The base configuration (highest priority).
+/// @param  parent    The parent configuration used to fill missing fields.
+/// @return A new configuration with all fields resolved from the inheritance hierarchy.
 static auto merge_configuration_with_parent(const Configuration& original, const Configuration& parent) -> Configuration
 {
     auto result = original;

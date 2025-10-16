@@ -20,7 +20,7 @@ TEST_SUITE("executable_creation")
             configurations[2].name = "name-3";
 
             const auto names_error = check_names_validity(configurations);
-            CHECK(names_error.has_value());
+            REQUIRE(names_error.has_value());
             CHECK_EQ(*names_error, "Error: The 2nd configuration does not have a name.");
         }
 
@@ -31,7 +31,7 @@ TEST_SUITE("executable_creation")
             configurations[2].name = "name-3";
 
             const auto names_error = check_names_validity(configurations);
-            CHECK(names_error.has_value());
+            REQUIRE(names_error.has_value());
             CHECK_EQ(*names_error, "Error: Both the 1st and 2nd configurations have 'name-1' as name.");
         }
 
@@ -209,7 +209,7 @@ TEST_SUITE("executable_creation")
 
             const auto actual_configuration =
                 get_actual_configuration("test", {test_configuration, default_configuration});
-            CHECK(actual_configuration.has_value());
+            REQUIRE(actual_configuration.has_value());
             CHECK_EQ(actual_configuration->name, "test");
             CHECK_EQ(actual_configuration->compiler, "clang++");
             CHECK_EQ(actual_configuration->output_name, "test-output");
@@ -236,7 +236,7 @@ TEST_SUITE("executable_creation")
 
             const auto actual_configuration =
                 get_actual_configuration("config-2", {configuration_0, configuration_1, configuration_2});
-            CHECK(actual_configuration.has_value());
+            REQUIRE(actual_configuration.has_value());
             CHECK_EQ(actual_configuration->name, configuration_2.name);
             CHECK_EQ(actual_configuration->compiler, configuration_2.compiler);
             CHECK_EQ(actual_configuration->defines, configuration_1.defines);

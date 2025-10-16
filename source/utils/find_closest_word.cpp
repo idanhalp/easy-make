@@ -69,33 +69,18 @@ static auto get_distance_between_words(const std::string& word_1, const std::str
                                                deletion_penalty);
 }
 
-auto utils::find_closest_word(const std::string& word,
+auto utils::find_closest_word(const std::string& target_word,
                               const std::vector<std::string>& candidates) -> std::optional<std::string>
 {
-    auto closest_candidate_index = 0;
-    auto min_distance            = get_distance_between_words(word, candidates[0]);
+    const auto distance_from_target = [&](const std::string& s) { return get_distance_between_words(s, target_word); };
+    const auto closest_word         = std::ranges::min_element(candidates, std::ranges::less{}, distance_from_target);
 
-    for (const auto& [index, candidate] :
-         candidates | std::views::enumerate | std::views::drop(1) | std::views::as_const)
+    const auto MAX_SIMILARITY_DIFFERENCE = 7;
+    const auto candidate_is_close_enough = distance_from_target(*closest_word) <= MAX_SIMILARITY_DIFFERENCE;
+
+    if (candidate_is_close_enough)
     {
-        const auto distance             = get_distance_between_words(word, candidate);
-        const auto candidate_is_closest = distance < min_distance;
-
-        if (candidate_is_closest)
-        {
-            closest_candidate_index = index;
-            min_distance            = distance;
-        }
-    }
-
-    // Maximum weighted Damerau–Levenshtein distance for a candidate to be considered "similar enough".
-    // The value is taken from Git.
-    const auto MAX_SIMILARITY_DIFFERENCE              = 7;
-    const auto most_similar_candidate_is_close_enough = min_distance <= MAX_SIMILARITY_DIFFERENCE;
-
-    if (most_similar_candidate_is_close_enough)
-    {
-        return candidates[closest_candidate_index];
+        return *closest_word;
     }
     else
     {

@@ -135,9 +135,9 @@ auto build_caching::get_files_to_compile(const std::filesystem::path& path_to_ro
 {
     const auto dependency_graph      = get_dependency_graph(path_to_root, code_files, include_directories);
     const auto cycle                 = dependency_graph.check_for_cycle();
-    const auto cycle_exists_on_graph = cycle.has_value();
+    const auto cycle_exists_in_graph = cycle.has_value();
 
-    if (cycle_exists_on_graph)
+    if (cycle_exists_in_graph)
     {
         const auto error = std::format("Error: Circular header dependency detected.\n\n"
                                        "The following headers form a cycle:\n"
@@ -164,8 +164,7 @@ auto build_caching::write_info_to_build_data_file(
     const std::filesystem::path& path_to_root,
     const std::unordered_map<std::filesystem::path, std::uint64_t>& hashes) -> void
 {
-    std::filesystem::create_directory(path_to_root / params::BUILD_DIRECTORY_NAME);
-    std::filesystem::create_directory(path_to_root / params::BUILD_DIRECTORY_NAME / configuration_name);
+    std::filesystem::create_directories(path_to_root / params::BUILD_DIRECTORY_NAME / configuration_name);
 
     const auto build_data_file_path =
         path_to_root / params::BUILD_DIRECTORY_NAME / configuration_name / params::BUILD_DATA_FILE_NAME;
@@ -177,8 +176,7 @@ auto build_caching::write_info_to_build_data_file(
         throw std::runtime_error(std::format("Failed to open '{}'.", build_data_file_path.native()));
     }
 
-    // `ordered_json` instead of `json` because it is very important
-    // that the "path" key is before "hash".
+    // Use `ordered_json` so "path" appears before "hash" - purely cosmetic.
     nlohmann::ordered_json json;
 
     for (const auto& [path, hash] : hashes)
@@ -186,7 +184,7 @@ auto build_caching::write_info_to_build_data_file(
         json.push_back(nlohmann::ordered_json{{"path", path}, {"hash", hash}});
     }
 
-    data_file << json.dump(4); // Write to file.
+    data_file << json.dump(); // Write to file.
 }
 
 auto build_caching::handle_build_caching(const Configuration& configuration,

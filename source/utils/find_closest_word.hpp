@@ -7,7 +7,7 @@
 
 namespace utils
 {
-    auto find_closest_word(const std::string& word,
+    auto find_closest_word(const std::string& target_word,
                            const std::vector<std::string>& candidates) -> std::optional<std::string>;
 }
 
