@@ -1,6 +1,7 @@
 #include "source/utils/utils.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <format>
 #include <string_view>
@@ -79,4 +80,16 @@ auto utils::is_source_file(const std::filesystem::path& path) -> bool
 auto utils::is_code_file(const std::filesystem::path& path) -> bool
 {
     return is_header_file(path) || is_source_file(path);
+}
+
+auto utils::count_digits(const int x) -> int
+{
+    if (x == 0)
+    {
+        return 1;
+    }
+    else
+    {
+        return static_cast<int>(std::log10(std::abs(1.0 * x))) + 1;
+    }
 }

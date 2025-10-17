@@ -19,6 +19,8 @@ namespace utils
     auto is_source_file(const std::filesystem::path& path) -> bool;
 
     auto is_code_file(const std::filesystem::path& path) -> bool;
+
+    auto count_digits(int x) -> int;
 }
 
 #endif // SOURCE_UTILS_UTILS_HPP

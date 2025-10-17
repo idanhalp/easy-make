@@ -2,7 +2,6 @@
 
 #include <cstdlib> // `std::system`
 #include <format>
-#include <iterator>
 #include <print>
 #include <ranges>
 #include <string>
@@ -11,6 +10,7 @@
 #include <vector>
 
 #include "source/build_caching/build_caching.hpp"
+#include "source/executable_creation/compilation.hpp"
 #include "source/parameters/parameters.hpp"
 #include "source/utils/find_closest_word.hpp"
 #include "source/utils/graph.hpp"
@@ -299,107 +299,6 @@ auto get_code_files(const Configuration& configuration,
     return code_files | std::ranges::to<std::vector>();
 }
 
-auto create_compilation_flags_string(const Configuration& configuration) -> std::string
-{
-    std::string result;
-
-    if (configuration.standard.has_value())
-    {
-        std::format_to(std::back_inserter(result), "-std=c++{} ", *configuration.standard);
-    }
-
-    if (configuration.warnings.has_value())
-    {
-        for (const auto& warning : *configuration.warnings)
-        {
-            std::format_to(std::back_inserter(result), "{} ", warning);
-        }
-    }
-
-    if (configuration.optimization.has_value())
-    {
-        if (*configuration.compiler == "cl") // MSVC.
-        {
-            std::format_to(std::back_inserter(result), "/O{} ", *configuration.optimization);
-        }
-        else
-        {
-            std::format_to(std::back_inserter(result), "-O{} ", *configuration.optimization);
-        }
-    }
-
-    if (configuration.defines.has_value())
-    {
-        for (const auto& define : *configuration.defines)
-        {
-            std::format_to(std::back_inserter(result), "-D{} ", define);
-        }
-    }
-
-    if (configuration.include_directories.has_value())
-    {
-        for (const auto& directory : *configuration.include_directories)
-        {
-            std::format_to(std::back_inserter(result), "-I{} ", directory);
-        }
-    }
-
-    if (result.ends_with(" "))
-    {
-        result.pop_back();
-    }
-
-    return result;
-}
-
-static auto
-create_object_files(const Configuration& configuration,
-                    const std::filesystem::path& path_to_root,
-                    const std::vector<std::filesystem::path>& files_to_compile) -> std::optional<std::string>
-{
-    const auto compilation_flags = create_compilation_flags_string(configuration);
-    const auto object_files_path = path_to_root / params::BUILD_DIRECTORY_NAME / *configuration.name;
-
-    switch (files_to_compile.size())
-    {
-    case 0:
-        std::println("No files to compile.");
-        break;
-
-    case 1:
-        std::println("Compiling one file...");
-        break;
-
-    default:
-        std::println("Compiling {} files...", files_to_compile.size());
-        break;
-    }
-
-    const auto max_num_of_digits = std::to_string(files_to_compile.size()).length();
-
-    for (const auto& [index, file_name] : std::views::enumerate(files_to_compile) | std::views::as_const)
-    {
-        const auto completion_percentage = 100 * (index + 1) / files_to_compile.size();
-        std::println("{0:>{2}}/{1} [{3:>3}%] {4}", index + 1, files_to_compile.size(), max_num_of_digits,
-                     completion_percentage, file_name.native());
-
-        const auto object_file_name    = utils::get_object_file_name(file_name);
-        const auto compilation_command = std::format("{} {} -c {} -o {}/{}", *configuration.compiler, compilation_flags,
-                                                     file_name.native(), object_files_path.native(), object_file_name);
-
-        const auto compiled_successfully = std::system(compilation_command.c_str()) == EXIT_SUCCESS;
-
-        if (!compiled_successfully)
-        {
-            return std::format("Compilation of '{}' failed.", file_name.native());
-        }
-    }
-
-    utils::print_success("Compilation complete.");
-
-    return std::nullopt;
-}
-
 static auto link_object_files(const Configuration& configuration,
                               const std::filesystem::path& path_to_root) -> std::optional<std::string>
 {
@@ -458,12 +357,10 @@ auto create_executable(const std::string& configuration_name,
 
     // TODO: delete object files of files that don't exist anymore (`files_to_delete`).
 
-    const auto compilation_error = create_object_files(*actual_configuration, path_to_root, files_to_compile);
+    const auto compilation_successful = compile_files(*actual_configuration, path_to_root, files_to_compile);
 
-    if (compilation_error.has_value())
+    if (!compilation_successful)
     {
-        utils::print_error("{}", *compilation_error);
-
         return EXIT_FAILURE;
     }
 

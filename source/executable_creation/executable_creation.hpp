@@ -22,8 +22,6 @@ auto get_actual_configuration(const std::string& configuration_name, const std::
 auto get_code_files(const Configuration& configuration,
                     const std::filesystem::path& path_to_root) -> std::vector<std::filesystem::path>;
 
-auto create_compilation_flags_string(const Configuration& configuration) -> std::string;
-
 auto create_executable(const std::string& configuration_name,
                        const std::filesystem::path& path_to_root,
                        const std::vector<Configuration>& configurations) -> int;
