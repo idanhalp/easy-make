@@ -62,6 +62,4 @@ auto main(const int num_of_arguments, const char* arguments[]) -> int
     {
         return create_executable(argument_info->configuration_name, current_path, *configurations);
     }
-
-    return EXIT_SUCCESS;
 }
