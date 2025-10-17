@@ -26,7 +26,9 @@ TESTS_SRCS = \
 	source/configuration_parsing/configuration.cpp\
 	source/configuration_parsing/configuration_parsing.cpp\
 	source/configuration_parsing/json_keys.cpp\
+	source/executable_creation/compilation.cpp\
 	source/executable_creation/executable_creation.cpp\
+	source/executable_creation/linking.cpp\
 	source/utils/find_closest_word.cpp\
 	source/utils/utils.cpp
 
@@ -41,7 +43,9 @@ EASYMAKE_SRCS = \
 	source/configuration_parsing/configuration.cpp\
 	source/configuration_parsing/configuration_parsing.cpp\
 	source/configuration_parsing/json_keys.cpp\
+	source/executable_creation/compilation.cpp\
 	source/executable_creation/executable_creation.cpp\
+	source/executable_creation/linking.cpp\
 	source/utils/find_closest_word.cpp\
 	source/utils/utils.cpp
 

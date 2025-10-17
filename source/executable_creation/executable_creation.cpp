@@ -11,6 +11,7 @@
 
 #include "source/build_caching/build_caching.hpp"
 #include "source/executable_creation/compilation.hpp"
+#include "source/executable_creation/linking.hpp"
 #include "source/parameters/parameters.hpp"
 #include "source/utils/find_closest_word.hpp"
 #include "source/utils/graph.hpp"
@@ -299,36 +300,6 @@ auto get_code_files(const Configuration& configuration,
     return code_files | std::ranges::to<std::vector>();
 }
 
-static auto link_object_files(const Configuration& configuration,
-                              const std::filesystem::path& path_to_root) -> std::optional<std::string>
-{
-    const auto actual_output_path = configuration.output_path.has_value()
-                                        ? std::format("{}/{}", *configuration.output_path, *configuration.output_name)
-                                        : *configuration.output_name;
-
-    const auto object_files_path = path_to_root / params::BUILD_DIRECTORY_NAME / *configuration.name;
-    const auto link_command =
-        std::format("{} {}/*.o -o {}", *configuration.compiler, object_files_path.native(), actual_output_path);
-
-    if (configuration.output_path.has_value())
-    {
-        std::filesystem::create_directory(*configuration.output_path);
-    }
-
-    std::println("Linking...");
-
-    const auto linking_successful = std::system(link_command.c_str()) == EXIT_SUCCESS;
-
-    if (!linking_successful)
-    {
-        return "Linking failed.";
-    }
-
-    utils::print_success("Linking complete. Executable located at '{}'.", actual_output_path);
-
-    return std::nullopt;
-}
-
 auto create_executable(const std::string& configuration_name,
                        const std::filesystem::path& path_to_root,
                        const std::vector<Configuration>& configurations) -> int
@@ -364,12 +335,10 @@ auto create_executable(const std::string& configuration_name,
         return EXIT_FAILURE;
     }
 
-    const auto linking_error = link_object_files(*actual_configuration, path_to_root);
+    const auto linking_successful = link_object_files(*actual_configuration, path_to_root);
 
-    if (linking_error.has_value())
+    if (!linking_successful)
     {
-        utils::print_error("{}", *linking_error);
-
         return EXIT_FAILURE;
     }
 
