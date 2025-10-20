@@ -15,7 +15,7 @@ auto utils::check_if_configurations_file_exists(const std::filesystem::path& pat
 
 auto utils::get_object_file_name(const std::filesystem::path& path) -> std::string
 {
-    auto result = std::format("{}.o", path.string());
+    auto result = std::format("{}.o", path.native());
     std::ranges::replace(result, std::filesystem::path::preferred_separator, '-');
 
     return result;
