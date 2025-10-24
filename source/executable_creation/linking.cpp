@@ -4,10 +4,15 @@
 #include <format>
 
 #include "source/parameters/parameters.hpp"
+#include "source/utils/macros/assert.hpp"
 #include "source/utils/print.hpp"
 
 auto link_object_files(const Configuration& configuration, const std::filesystem::path& path_to_root) -> bool
 {
+    ASSERT(configuration.name.has_value());
+    ASSERT(configuration.compiler.has_value());
+    ASSERT(configuration.output_name.has_value());
+
     const auto object_files_path = path_to_root / params::BUILD_DIRECTORY_NAME / *configuration.name;
     const auto output_file_path =
         std::filesystem::path(configuration.output_path.value_or(".")) / *configuration.output_name;

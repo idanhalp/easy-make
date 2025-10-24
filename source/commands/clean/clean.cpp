@@ -9,6 +9,7 @@
 #include "source/executable_creation/executable_creation.hpp"
 #include "source/parameters/parameters.hpp"
 #include "source/utils/find_closest_word.hpp"
+#include "source/utils/macros/assert.hpp"
 #include "source/utils/print.hpp"
 
 static auto print_incomplete_configuration_error_message(const std::string_view error_message,
@@ -59,6 +60,8 @@ auto commands::clean(const std::string& configuration_name,
 
     for (const auto& configuration : configurations)
     {
+        ASSERT(configuration.name.has_value());
+
         if (*configuration.name != configuration_name)
         {
             continue;
@@ -73,6 +76,8 @@ auto commands::clean(const std::string& configuration_name,
 
             return EXIT_FAILURE;
         }
+
+        ASSERT(actual_configuration->output_name.has_value());
 
         const auto output_path = actual_configuration->output_path.value_or("");
         const auto path_to_executable =

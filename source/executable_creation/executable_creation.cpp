@@ -15,6 +15,7 @@
 #include "source/parameters/parameters.hpp"
 #include "source/utils/find_closest_word.hpp"
 #include "source/utils/graph.hpp"
+#include "source/utils/macros/assert.hpp"
 #include "source/utils/print.hpp"
 #include "source/utils/utils.hpp"
 
@@ -34,6 +35,8 @@ auto check_names_validity(const std::vector<Configuration>& configurations) -> s
             return std::format("Error: The {}{} configuration does not have a name.", actual_index,
                                utils::get_ordinal_indicator(actual_index));
         }
+
+        ASSERT(configuration.name.has_value());
 
         const auto& name = *configuration.name;
 

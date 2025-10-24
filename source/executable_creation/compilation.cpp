@@ -1,7 +1,6 @@
 #include "source/executable_creation/compilation.hpp"
 
 #include <algorithm>
-#include <cassert>
 #include <cstdlib>
 #include <format>
 #include <iterator>
@@ -10,6 +9,7 @@
 #include <string_view>
 
 #include "source/parameters/parameters.hpp"
+#include "source/utils/macros/assert.hpp"
 #include "source/utils/print.hpp"
 #include "source/utils/utils.hpp"
 
@@ -71,6 +71,8 @@ static auto compile(const std::filesystem::path& file_name,
                     const std::string_view compilation_flags,
                     const Configuration& configuration) -> bool
 {
+    ASSERT(configuration.compiler.has_value());
+
     const auto object_file_path    = object_files_path / utils::get_object_file_name(file_name);
     const auto compilation_command = std::format("{} {} -c {} -o {}", *configuration.compiler, compilation_flags,
                                                  file_name.native(), object_file_path.native());
@@ -82,7 +84,7 @@ static auto compile(const std::filesystem::path& file_name,
 
 static auto print_compilation_result(const std::vector<std::filesystem::path>& files_failed_to_compile) -> void
 {
-    assert(std::ranges::is_sorted(files_failed_to_compile));
+    ASSERT(std::ranges::is_sorted(files_failed_to_compile));
 
     const auto all_files_compiled_successfully = files_failed_to_compile.empty();
 
@@ -109,6 +111,8 @@ auto compile_files(const Configuration& configuration,
                    const std::filesystem::path& path_to_root,
                    const std::vector<std::filesystem::path>& files_to_compile) -> bool
 {
+    ASSERT(configuration.name.has_value());
+
     const auto compilation_flags = create_compilation_flags_string(configuration);
     const auto object_files_path = path_to_root / params::BUILD_DIRECTORY_NAME / *configuration.name;
 

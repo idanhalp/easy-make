@@ -5,9 +5,12 @@
 
 #include "source/parameters/parameters.hpp"
 #include "source/utils/find_closest_word.hpp"
+#include "source/utils/macros/assert.hpp"
 
 auto Configuration::check_for_errors() const -> std::optional<std::string>
 {
+    ASSERT(name.has_value());
+
     // Check for obligatory fields.
 
     if (!compiler.has_value())

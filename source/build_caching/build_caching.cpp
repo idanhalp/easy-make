@@ -11,6 +11,7 @@
 #include "source/build_caching/dependency_graph.hpp"
 #include "source/parameters/parameters.hpp"
 #include "source/utils/graph.hpp"
+#include "source/utils/macros/assert.hpp"
 #include "source/utils/utils.hpp"
 
 auto build_caching::hash_file_contents(const std::filesystem::path& path) -> std::uint64_t
@@ -192,6 +193,8 @@ auto build_caching::handle_build_caching(const Configuration& configuration,
                                          const std::vector<std::filesystem::path>& code_files)
     -> std::expected<Info, std::string>
 {
+    ASSERT(configuration.name.has_value());
+
     const auto old_file_hashes = get_old_file_hashes(*configuration.name, path_to_root);
     const auto new_file_hashes = get_new_file_hashes(code_files);
     const auto files_to_delete = get_files_to_delete(old_file_hashes, new_file_hashes);

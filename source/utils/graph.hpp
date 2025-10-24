@@ -2,7 +2,6 @@
 #define SOURCE_UTILS_GRAPH_HPP
 
 #include <algorithm>
-#include <cassert>
 #include <compare>
 #include <deque>
 #include <iterator>
@@ -15,6 +14,8 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+#include "source/utils/macros/assert.hpp"
 
 namespace utils
 {
@@ -74,7 +75,7 @@ auto utils::DirectedGraph<T>::dfs(const T& node,
                                   std::unordered_map<T, VisitStatus>& visit_status,
                                   std::unordered_map<T, T>& parents) const -> bool
 {
-    assert(!visit_status.contains(node)); // `node` must be unvisited.
+    ASSERT(!visit_status.contains(node)); // `node` must be unvisited.
 
     visit_status[node] = VisitStatus::CURRENTLY_PROCESSED;
 
@@ -126,7 +127,7 @@ auto utils::DirectedGraph<T>::reconstruct_cycle(const T& start_node,
 
     do
     {
-        assert(current != parents.end());
+        ASSERT(current != parents.end());
 
         const auto& [node, parent] = *current;
         cycle.push_back(node);

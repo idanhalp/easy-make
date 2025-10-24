@@ -19,3 +19,5 @@ PenaltyBreakBeforeFirstCallParameter: 1
 
 InsertNewlineAtEOF: true
 KeepEmptyLinesAtEOF: true
+
+IndentPPDirectives: BeforeHash

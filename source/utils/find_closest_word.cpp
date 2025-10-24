@@ -72,6 +72,11 @@ static auto get_distance_between_words(const std::string& word_1, const std::str
 auto utils::find_closest_word(const std::string& target_word,
                               const std::vector<std::string>& candidates) -> std::optional<std::string>
 {
+    if (candidates.empty())
+    {
+        return std::nullopt;
+    }
+
     const auto distance_from_target = [&](const std::string& s) { return get_distance_between_words(s, target_word); };
     const auto closest_word         = std::ranges::min_element(candidates, std::ranges::less{}, distance_from_target);
 

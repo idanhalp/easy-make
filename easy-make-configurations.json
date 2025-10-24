@@ -16,6 +16,7 @@
     "name": "test",
     "parent": "default",
     "optimization": "0",
+    "defines": ["DEBUG"],
     "exclude": {
       "files": ["source/main.cpp"]
     },
@@ -36,13 +37,14 @@
   {
     "name": "debug",
     "parent": "easy-make",
-    "optimization": "0"
+    "optimization": "0",
+    "defines": ["DEBUG"]
   },
   {
     "name": "release",
     "parent": "easy-make",
     "optimization": "3",
-    "defines": ["NDEBUG"],
+    "defines": ["NDEBUG", "RELEASE"],
     "warnings": ["-Wall", "-Wextra", "-Werror"]
   }
 ]

@@ -23,4 +23,10 @@ TEST_SUITE("find_closest_word")
         const auto result = utils::find_closest_word("t", {"release", "test", "easy-make"});
         REQUIRE_FALSE(result.has_value());
     }
+
+    TEST_CASE("No candidates")
+    {
+        const auto result = utils::find_closest_word("releas", {});
+        REQUIRE_FALSE(result.has_value());
+    }
 }
