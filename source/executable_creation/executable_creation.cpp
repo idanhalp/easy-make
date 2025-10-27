@@ -15,7 +15,6 @@
 #include "source/parameters/parameters.hpp"
 #include "source/utils/find_closest_word.hpp"
 #include "source/utils/graph.hpp"
-#include "source/utils/macros/assert.hpp"
 #include "source/utils/print.hpp"
 #include "source/utils/utils.hpp"
 
@@ -36,8 +35,6 @@ auto check_names_validity(const std::vector<Configuration>& configurations) -> s
                                utils::get_ordinal_indicator(actual_index));
         }
 
-        ASSERT(configuration.name.has_value());
-
         const auto& name = *configuration.name;
 
         if (configuration_to_index.contains(name))
@@ -48,7 +45,7 @@ auto check_names_validity(const std::vector<Configuration>& configurations) -> s
                                utils::get_ordinal_indicator(actual_index), name);
         }
 
-        configuration_to_index[name] = index + 1;
+        configuration_to_index[name] = actual_index;
     }
 
     return std::nullopt;
@@ -75,12 +72,23 @@ auto check_parents_validity(const std::unordered_map<std::string, Configuration>
 {
     for (const auto& configuration : std::views::values(name_to_configuration))
     {
-        if (configuration.parent == configuration.name)
+        const auto configuration_has_parent = configuration.parent.has_value();
+
+        if (!configuration_has_parent)
+        {
+            continue;
+        }
+
+        const auto configuration_is_its_own_parent = configuration.name == configuration.parent;
+
+        if (configuration_is_its_own_parent)
         {
             return std::format("Error: Configuration '{}' has itself as a parent.", *configuration.name);
         }
 
-        if (configuration.parent.has_value() && !name_to_configuration.contains(*configuration.parent))
+        const auto parent_exists = name_to_configuration.contains(*configuration.parent);
+
+        if (!parent_exists)
         {
             const auto configuration_names = std::views::keys(name_to_configuration) | std::ranges::to<std::vector>();
             const auto closest_parent      = utils::find_closest_word(*configuration.parent, configuration_names);
@@ -307,7 +315,7 @@ auto create_executable(const std::string& configuration_name,
                        const std::filesystem::path& path_to_root,
                        const std::vector<Configuration>& configurations) -> int
 {
-    const auto actual_configuration = get_actual_configuration(std::string(configuration_name), configurations);
+    const auto actual_configuration = get_actual_configuration(configuration_name, configurations);
 
     if (!actual_configuration.has_value())
     {

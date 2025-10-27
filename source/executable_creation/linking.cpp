@@ -13,25 +13,23 @@ auto link_object_files(const Configuration& configuration, const std::filesystem
     ASSERT(configuration.compiler.has_value());
     ASSERT(configuration.output_name.has_value());
 
-    const auto object_files_path = path_to_root / params::BUILD_DIRECTORY_NAME / *configuration.name;
-    const auto output_file_path =
-        std::filesystem::path(configuration.output_path.value_or(".")) / *configuration.output_name;
+    const auto object_files_path = (path_to_root / params::BUILD_DIRECTORY_NAME / *configuration.name).string();
+    const auto output_path =
+        (std::filesystem::path(configuration.output_path.value_or(".")) / *configuration.output_name).string();
 
     if (configuration.output_path.has_value())
     {
         std::filesystem::create_directories(*configuration.output_path);
     }
 
-    const auto link_command =
-        std::format("{} {}/*.o -o {}", *configuration.compiler, object_files_path.native(), output_file_path.native());
-
     std::println("Linking...");
 
+    const auto link_command = std::format("{} {}/*.o -o {}", *configuration.compiler, object_files_path, output_path);
     const auto linking_successful = std::system(link_command.c_str()) == EXIT_SUCCESS;
 
     if (linking_successful)
     {
-        utils::print_success("Linking complete. Executable located at '{}'.", output_file_path.native());
+        utils::print_success("Linking complete. Executable located at '{}'.", output_path);
     }
     else
     {

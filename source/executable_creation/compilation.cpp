@@ -82,11 +82,11 @@ static auto compile(const std::filesystem::path& file_name,
     return file_compiled_successfully;
 }
 
-static auto print_compilation_result(const std::vector<std::filesystem::path>& files_failed_to_compile) -> void
+static auto print_compilation_result(const std::vector<std::filesystem::path>& failed_compilation) -> void
 {
-    ASSERT(std::ranges::is_sorted(files_failed_to_compile));
+    ASSERT(std::ranges::is_sorted(failed_compilation));
 
-    const auto all_files_compiled_successfully = files_failed_to_compile.empty();
+    const auto all_files_compiled_successfully = failed_compilation.empty();
 
     if (all_files_compiled_successfully)
     {
@@ -94,12 +94,12 @@ static auto print_compilation_result(const std::vector<std::filesystem::path>& f
         return;
     }
 
-    const auto max_index_width = utils::count_digits(files_failed_to_compile.size()); // For formatting.
+    const auto max_index_width = utils::count_digits(failed_compilation.size()); // For formatting.
 
     std::println();
     std::println("The following files failed to compile:");
 
-    for (const auto [index, file] : std::views::enumerate(files_failed_to_compile) | std::views::as_const)
+    for (const auto [index, file] : std::views::enumerate(failed_compilation) | std::views::as_const)
     {
         std::println("{0:>{2}}. {1}", index + 1, file.native(), max_index_width);
     }
@@ -132,7 +132,7 @@ auto compile_files(const Configuration& configuration,
     }
 
     const auto max_index_width = utils::count_digits(files_to_compile.size()); // For formatting.
-    std::vector<std::filesystem::path> files_failed_to_compile;
+    std::vector<std::filesystem::path> failed_compilation;
 
     for (const auto& [index, file_name] : std::views::enumerate(files_to_compile) | std::views::as_const)
     {
@@ -146,11 +146,11 @@ auto compile_files(const Configuration& configuration,
 
         if (!file_compiled_successfully)
         {
-            files_failed_to_compile.push_back(file_name);
+            failed_compilation.push_back(file_name);
         }
     }
 
-    print_compilation_result(files_failed_to_compile);
+    print_compilation_result(failed_compilation);
 
-    return files_failed_to_compile.empty(); // All files compiled successfully.
+    return failed_compilation.empty(); // All files compiled successfully.
 }
