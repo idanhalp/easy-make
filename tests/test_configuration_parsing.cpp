@@ -155,4 +155,40 @@ TEST_SUITE("configuration_parsing")
                      "Did you mean 'output.path'?");
         }
     }
+
+    TEST_CASE("Source files contain a file that does not exist.")
+    {
+        const auto project_21_path = tests::utils::get_path_to_resources_project(21);
+        const auto configurations  = parse_configurations(project_21_path);
+
+        REQUIRE(!configurations.has_value());
+        CHECK_EQ(configurations.error(), "Error: Configuration 'default' - source file 'f_3.cpp' does not exist.");
+    }
+
+    TEST_CASE("Source directories contain a directory that does not exist.")
+    {
+        const auto project_22_path = tests::utils::get_path_to_resources_project(22);
+        const auto configurations  = parse_configurations(project_22_path);
+
+        REQUIRE(!configurations.has_value());
+        CHECK_EQ(configurations.error(), "Error: Configuration 'default' - source directory 'dir_2' does not exist.");
+    }
+
+    TEST_CASE("Excluded files contain a file that does not exist.")
+    {
+        const auto project_23_path = tests::utils::get_path_to_resources_project(23);
+        const auto configurations  = parse_configurations(project_23_path);
+
+        REQUIRE(!configurations.has_value());
+        CHECK_EQ(configurations.error(), "Error: Configuration 'default' - excluded file 'f_3.cpp' does not exist.");
+    }
+
+    TEST_CASE("Excluded directories contain a directory that does not exist.")
+    {
+        const auto project_24_path = tests::utils::get_path_to_resources_project(24);
+        const auto configurations  = parse_configurations(project_24_path);
+
+        REQUIRE(!configurations.has_value());
+        CHECK_EQ(configurations.error(), "Error: Configuration 'default' - excluded directory 'dir_2' does not exist.");
+    }
 }

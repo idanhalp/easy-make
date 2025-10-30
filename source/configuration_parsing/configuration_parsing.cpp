@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <format>
 #include <fstream>
-#include <ranges>
 
 #include "third_party/nlohmann/json.hpp"
 
@@ -240,10 +239,65 @@ static auto parse_configuration(const nlohmann::json& json) -> Configuration
     return configuration;
 }
 
-auto parse_configurations(const std::filesystem::path& path_to_configurations_file)
+static auto
+check_for_error_in_sources_and_excludes(const Configuration& configuration,
+                                        const std::filesystem::path& path_to_root) -> std::optional<std::string>
+{
+    if (configuration.source_files.has_value())
+    {
+        for (const auto& file : *configuration.source_files)
+        {
+            if (!std::filesystem::is_regular_file(path_to_root / file))
+            {
+                return std::format("Error: Configuration '{}' - source file '{}' does not exist.", *configuration.name,
+                                   file);
+            }
+        }
+    }
+
+    if (configuration.source_directories.has_value())
+    {
+        for (const auto& directory : *configuration.source_directories)
+        {
+            if (!std::filesystem::is_directory(path_to_root / directory))
+            {
+                return std::format("Error: Configuration '{}' - source directory '{}' does not exist.",
+                                   *configuration.name, directory);
+            }
+        }
+    }
+
+    if (configuration.excluded_files.has_value())
+    {
+        for (const auto& file : *configuration.excluded_files)
+        {
+            if (!std::filesystem::is_regular_file(path_to_root / file))
+            {
+                return std::format("Error: Configuration '{}' - excluded file '{}' does not exist.",
+                                   *configuration.name, file);
+            }
+        }
+    }
+
+    if (configuration.excluded_directories.has_value())
+    {
+        for (const auto& directory : *configuration.excluded_directories)
+        {
+            if (!std::filesystem::is_directory(path_to_root / directory))
+            {
+                return std::format("Error: Configuration '{}' - excluded directory '{}' does not exist.",
+                                   *configuration.name, directory);
+            }
+        }
+    }
+
+    return std::nullopt;
+}
+
+auto parse_configurations(const std::filesystem::path& path_to_root)
     -> std::expected<std::vector<Configuration>, std::string>
 {
-    std::ifstream configurations_file(path_to_configurations_file / params::CONFIGURATIONS_FILE_NAME);
+    std::ifstream configurations_file(path_to_root / params::CONFIGURATIONS_FILE_NAME);
     nlohmann::json json;
 
     try
@@ -264,5 +318,27 @@ auto parse_configurations(const std::filesystem::path& path_to_configurations_fi
         return std::unexpected(*error_in_json);
     }
 
-    return json | std::views::transform(parse_configuration) | std::ranges::to<std::vector>();
+    std::vector<Configuration> configurations;
+    configurations.reserve(json.size());
+
+    for (const auto& configuration_object : json)
+    {
+        auto configuration = parse_configuration(configuration_object);
+
+        // Even after calling `check_for_errors_in_json`, we still need to check that all
+        // the source and excluded files and directories specified in the configuration file actually exist.
+        const auto error_in_sources_and_excludes = check_for_error_in_sources_and_excludes(configuration, path_to_root);
+        const auto found_error_in_sources_and_excludes = error_in_sources_and_excludes.has_value();
+
+        if (found_error_in_sources_and_excludes)
+        {
+            return std::unexpected(*error_in_sources_and_excludes);
+        }
+        else
+        {
+            configurations.push_back(std::move(configuration));
+        }
+    }
+
+    return configurations;
 }

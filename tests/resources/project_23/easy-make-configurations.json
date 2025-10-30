@@ -1,0 +1,15 @@
+[
+  {
+    "name": "default",
+    "compiler": "g++",
+    "sources": {
+      "directories": ["."]
+    },
+    "exclude": {
+      "files": ["f_1.cpp", "f_3.cpp"]
+    },
+    "output": {
+      "name": "output.exe"
+    }
+  }
+]

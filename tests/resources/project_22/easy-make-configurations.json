@@ -1,0 +1,13 @@
+[
+  {
+    "name": "default",
+    "compiler": "g++",
+    "sources": {
+      "files": ["f_1.cpp", "f_2.cpp"],
+      "directories": ["dir_1", "dir_2"]
+    },
+    "output": {
+      "name": "output.exe"
+    }
+  }
+]
