@@ -32,7 +32,10 @@ TEST_SUITE("build_caching")
         const auto path_to_project_7 = tests::utils::get_path_to_resources_project(7);
         const auto hashes            = build_caching::get_old_file_hashes("default", path_to_project_7);
         const std::unordered_map<std::filesystem::path, std::uint64_t> expected = {
-            {"f_1.cpp", 1234}, {"f_2.cpp", 4321}, {"dir/f_3.cpp", 1357}};
+            {"f_1.cpp",     1234},
+            {"f_2.cpp",     4321},
+            {"dir/f_3.cpp", 1357}
+        };
 
         CHECK_EQ(hashes, expected);
     }
@@ -54,9 +57,17 @@ TEST_SUITE("build_caching")
     TEST_CASE("'get_files_to_delete' works correctly.")
     {
         const std::unordered_map<std::filesystem::path, std::uint64_t> old_file_hashes{
-            {"a", 1}, {"b", 2}, {"c", 3}, {"d", 4}};
+            {"a", 1},
+            {"b", 2},
+            {"c", 3},
+            {"d", 4}
+        };
 
-        const std::unordered_map<std::filesystem::path, std::uint64_t> new_file_hashes{{"a", 1}, {"c", 3}, {"e", 5}};
+        const std::unordered_map<std::filesystem::path, std::uint64_t> new_file_hashes{
+            {"a", 1},
+            {"c", 3},
+            {"e", 5}
+        };
 
         const auto files_to_delete = build_caching::get_files_to_delete(old_file_hashes, new_file_hashes);
 
@@ -68,10 +79,24 @@ TEST_SUITE("build_caching")
     TEST_CASE("'get_changed_files' works correctly.")
     {
         const std::unordered_map<std::filesystem::path, std::uint64_t> old_file_hashes{
-            {"a.cpp", 1}, {"b.cpp", 2}, {"c.cpp", 3}, {"d.cpp", 4}, {"aa.cpp", 11}, {"bb.cpp", 22}, {"f.hpp", 4}};
+            {"a.cpp",  1 },
+            {"b.cpp",  2 },
+            {"c.cpp",  3 },
+            {"d.cpp",  4 },
+            {"aa.cpp", 11},
+            {"bb.cpp", 22},
+            {"f.hpp",  4 }
+        };
 
         const std::unordered_map<std::filesystem::path, std::uint64_t> new_file_hashes{
-            {"a.cpp", 1}, {"b.cpp", 2}, {"c.cpp", 4}, {"e.cpp", 5}, {"aa.cpp", 12}, {"bb.cpp", 22}, {"f.hpp", 4}};
+            {"a.cpp",  1 },
+            {"b.cpp",  2 },
+            {"c.cpp",  4 },
+            {"e.cpp",  5 },
+            {"aa.cpp", 12},
+            {"bb.cpp", 22},
+            {"f.hpp",  4 }
+        };
 
         const auto path_to_project_8 = tests::utils::get_path_to_resources_project(8);
         const auto changed_files =

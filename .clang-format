@@ -21,3 +21,6 @@ InsertNewlineAtEOF: true
 KeepEmptyLinesAtEOF: true
 
 IndentPPDirectives: BeforeHash
+
+AlwaysBreakTemplateDeclarations  : Yes
+AlignArrayOfStructures: Left

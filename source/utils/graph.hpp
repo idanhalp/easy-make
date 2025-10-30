@@ -19,7 +19,8 @@
 
 namespace utils
 {
-    template <typename T> class DirectedGraph
+    template <typename T>
+    class DirectedGraph
     {
       public:
         DirectedGraph() = default;
@@ -52,7 +53,8 @@ namespace utils
     };
 }
 
-template <typename T> auto utils::DirectedGraph<T>::add_node(const T& node) -> void
+template <typename T>
+auto utils::DirectedGraph<T>::add_node(const T& node) -> void
 {
     if (!edges.contains(node))
     {
@@ -60,7 +62,8 @@ template <typename T> auto utils::DirectedGraph<T>::add_node(const T& node) -> v
     }
 }
 
-template <typename T> auto utils::DirectedGraph<T>::add_edge(const T& from, const T& to) -> void
+template <typename T>
+auto utils::DirectedGraph<T>::add_edge(const T& from, const T& to) -> void
 {
     edges[from].insert(to);
 
@@ -154,7 +157,8 @@ auto utils::DirectedGraph<T>::reconstruct_cycle(const T& start_node,
            std::ranges::to<std::string>();
 }
 
-template <typename T> auto utils::DirectedGraph<T>::check_for_cycle() const -> std::optional<std::string>
+template <typename T>
+auto utils::DirectedGraph<T>::check_for_cycle() const -> std::optional<std::string>
 {
     std::unordered_map<T, VisitStatus> visit_status;
     std::unordered_map<T, T> parents;

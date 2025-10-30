@@ -182,7 +182,10 @@ auto build_caching::write_info_to_build_data_file(
 
     for (const auto& [path, hash] : hashes)
     {
-        json.push_back(nlohmann::ordered_json{{"path", path}, {"hash", hash}});
+        json.push_back(nlohmann::ordered_json{
+            {"path", path},
+            {"hash", hash}
+        });
     }
 
     data_file << json.dump(); // Write to file.
