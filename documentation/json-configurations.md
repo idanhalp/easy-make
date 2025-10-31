@@ -5,170 +5,197 @@ It serves as a complete reference for creating and customizing easy-make builds.
 
 ## 1. File Structure
 
-The JSON file has two main sections:
+The `easy-make-configurations.json` is composed of an array of object, where each project is a configuration.  
+Each configuration must contain the following fields:
 
-default:  
-  global default values
-
-configurations:  
-  <config_name>:  
-    configuration-specific overrides
-
-- **default:** contains global default values applied to all configurations.  
-- **configurations:** defines one or more named build configurations. You can choose any names (for example, debug, release, profiling).  
+- `name`
+- `compiler`
+- `output.name`
 
 ## 2. Fields
 
-* `name`:
-  * Name of the configuration.
-  * **default** is reserved for the default configuration.
-  * Example:
+- `name`:
+
+  - Name of the configuration.
+  - Must not be empty.
+  - Example:
     ```json
     "name": "release"
     ```
 
-* `compiler`  
-  * C++ compiler.  
-  * Options: 
-    * g++
-    * clang++
-    <!-- * cl   -->
-  * Example:
+- `parent`:
+
+  - Name of parent configuration.
+  - Value must be the name of another configuration.
+  - The configuration uses the parent configuration's values as backup: If a field is not specified for the current configuration, it takes its parent value; if it is, the parent's value is overridden.
+  - A parent configuration can have its own parent.
+  - Example:
+    ```json
+    {
+      "name": "base",
+      "compiler": "g++",
+      "optimization": "0",
+      "output": {
+        "name": "output.exe"
+      }
+    },
+    {
+      "name": "child",
+      "parent": "base",
+      "compiler": "clang++",
+    }
+    ```
+    The second configuration has `clang++` as compiler, with `-O0` optimization level and its output will be called `output.exe`.
+
+- `compiler`
+
+  - C++ compiler.
+  - Options:
+    - g++
+    - clang++
+  - Example:
     ```json
     "compiler": "g++"
     ```
 
-* `standard`  
-  * C++ standard.  
-  * Options: 
-    * "98"
-    * "03"
-    * "11"
-    * "14"
-    * "17"
-    * "20"
-    * "23"
-    * "26"  
-  * Example:
+- `standard`
+
+  - C++ standard.
+  - Options:
+    - "98"
+    - "03"
+    - "11"
+    - "14"
+    - "17"
+    - "20"
+    - "23"
+    - "26"
+  - Example:
     ```json
     "standard": "20"
     ```
 
-* `warnings`  
-  * Compiler warning flags.  
-  * Example: 
-    ```json 
+- `warnings`
+
+  - Compiler warning flags.
+  - Warnings must start with `-W` (except `-pedantic` and `-pedantic-errors`).
+  - Example:
+    ```json
     "warnings": ["-Wall", "-Wextra", "-Wpedantic"]
     ```
 
-* `optimization`  
-  * Compiler optimization flag.  
-  * Options:
-    <!-- * g++ and clang++  -->
-      * "0"
-      * "1"
-      * "2"
-      * "3"
-      * "fast"
-    <!-- * cl
-      * "d"
-      * "1"
-      * "2"
-      * "3"
-      * "s"
-      * "x" -->
+- `optimization`
 
+  - Compiler optimization flag. Equivalent to using `-O` with `g++`.
+  - Options:
 
-  * Example:
+    <!-- - g++ and clang++ -->
+
+    - "0"
+    - "1"
+    - "2"
+    - "3"
+    - "s"
+    - "fast"
+    <!-- - cl
+      - "d"
+      - "1"
+      - "2"
+      - "3"
+      - "s"
+      - "x" -->
+
+  - Example:
     ```json
-    "optimization": "-O2"
+    "optimization": "2"
     ```
 
-* `defines`  
-  * Preprocessor defines.  
-  * Example: 
-    ```json 
-    "defines": ["-DDEBUG=1"]
-    ```
+- `defines`
 
-* `includeDirectories`
-* Directories in includes search path.
-* Example:
-  ```json
-  "includeDirectories": [".", "source"]
-  ```  
-
-* `sources`  
-  * files: list of files to compile.  
-  * directories: list of directories to recursively scan and include all source files within. Supports .cpp, .cc, .cxx files.  
-  * All paths are relative to the JSON file.  
-  * Duplicate files are allowed.  
-  * Example:
+  - Preprocessor defines. Equivalent to using `-D` with `g++`.
+  - Example:
     ```json
-    "sources": {  
-      "files": ["src/dir_1/file_1.cpp", "src/dir_2/file_2.cpp"],
-      "directories": ["src/dir_3", "src/dir_4"]
-    }
+    "defines": ["DEBUG=1, DEF_2"]
     ```
-* `exclude`  
-  * `files`: list of files to exclude.  
-  * `directories`: list of directories to recursively exclude.  
-  * Exclusions take precedence over inclusions in sources.  
-  * Example:
-    ```json  
-    "exclude": {  
-      "files": ["src/dir_1/file_1.cpp", "src/dir_2/file_2.cpp"],  
-      "directories": ["src/dir_3", "src/dir_4"]  
+
+- `includeDirectories`
+
+  - Directories in includes search path. Equivalent to using `-I` with `g++`.
+  - Example:
+    ```json
+    "includeDirectories": [".", "source"]
+    ```
+
+- `sources`
+
+  - files: list of files to compile.
+  - directories: list of directories to recursively scan and include all source files within. Supports .cpp, .cc, .cxx files.
+  - All paths are relative to the JSON file.
+  - Duplicate files are allowed.
+  - Example:
+    ```json
+    "sources": {
+        "files": ["src/dir_1/file_1.cpp", "src/dir_2/file_2.cpp"],
+        "directories": ["src/dir_3", "src/dir_4"]
     }
     ```
 
-* output  
-  * Target executable information:  
-    * `name`: name of the executable (Mandatory).
-    * `path`: path to put the executable, relative to the JSON file. If not specified, the executable is created at the root directory.  
-  * Example:
-    ```json 
+- `exclude`
+
+  - `files`: list of files to exclude.
+  - `directories`: list of directories to recursively exclude.
+  - Exclusions take precedence over inclusions in sources.
+  - Example:
+    ```json
+    "exclude": {
+        "files": ["src/dir_1/file_1.cpp", "src/dir_2/file_2.cpp"],
+        "directories": ["src/dir_3", "src/dir_4"]
+    }
+    ```
+
+- `output`
+  - Target executable information:
+    - `name`: name of the executable (Mandatory).
+    - `path`: path to put the executable, relative to the JSON file. If not specified, the executable is created at the root directory.
+  - Example:
+    ```json
     "output": { "name": "output.exe", "path": "build/release" }
     ```
+
 ## 3. Configurations
 
 - `easy-make` supports several configurations in one `.json` file.
-- The default configuration has **default** for its `name` field.
-- Each configuration can override any default field.  
-- Configurations are optional; if none is specified, easy-make uses the default configuration.  
-- Example:  
+- Example:
+
   ```json
-    {  
+  [
+    {
+      "name": "default",
+      "compiler": "g++",
+      "warnings": ["-Wall", "-Wextra", "-Wpedantic"],
+      "output": {
+        "path": "build"
+      }
+    },
+    {
       "name": "debug",
-      "optimization": "-O0",  
-      "warnings": ["-Wall", "-Wextra", "-Wpedantic"],  
-      "output": { "name": "debug.exe", "path": "build/debug" }  
-    }
-    {  
+      "parent": "default",
+      "optimization": "0",
+      "output": {
+        "name": "debug.exe"
+      }
+    },
+    {
       "name": "release",
-      "optimization": "-O3",  
-      "warnings": ["-Wall", "-Wextra", "-Wpedantic"],  
-      "output": { "name": "release.exe", "path": "build/release" }  
+      "parent": "default",
+      "optimization": "3",
+      "output": {
+        "name": "release.exe"
+      }
     }
+  ]
   ```
 
-## 4. Merge Rules
-
-When easy-make reads a configuration, it overrides the default value.
-
-Example:  
-
-```json
-{
-  "name": "default",  
-  "compiler": "g++",  
-  "files": ["foo.cpp"],  
-  "optimization": "-O2"  
-},
-{
-  "name": "debug", 
-  "optimization": "-O0"
-}  
-```
-
-Running `easy-make debug` uses `-O0` optimization, while running `easy-make` uses the default `-O2`.
+  To compile a specific configuration, run `easy-make <configuration-name>`.  
+  In this example, we can run `easy-make debug` or `easy-make release`.  
+  Note that running `easy-make default` is invalid, as the configuration is incomplete (no value for `output.name`).

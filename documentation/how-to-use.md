@@ -1,59 +1,66 @@
 # How to Use easy-make
 
-This guide explains how to use easy-make to build your C++ projects from a JSON specification.
+This guide explains how to use **easy-make** to build your C++ projects from a JSON specification.
 
 ## 1. Prepare Your Project
 
-1. Organize your project with a source folder (for example, src/) and put all .cpp files there.  
-2. Create the JSON configuration file easy-make-configurations.json in the project root.
+1. Create a project.
+2. Put the JSON configuration file `easy-make-configurations.json` in the project root.
 
-Example project structure:
+For example:
 
 ```
-my_project/  
-├── src/  
-│   ├── file_1.cpp  
-│   ├── file_2.cpp  
-│   └── directory_1/  
-│       ├── file_3.cpp  
-│       └── file_4.cpp  
-└── easy-make-configurations.json  
+my_project/
+├── src/
+|   ├── main.cpp
+│   ├── file_1.cpp
+│   ├── file_2.cpp
+│   └── directory_1/
+│       ├── file_3.cpp
+│       └── file_4.cpp
+├── tests/
+|   ├── test_main.cpp
+│   ├── test_1.cpp
+│   └── test_2.cpp
+└── easy-make-configurations.json
 ```
 
 ## 2. Create the JSON Configuration
 
-Your JSON should define:
+Your JSON should define configurations for compilation.
 
-- default: global defaults for compiler, standard, warnings, optimization, files, output.  
-- configurations: one or more named build configurations.  
-
-Default values are overridden when a configuration specifies something different.
-
-Example configuration:
+For example, a `easy-make-configurations.json` file for the aforementioned project could look like this:
 
 ```json
 [
-  { 
-    "name": "default",
+  {
+    "name": "base",
     "compiler": "g++",
     "standard": "23",
     "warnings": ["-Wall", "-Wextra"],
-    "optimization": "-O2",
     "sources": {
-      "files": ["src/main.cpp", "src/utils.cpp"],
+      "directories": ["."] // Include all the source files under the root.
     },
-    "output": { "path": "build", "name": "my_app" }
+    "output": { "path": "build" }
   },
   {
-    "name": "debug",
-    "optimization": "-O0",
-    "warnings": ["-Wall", "-Wextra", "-Wpedantic"],
-    "output": { "path": "build/debug" }
+    "name": "test",
+    "parent": "base",
+    "optimization": "0",
+    "exclude": {
+      "files": ["src/main.cpp"] // We want to run `tests/test_main.cpp` instead.
+    },
+    "output": { "name": "my-app-test" }
   },
   {
     "name": "release",
-    "optimization": "-O3",
-    "output": { "path": "build/release" }
+    "parent": "base",
+    "optimization": "3",
+    "exclude": {
+      "directories": ["test"]
+    },
+    "warnings": ["-Wall", "-Wextra", "-Werror"],
+    "output": { "name": "my-app-release" }
   }
 ]
 ```
@@ -63,23 +70,18 @@ Example configuration:
 From the project root, run:
 
 ```bash
-easy-make <configuration_name>  
+easy-make <configuration_name>
 ```
 
-Examples:  
+Examples:
 
 ```bash
-easy-make debug  
-easy-make release  
+easy-make test
+easy-make release
 ```
 
-Running `easy-make` without arguments will use the default configuration.  
-
-easy-make will create an executable in the specified output path.  
+easy-make will create an executable in the specified output path.
 
 ## 4. Notes
 
-- Always use JSON arrays for lists like files, warnings, or defines.  
-- Paths are relative to the JSON file: both files and output.path are resolved relative to `easy-make-configurations.json`.
-
-Next, for full details about all fields, merge rules, and advanced usage, see [json_configurations.md](json-configurations.md).  
+For details about what each key does, see [json_configurations.md](json-configurations.md).
