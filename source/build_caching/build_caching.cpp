@@ -177,15 +177,16 @@ auto build_caching::write_info_to_build_data_file(
         throw std::runtime_error(std::format("Failed to open '{}'.", build_data_file_path.native()));
     }
 
-    // Use `ordered_json` so "path" appears before "hash" - purely cosmetic.
-    nlohmann::ordered_json json;
+    nlohmann::json json;
 
     for (const auto& [path, hash] : hashes)
     {
-        json.push_back(nlohmann::ordered_json{
+        nlohmann::json hash_info = {
             {"path", path},
             {"hash", hash}
-        });
+        };
+
+        json.push_back(std::move(hash_info));
     }
 
     data_file << json.dump(); // Write to file.
