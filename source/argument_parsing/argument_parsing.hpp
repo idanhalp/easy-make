@@ -5,16 +5,8 @@
 #include <span>
 #include <string>
 
-struct ArgumentInfo
-{
-    ArgumentInfo();
+#include "source/argument_parsing/command_info.hpp"
 
-    std::string configuration_name;
-    bool clean_configuration;
-    bool clean_all_configurations;
-    bool print_version;
-};
-
-auto parse_arguments(std::span<const char* const> arguments) -> std::expected<ArgumentInfo, std::string>;
+auto parse_arguments(std::span<const char* const> arguments) -> std::expected<CommandInfo, std::string>;
 
 #endif // SOURCE_ARGUMENT_PARSING_ARGUMENT_PARSING_HPP

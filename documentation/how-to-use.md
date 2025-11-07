@@ -69,15 +69,15 @@ For example, a `easy-make-configurations.json` file for the aforementioned proje
 
 From the project root, run:
 
-```bash
-easy-make <configuration_name>
+```
+easy-make compile <configuration_name>
 ```
 
 Examples:
 
-```bash
-easy-make test
-easy-make release
+```
+easy-make compile test
+easy-make compile release
 ```
 
 easy-make will create an executable in the specified output path.

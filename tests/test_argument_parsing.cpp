@@ -1,164 +1,201 @@
+#include <variant>
 #include <vector>
 
 #include "third_party/doctest/doctest.hpp"
 
 #include "source/argument_parsing/argument_parsing.hpp"
+#include "source/argument_parsing/command_info.hpp"
 
 TEST_SUITE("argument_parsing")
 {
-    TEST_CASE("valid arguments")
+    TEST_CASE("'clean' command")
     {
-        const std::vector arguments = {"./easy-make", "release", "--clean"};
-        const auto argument_info    = parse_arguments(arguments);
+        SUBCASE("Valid case without flags")
+        {
+            const std::vector arguments = {"./easy-make", "clean", "config-name"};
+            const auto command_info     = parse_arguments(arguments);
 
-        REQUIRE(argument_info.has_value());
-        CHECK_EQ(argument_info->configuration_name, "release");
-        CHECK(argument_info->clean_configuration);
-        CHECK_FALSE(argument_info->clean_all_configurations);
-        CHECK_FALSE(argument_info->print_version);
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<CleanCommandInfo>(*command_info));
+
+            const auto& clean_command_info = std::get<CleanCommandInfo>(*command_info);
+            CHECK_EQ(clean_command_info.configuration_name, "config-name");
+            CHECK_FALSE(clean_command_info.is_quiet);
+        }
+
+        SUBCASE("Valid case with flags")
+        {
+            const std::vector arguments = {"./easy-make", "clean", "config-name", "--quiet"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<CleanCommandInfo>(*command_info));
+
+            const auto& clean_command_info = std::get<CleanCommandInfo>(*command_info);
+            CHECK_EQ(clean_command_info.configuration_name, "config-name");
+            CHECK(clean_command_info.is_quiet);
+        }
+
+        SUBCASE("Missing configuration name")
+        {
+            const std::vector arguments = {"./easy-make", "clean"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Must specify a configuration name when using 'clean' command.");
+        }
+
+        SUBCASE("Multiple configuration names")
+        {
+            const std::vector arguments = {"./easy-make", "clean", "config-name-1", "config-name-2"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Command 'clean' requires one configuration name, "
+                                           "instead got both 'config-name-1' and 'config-name-2'.");
+        }
+
+        SUBCASE("Invalid flag")
+        {
+            const std::vector arguments = {"./easy-make", "clean", "--quiet", "--fast"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Unknown flag '--fast' provided to command 'clean'.");
+        }
+
+        SUBCASE("Invalid flag similar to a valid one")
+        {
+            const std::vector arguments = {"./easy-make", "clean", "--quie"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Unknown flag '--quie' provided to command 'clean'. "
+                                           "Did you mean '--quiet'?");
+        }
+
+        SUBCASE("Duplicate flag")
+        {
+            const std::vector arguments = {"./easy-make", "clean", "config-name", "--quiet", "--quiet"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Flag '--quiet' was provided to command 'clean' more than once.");
+        }
     }
 
-    TEST_CASE("valid configuration #1")
+    TEST_CASE("'clean-all' command")
     {
-        const std::vector arguments = {"./easy-make", "release"};
-        const auto argument_info    = parse_arguments(arguments);
+        SUBCASE("Valid case")
+        {
+            const std::vector arguments = {"./easy-make", "clean-all"};
+            const auto command_info     = parse_arguments(arguments);
 
-        REQUIRE(argument_info.has_value());
-        CHECK_EQ(argument_info->configuration_name, "release");
-        CHECK_FALSE(argument_info->clean_configuration);
-        CHECK_FALSE(argument_info->clean_all_configurations);
-        CHECK_FALSE(argument_info->print_version);
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<CleanAllCommandInfo>(*command_info));
+        }
+
+        SUBCASE("Invalid argument")
+        {
+            const std::vector arguments = {"./easy-make", "clean-all", "foo"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            REQUIRE_EQ(command_info.error(), "Error: Command 'clean-all' doesn't accept any arguments or flags.");
+        }
     }
 
-    TEST_CASE("valid configuration #2")
+    TEST_CASE("'compile' command")
     {
-        const std::vector arguments = {"./easy-make", "--version"};
-        const auto argument_info    = parse_arguments(arguments);
+        SUBCASE("Valid case")
+        {
+            const std::vector arguments = {"./easy-make", "compile", "config-name"};
+            const auto command_info     = parse_arguments(arguments);
 
-        REQUIRE(argument_info.has_value());
-        CHECK_FALSE(argument_info->clean_configuration);
-        CHECK_FALSE(argument_info->clean_all_configurations);
-        CHECK(argument_info->print_version);
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<CompileCommandInfo>(*command_info));
+
+            const auto& compile_command_info = std::get<CompileCommandInfo>(*command_info);
+            CHECK_EQ(compile_command_info.configuration_name, "config-name");
+        }
+
+        SUBCASE("Missing configuration name")
+        {
+            const std::vector arguments = {"./easy-make", "compile"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Must specify a configuration name when using 'compile' command.");
+        }
+
+        SUBCASE("Multiple configuration names")
+        {
+            const std::vector arguments = {"./easy-make", "compile", "config-name-1", "config-name-2"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Command 'compile' requires one configuration name, "
+                                           "instead got both 'config-name-1' and 'config-name-2'.");
+        }
+
+        SUBCASE("Invalid flag")
+        {
+            const std::vector arguments = {"./easy-make", "compile", "--fast"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Unknown flag '--fast' provided to command 'compile'.");
+        }
     }
 
-    TEST_CASE("valid configuration #3")
+    TEST_CASE("'version' command")
     {
-        const std::vector arguments = {"./easy-make", "--clean", "debug"};
-        const auto argument_info    = parse_arguments(arguments);
+        SUBCASE("Valid case")
+        {
+            const std::vector arguments = {"./easy-make", "version"};
+            const auto command_info     = parse_arguments(arguments);
 
-        REQUIRE(argument_info.has_value());
-        CHECK_EQ(argument_info->configuration_name, "debug");
-        CHECK(argument_info->clean_configuration);
-        CHECK_FALSE(argument_info->clean_all_configurations);
-        CHECK_FALSE(argument_info->print_version);
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<PrintVersionCommandInfo>(*command_info));
+        }
+
+        SUBCASE("Invalid argument")
+        {
+            const std::vector arguments = {"./easy-make", "version", "foo"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            REQUIRE_EQ(command_info.error(), "Error: Command 'version' doesn't accept any arguments or flags.");
+        }
     }
 
-    TEST_CASE("valid configuration #4")
+    TEST_CASE("Invalid commands")
     {
-        const std::vector arguments = {"./easy-make", "--clean-all"};
-        const auto argument_info    = parse_arguments(arguments);
+        SUBCASE("No command")
+        {
+            const std::vector arguments = {"./easy-make"};
+            const auto command_info     = parse_arguments(arguments);
 
-        REQUIRE(argument_info.has_value());
-        CHECK_FALSE(argument_info->clean_configuration);
-        CHECK(argument_info->clean_all_configurations);
-        CHECK_FALSE(argument_info->print_version);
-    }
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Must specify a command.");
+        }
 
-    TEST_CASE("invalid flag")
-    {
-        const std::vector arguments = {"./easy-make", "debug", "--nonexistent"};
-        const auto argument_info    = parse_arguments(arguments);
+        SUBCASE("Nonexistent command")
+        {
+            const std::vector arguments = {"./easy-make", "nonexistent"};
+            const auto command_info     = parse_arguments(arguments);
 
-        REQUIRE_FALSE(argument_info.has_value());
-        CHECK_EQ(argument_info.error(), "Error: Unknown argument '--nonexistent'.");
-    }
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Unknown command 'nonexistent'.");
+        }
 
-    TEST_CASE("invalid flag with close match")
-    {
-        const std::vector arguments = {"./easy-make", "--versio"};
-        const auto argument_info    = parse_arguments(arguments);
+        SUBCASE("Nonexistent command similar to a valid one")
+        {
+            const std::vector arguments = {"./easy-make", "compil"};
+            const auto command_info     = parse_arguments(arguments);
 
-        REQUIRE_FALSE(argument_info.has_value());
-        CHECK_EQ(argument_info.error(), "Error: Unknown argument '--versio'. Did you mean '--version'?");
-    }
-
-    TEST_CASE("duplicate flag #1")
-    {
-        const std::vector arguments = {"./easy-make", "debug", "--clean", "--clean"};
-        const auto argument_info    = parse_arguments(arguments);
-
-        REQUIRE_FALSE(argument_info.has_value());
-        CHECK_EQ(argument_info.error(), "Error: Flag '--clean' was specified more than once.");
-    }
-
-    TEST_CASE("duplicate flag #2")
-    {
-        const std::vector arguments = {"./easy-make", "--version", "--version"};
-        const auto argument_info    = parse_arguments(arguments);
-
-        REQUIRE_FALSE(argument_info.has_value());
-        CHECK_EQ(argument_info.error(), "Error: Flag '--version' was specified more than once.");
-    }
-
-    TEST_CASE("conflicting flags #1")
-    {
-        const std::vector arguments = {"./easy-make", "--clean", "--version"};
-        const auto argument_info    = parse_arguments(arguments);
-
-        CHECK_FALSE(argument_info.has_value());
-    }
-
-    TEST_CASE("conflicting flags #2")
-    {
-        const std::vector arguments = {"./easy-make", "--clean", "--clean-all"};
-        const auto argument_info    = parse_arguments(arguments);
-
-        CHECK_FALSE(argument_info.has_value());
-    }
-
-    TEST_CASE("conflicting flags #3")
-    {
-        const std::vector arguments = {"./easy-make", "--version", "--clean-all"};
-        const auto argument_info    = parse_arguments(arguments);
-
-        CHECK_FALSE(argument_info.has_value());
-    }
-
-    TEST_CASE("no configuration name with --clean-all")
-    {
-        const std::vector arguments = {"./easy-make", "name", "--clean-all"};
-        const auto argument_info    = parse_arguments(arguments);
-
-        REQUIRE_FALSE(argument_info.has_value());
-        CHECK_EQ(argument_info.error(),
-                 "Error: Cannot specify a configuration name ('name') when '--clean-all' is used.");
-    }
-
-    TEST_CASE("no configuration name with --version")
-    {
-        const std::vector arguments = {"./easy-make", "name", "--version"};
-        const auto argument_info    = parse_arguments(arguments);
-
-        REQUIRE_FALSE(argument_info.has_value());
-        CHECK_EQ(argument_info.error(),
-                 "Error: Cannot specify a configuration name ('name') when '--version' is used.");
-    }
-
-    TEST_CASE("no configuration name for build")
-    {
-        const std::vector arguments = {"./easy-make"};
-        const auto argument_info    = parse_arguments(arguments);
-
-        REQUIRE_FALSE(argument_info.has_value());
-        CHECK_EQ(argument_info.error(), "Error: Must specify a configuration name when building.");
-    }
-
-    TEST_CASE("no configuration name for --clean")
-    {
-        const std::vector arguments = {"./easy-make", "--clean"};
-        const auto argument_info    = parse_arguments(arguments);
-
-        REQUIRE_FALSE(argument_info.has_value());
-        CHECK_EQ(argument_info.error(), "Error: Must specify a configuration name when '--clean' is used.");
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Unknown command 'compil'. Did you mean 'compile'?");
+        }
     }
 }

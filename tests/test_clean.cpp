@@ -75,7 +75,8 @@ TEST_SUITE("commands::clean")
     {
         REQUIRE(std::filesystem::exists(path_to_project / "conf_1.exe")); // Exists before clean.
 
-        const auto result = commands::clean("conf_1", get_configurations(), path_to_project, false);
+        const CleanCommandInfo info = {.configuration_name = "conf_1", .is_quiet = true};
+        const auto result           = commands::clean(info, get_configurations(), path_to_project);
 
         CHECK(result == EXIT_SUCCESS);
         REQUIRE(!std::filesystem::exists(path_to_project / "conf_1.exe"));
@@ -95,7 +96,8 @@ TEST_SUITE("commands::clean")
     {
         REQUIRE(std::filesystem::exists(path_to_project / "dir_1" / "conf_2.exe")); // Exists before clean.
 
-        const auto result = commands::clean("conf_2", get_configurations(), path_to_project, false);
+        const CleanCommandInfo info = {.configuration_name = "conf_2", .is_quiet = true};
+        const auto result           = commands::clean(info, get_configurations(), path_to_project);
 
         CHECK(result == EXIT_SUCCESS);
         REQUIRE(!std::filesystem::exists(path_to_project / "dir_1" / "conf_2.exe"));
@@ -115,7 +117,8 @@ TEST_SUITE("commands::clean")
     {
         REQUIRE(std::filesystem::exists(path_to_project / "dir_1" / "conf_3.exe")); // Exists before clean.
 
-        const auto result = commands::clean("conf_4", get_configurations(), path_to_project, false);
+        const CleanCommandInfo info = {.configuration_name = "conf_4", .is_quiet = true};
+        const auto result           = commands::clean(info, get_configurations(), path_to_project);
 
         CHECK(result == EXIT_SUCCESS);
         REQUIRE(!std::filesystem::exists(path_to_project / "dir_1" / "conf_3.exe"));
@@ -135,7 +138,8 @@ TEST_SUITE("commands::clean")
     {
         REQUIRE(!std::filesystem::exists(path_to_project / "conf_5.exe")); // Does not exists before clean.
 
-        const auto result = commands::clean("conf_5", get_configurations(), path_to_project, false);
+        const CleanCommandInfo info = {.configuration_name = "conf_5", .is_quiet = true};
+        const auto result           = commands::clean(info, get_configurations(), path_to_project);
 
         CHECK(result == EXIT_FAILURE);
 
@@ -156,7 +160,7 @@ TEST_SUITE("commands::clean_all")
 {
     TEST_CASE_FIXTURE(TestSetUp, "Basic functionality")
     {
-        const auto result_1 = commands::clean_all(get_configurations(), path_to_project);
+        const auto result_1 = commands::clean_all({}, get_configurations(), path_to_project);
 
         CHECK(result_1 == EXIT_SUCCESS);
         REQUIRE(!std::filesystem::exists(path_to_project / params::BUILD_DIRECTORY_NAME));
@@ -164,7 +168,7 @@ TEST_SUITE("commands::clean_all")
         REQUIRE(!std::filesystem::exists(path_to_project / "dir_1" / "conf_2.exe"));
         REQUIRE(!std::filesystem::exists(path_to_project / "dir_1" / "conf_3.exe"));
 
-        const auto result_2 = commands::clean_all(get_configurations(), path_to_project);
+        const auto result_2 = commands::clean_all({}, get_configurations(), path_to_project);
         CHECK(result_2 == EXIT_FAILURE); // Nothing is deleted.
     }
 }

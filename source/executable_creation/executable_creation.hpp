@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "source/argument_parsing/command_info.hpp"
 #include "source/configuration_parsing/configuration.hpp"
 
 auto check_names_validity(const std::vector<Configuration>& configurations) -> std::optional<std::string>;
@@ -22,8 +23,8 @@ auto get_actual_configuration(const std::string& configuration_name, const std::
 auto get_code_files(const Configuration& configuration,
                     const std::filesystem::path& path_to_root) -> std::vector<std::filesystem::path>;
 
-auto create_executable(const std::string& configuration_name,
-                       const std::filesystem::path& path_to_root,
-                       const std::vector<Configuration>& configurations) -> int;
+auto create_executable(const CompileCommandInfo& info,
+                       const std::vector<Configuration>& configurations,
+                       const std::filesystem::path& path_to_root) -> int;
 
 #endif // SOURCE_EXECUTABLE_CREATION_EXECUTABLE_CREATION_HPP

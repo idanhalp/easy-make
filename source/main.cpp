@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <filesystem>
+#include <type_traits>
 #include <vector>
 
 #include "source/argument_parsing/argument_parsing.hpp"
@@ -36,30 +37,39 @@ auto main(const int num_of_arguments, const char* arguments[]) -> int
         return EXIT_FAILURE;
     }
 
-    const auto argument_info       = parse_arguments(std::span(arguments, num_of_arguments));
-    const auto arguments_are_valid = argument_info.has_value();
+    const auto command_info        = parse_arguments(std::span(arguments, num_of_arguments));
+    const auto arguments_are_valid = command_info.has_value();
 
     if (!arguments_are_valid)
     {
-        utils::print_error("{}", argument_info.error());
+        utils::print_error("{}", command_info.error());
 
         return EXIT_FAILURE;
     }
 
-    if (argument_info->clean_configuration)
-    {
-        return commands::clean(argument_info->configuration_name, *configurations, current_path);
-    }
-    if (argument_info->clean_all_configurations)
-    {
-        return commands::clean_all(*configurations, current_path);
-    }
-    else if (argument_info->print_version)
-    {
-        return commands::print_version();
-    }
-    else
-    {
-        return create_executable(argument_info->configuration_name, current_path, *configurations);
-    }
+    const auto exit_code = std::visit(
+        [&](auto&& info)
+        {
+            using CommandType = std::decay_t<decltype(info)>;
+
+            if constexpr (std::is_same_v<CommandType, CleanCommandInfo>)
+            {
+                return commands::clean(info, *configurations, current_path);
+            }
+            else if constexpr (std::is_same_v<CommandType, CleanAllCommandInfo>)
+            {
+                return commands::clean_all(info, *configurations, current_path);
+            }
+            else if constexpr (std::is_same_v<CommandType, CompileCommandInfo>)
+            {
+                return create_executable(info, *configurations, current_path);
+            }
+            else if constexpr (std::is_same_v<CommandType, PrintVersionCommandInfo>)
+            {
+                return commands::print_version(info);
+            }
+        },
+        *command_info);
+
+    return exit_code;
 }

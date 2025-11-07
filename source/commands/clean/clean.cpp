@@ -13,46 +13,46 @@
 #include "source/utils/print.hpp"
 
 static auto print_incomplete_configuration_error_message(const std::string_view error_message,
-                                                         const bool verbose) -> void
+                                                         const bool is_quiet) -> void
 {
-    if (verbose)
+    if (is_quiet)
     {
-        utils::print_error("{} Cannot delete an incomplete configuration.", error_message);
+        return;
     }
+
+    utils::print_error("{} Cannot delete an incomplete configuration.", error_message);
 }
 
-static auto print_clean_failure_error_message(const std::string& configuration_name,
-                                              const std::vector<Configuration>& configurations,
-                                              const bool verbose) -> void
+static auto print_clean_failure_error_message(const CleanCommandInfo& info,
+                                              const std::vector<Configuration>& configurations) -> void
 {
-    if (!verbose)
+    if (info.is_quiet)
     {
         return;
     }
 
     const auto get_name            = [](const Configuration& configuration) { return *configuration.name; };
     const auto configuration_names = configurations | std::views::transform(get_name) | std::ranges::to<std::vector>();
-    const auto closest_name        = utils::find_closest_word(std::string(configuration_name), configuration_names);
+    const auto closest_name        = utils::find_closest_word(info.configuration_name, configuration_names);
     const auto found_closer_name =
-        !std::ranges::contains(configuration_names, configuration_name) && closest_name.has_value();
+        !std::ranges::contains(configuration_names, info.configuration_name) && closest_name.has_value();
 
     if (found_closer_name)
     {
-        utils::print_error("Error: Nothing to delete for configuration '{}'. Did you mean '{}'?", configuration_name,
-                           *closest_name);
+        utils::print_error("Error: Nothing to delete for configuration '{}'. Did you mean '{}'?",
+                           info.configuration_name, *closest_name);
     }
     else
     {
-        utils::print_error("Error: Nothing to delete for configuration '{}'.", configuration_name);
+        utils::print_error("Error: Nothing to delete for configuration '{}'.", info.configuration_name);
     }
 }
 
-auto commands::clean(const std::string& configuration_name,
+auto commands::clean(const CleanCommandInfo& info,
                      const std::vector<Configuration>& configurations,
-                     const std::filesystem::path& path_to_root,
-                     const bool verbose) -> int
+                     const std::filesystem::path& path_to_root) -> int
 {
-    const auto path_to_object_files_directory = path_to_root / params::BUILD_DIRECTORY_NAME / configuration_name;
+    const auto path_to_object_files_directory = path_to_root / params::BUILD_DIRECTORY_NAME / info.configuration_name;
     const auto build_directory_exists         = std::filesystem::remove_all(path_to_object_files_directory);
     auto executable_deleted                   = false;
 
@@ -62,7 +62,7 @@ auto commands::clean(const std::string& configuration_name,
     {
         ASSERT(configuration.name.has_value());
 
-        if (*configuration.name != configuration_name)
+        if (*configuration.name != info.configuration_name)
         {
             continue;
         }
@@ -72,7 +72,7 @@ auto commands::clean(const std::string& configuration_name,
 
         if (!configuration_is_complete)
         {
-            print_incomplete_configuration_error_message(actual_configuration.error(), verbose);
+            print_incomplete_configuration_error_message(actual_configuration.error(), info.is_quiet);
 
             return EXIT_FAILURE;
         }
@@ -93,7 +93,7 @@ auto commands::clean(const std::string& configuration_name,
     }
     else
     {
-        print_clean_failure_error_message(configuration_name, configurations, verbose);
+        print_clean_failure_error_message(info, configurations);
 
         return EXIT_FAILURE;
     }
