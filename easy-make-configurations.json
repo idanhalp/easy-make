@@ -21,7 +21,7 @@
       "files": ["source/main.cpp"]
     },
     "output": {
-      "name": "run-tests"
+      "name": "test"
     }
   },
   {

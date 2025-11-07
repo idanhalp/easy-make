@@ -28,7 +28,10 @@ TEST_SUITE("Basic utils")
 
     TEST_CASE("utils::count_digits")
     {
-        SUBCASE("Zero") { CHECK_EQ(utils::count_digits(0), 1); }
+        SUBCASE("Zero")
+        {
+            CHECK_EQ(utils::count_digits(0), 1);
+        }
 
         SUBCASE("Single-digit numbers")
         {

@@ -1,3 +1,6 @@
 #include <print>
 
-auto foo() -> void { std::print("Hello world!"); }
+auto foo() -> void
+{
+    std::print("Hello world!");
+}

@@ -67,7 +67,10 @@ TestSetUp::TestSetUp()
 }
 
 // Called after all tests.
-TestSetUp::~TestSetUp() { std::filesystem::remove_all(path_to_project); }
+TestSetUp::~TestSetUp()
+{
+    std::filesystem::remove_all(path_to_project);
+}
 
 TEST_SUITE("commands::clean")
 {

@@ -3,7 +3,7 @@
 build/
 format-all-files.py
 update-exe.py
-run-tests
+test
 easy-make
 easy-make-build/**
 !tests/resources/project_08/easy-make-build/conf/*.o

@@ -6,4 +6,7 @@
 #include "f4.hh"
 // #include "fake_include.hpp"
 
-auto foo() -> int { return 2; }
+auto foo() -> int
+{
+    return 2;
+}

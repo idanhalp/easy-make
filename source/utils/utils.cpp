@@ -4,7 +4,6 @@
 #include <cmath>
 #include <filesystem>
 #include <format>
-#include <string_view>
 
 #include "source/parameters/parameters.hpp"
 
@@ -21,7 +20,7 @@ auto utils::get_object_file_name(const std::filesystem::path& path) -> std::stri
     return result;
 }
 
-auto utils::get_ordinal_indicator(int index) -> const char*
+auto utils::get_ordinal_indicator(const int index) -> const char*
 {
     // Special cases.
     if (index == 11 || index == 12 || index == 13)

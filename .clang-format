@@ -4,6 +4,7 @@ BreakBeforeBraces: Allman
 PointerAlignment: Left
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: false
 AlignConsecutiveAssignments : Consecutive
 FixNamespaceComments: false
 NamespaceIndentation: All #intend content of namespace

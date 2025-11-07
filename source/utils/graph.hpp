@@ -47,7 +47,7 @@ namespace utils
                  std::unordered_map<T, VisitStatus>& visit_status,
                  std::unordered_map<T, T>& parents) const -> bool;
 
-        auto reconstruct_cycle(const T& start_node, const std::unordered_map<T, T>& parents) const -> std::string;
+        static auto reconstruct_cycle(const T& start_node, const std::unordered_map<T, T>& parents) -> std::string;
 
         std::unordered_map<T, std::unordered_set<T>> edges;
     };
@@ -122,7 +122,7 @@ auto utils::DirectedGraph<T>::dfs(const T& node,
 
 template <typename T>
 auto utils::DirectedGraph<T>::reconstruct_cycle(const T& start_node,
-                                                const std::unordered_map<T, T>& parents) const -> std::string
+                                                const std::unordered_map<T, T>& parents) -> std::string
 {
     const auto start_position = parents.find(start_node);
     auto current              = start_position;
@@ -141,7 +141,9 @@ auto utils::DirectedGraph<T>::reconstruct_cycle(const T& start_node,
     std::ranges::reverse(cycle);
 
     std::vector<T> sorted_cycle;
-    sorted_cycle.reserve(cycle.size() + 1);
+
+    const auto actual_cycle_size = cycle.size() + 1;
+    sorted_cycle.reserve(actual_cycle_size); // The first node also appears at the end of the cycle.
 
     // For aesthetic and testing reasons, start the cycle from the lexicographically smallest node
     // while maintaining the same ordering.
@@ -149,8 +151,9 @@ auto utils::DirectedGraph<T>::reconstruct_cycle(const T& start_node,
     sorted_cycle.insert(sorted_cycle.end(), min_node_position, cycle.end());
     sorted_cycle.insert(sorted_cycle.end(), cycle.begin(), min_node_position + 1);
 
-    // "a -> b" implies that `b` includes `a`, although the reverse might be more intuitive.
-    // Reversing the direction could be achieved by removing the call to `std::ranges::reverse`.
+    ASSERT(sorted_cycle.size() == actual_cycle_size);       // Actual cycle size is as expected
+    ASSERT(sorted_cycle.size() == sorted_cycle.capacity()); // No redundant space in vector.
+
     const std::string_view DELIMITER = " -> ";
 
     return sorted_cycle | std::ranges::to<std::vector<std::string>>() | std::views::join_with(DELIMITER) |
@@ -165,9 +168,9 @@ auto utils::DirectedGraph<T>::check_for_cycle() const -> std::optional<std::stri
 
     for (const auto& node : std::views::keys(edges))
     {
-        const auto node_is_in_cycle = !visit_status.contains(node) && dfs(node, visit_status, parents);
+        const auto node_is_inside_cycle = !visit_status.contains(node) && dfs(node, visit_status, parents);
 
-        if (node_is_in_cycle)
+        if (node_is_inside_cycle)
         {
             return reconstruct_cycle(node, parents);
         }

@@ -69,6 +69,12 @@ static auto get_distance_between_words(const std::string& word_1, const std::str
                                                deletion_penalty);
 }
 
+/// @brief   Finds the closest string to `target_word` in `candidates`.
+/// @param   target_word
+/// @param   candidates
+/// @return  `std::nullopt` if no string in `candidates` is close enough, else the closest word.
+/// @example find_closest_word("releas", {"release", "test", "debug"}) => "release"
+/// @example find_closest_word("releas", {"test", "debug"})            => nullopt
 auto utils::find_closest_word(const std::string& target_word,
                               const std::vector<std::string>& candidates) -> std::optional<std::string>
 {
