@@ -39,7 +39,7 @@ static auto parse_flag(const std::string_view flag,
 auto parse_clean_all_command_arguments(std::span<const char* const> arguments)
     -> std::expected<CleanAllCommandInfo, std::string>
 {
-    // The first 2 elements are the program name and the command (which is "compile").
+    // The first 2 elements are the program name and the command (which is "clean-all").
     ASSERT(arguments.size() >= 2);
     const auto command_name       = std::string_view(arguments[1]);
     const auto relevant_arguments = std::span(arguments.begin() + 2, arguments.end());

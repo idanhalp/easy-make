@@ -7,7 +7,7 @@
 auto parse_print_version_command_arguments(std::span<const char* const> arguments)
     -> std::expected<PrintVersionCommandInfo, std::string>
 {
-    // The first 2 elements are the program name and the command (which is "compile").
+    // The first 2 elements are the program name and the command (which is "version").
     ASSERT(arguments.size() >= 2);
     const auto command_name       = std::string_view(arguments[1]);
     const auto relevant_arguments = std::span(arguments.begin() + 2, arguments.end());
