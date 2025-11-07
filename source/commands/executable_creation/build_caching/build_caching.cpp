@@ -1,4 +1,4 @@
-#include "source/build_caching/build_caching.hpp"
+#include "source/commands/executable_creation/build_caching/build_caching.hpp"
 
 #include <algorithm>
 #include <format>
@@ -8,7 +8,7 @@
 
 #include "third_party/nlohmann/json.hpp"
 
-#include "source/build_caching/dependency_graph.hpp"
+#include "source/commands/executable_creation/build_caching/dependency_graph.hpp"
 #include "source/parameters/parameters.hpp"
 #include "source/utils/graph.hpp"
 #include "source/utils/macros/assert.hpp"

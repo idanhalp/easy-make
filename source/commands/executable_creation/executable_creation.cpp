@@ -1,4 +1,4 @@
-#include "source/executable_creation/executable_creation.hpp"
+#include "source/commands/executable_creation/executable_creation.hpp"
 
 #include <cstdlib> // `std::system`
 #include <format>
@@ -9,9 +9,9 @@
 #include <unordered_set>
 #include <vector>
 
-#include "source/build_caching/build_caching.hpp"
-#include "source/executable_creation/compilation.hpp"
-#include "source/executable_creation/linking.hpp"
+#include "source/commands/executable_creation/build_caching/build_caching.hpp"
+#include "source/commands/executable_creation/compilation.hpp"
+#include "source/commands/executable_creation/linking.hpp"
 #include "source/parameters/parameters.hpp"
 #include "source/utils/find_closest_word.hpp"
 #include "source/utils/graph.hpp"
