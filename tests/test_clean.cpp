@@ -163,7 +163,7 @@ TEST_SUITE("commands::clean_all")
 {
     TEST_CASE_FIXTURE(TestSetUp, "Basic functionality")
     {
-        const auto result_1 = commands::clean_all({}, get_configurations(), path_to_project);
+        const auto result_1 = commands::clean_all({.is_quiet = true}, get_configurations(), path_to_project);
 
         CHECK(result_1 == EXIT_SUCCESS);
         REQUIRE(!std::filesystem::exists(path_to_project / params::BUILD_DIRECTORY_NAME));
@@ -171,7 +171,7 @@ TEST_SUITE("commands::clean_all")
         REQUIRE(!std::filesystem::exists(path_to_project / "dir_1" / "conf_2.exe"));
         REQUIRE(!std::filesystem::exists(path_to_project / "dir_1" / "conf_3.exe"));
 
-        const auto result_2 = commands::clean_all({}, get_configurations(), path_to_project);
+        const auto result_2 = commands::clean_all({.is_quiet = true}, get_configurations(), path_to_project);
         CHECK(result_2 == EXIT_FAILURE); // Nothing is deleted.
     }
 }

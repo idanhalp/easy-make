@@ -6,6 +6,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "source/argument_parsing/utils.hpp"
 #include "source/utils/find_closest_word.hpp"
 #include "source/utils/macros/assert.hpp"
 
@@ -36,24 +37,6 @@ static auto parse_flag(const std::string_view flag,
     return error_message;
 }
 
-// Returns the first duplicate flag if one exists, otherwise returns `std::nullopt`.
-static auto check_for_duplicate_flags(const std::span<const char* const> arguments) -> std::optional<std::string_view>
-{
-    std::unordered_set<std::string_view> seen;
-
-    for (const std::string_view flag : arguments)
-    {
-        const auto flag_already_seen = !seen.insert(flag).second;
-
-        if (flag_already_seen)
-        {
-            return flag;
-        }
-    }
-
-    return std::nullopt;
-}
-
 auto parse_clean_command_arguments(std::span<const char* const> arguments)
     -> std::expected<CleanCommandInfo, std::string>
 {
@@ -67,9 +50,7 @@ auto parse_clean_command_arguments(std::span<const char* const> arguments)
 
     for (const std::string_view argument : relevant_arguments)
     {
-        const auto is_flag = argument.starts_with("--");
-
-        if (is_flag)
+        if (utils::is_flag(argument))
         {
             const auto flag_parse_error = parse_flag(argument, command_name, info);
             const auto flag_is_valid    = !flag_parse_error.has_value();
@@ -106,7 +87,7 @@ auto parse_clean_command_arguments(std::span<const char* const> arguments)
             std::format("Error: Must specify a configuration name when using '{}' command.", command_name));
     }
 
-    const auto duplicate_flag        = check_for_duplicate_flags(arguments);
+    const auto duplicate_flag        = utils::check_for_duplicate_flags(arguments);
     const auto duplicate_flag_exists = duplicate_flag.has_value();
 
     if (duplicate_flag_exists)

@@ -86,22 +86,65 @@ TEST_SUITE("argument_parsing")
 
     TEST_CASE("'clean-all' command")
     {
-        SUBCASE("Valid case")
+        SUBCASE("Valid case without flags")
         {
             const std::vector arguments = {"./easy-make", "clean-all"};
             const auto command_info     = parse_arguments(arguments);
 
             REQUIRE(command_info.has_value());
             REQUIRE(std::holds_alternative<CleanAllCommandInfo>(*command_info));
+
+            const auto& clean_command_info = std::get<CleanAllCommandInfo>(*command_info);
+            CHECK_FALSE(clean_command_info.is_quiet);
         }
 
-        SUBCASE("Invalid argument")
+        SUBCASE("Valid case with flags")
         {
-            const std::vector arguments = {"./easy-make", "clean-all", "foo"};
+            const std::vector arguments = {"./easy-make", "clean-all", "--quiet"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<CleanAllCommandInfo>(*command_info));
+
+            const auto& clean_command_info = std::get<CleanAllCommandInfo>(*command_info);
+            CHECK(clean_command_info.is_quiet);
+        }
+
+        SUBCASE("Invalid flag")
+        {
+            const std::vector arguments = {"./easy-make", "clean-all", "--quiet", "--fast"};
             const auto command_info     = parse_arguments(arguments);
 
             REQUIRE_FALSE(command_info.has_value());
-            REQUIRE_EQ(command_info.error(), "Error: Command 'clean-all' doesn't accept any arguments or flags.");
+            CHECK_EQ(command_info.error(), "Error: Unknown flag '--fast' provided to command 'clean-all'.");
+        }
+
+        SUBCASE("Invalid flag similar to a valid one")
+        {
+            const std::vector arguments = {"./easy-make", "clean-all", "--quie"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Unknown flag '--quie' provided to command 'clean-all'. "
+                                           "Did you mean '--quiet'?");
+        }
+
+        SUBCASE("Duplicate flag")
+        {
+            const std::vector arguments = {"./easy-make", "clean-all", "--quiet", "--quiet"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Flag '--quiet' was provided to command 'clean-all' more than once.");
+        }
+
+        SUBCASE("Non flag argument")
+        {
+            const std::vector arguments = {"./easy-make", "clean-all", "config-name", "--quiet"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Unknown argument 'config-name' provided to command 'clean-all'.");
         }
     }
 

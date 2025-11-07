@@ -12,6 +12,7 @@ struct CleanCommandInfo
 
 struct CleanAllCommandInfo
 {
+    bool is_quiet;
 };
 
 struct CompileCommandInfo

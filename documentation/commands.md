@@ -14,3 +14,7 @@ This document specifies the commands which can be supplied to the program.
 ### `clean`
 
 - `--quiet`: Prevents printing information.
+
+### `clean-all`
+
+- `--quiet`: Prevents printing information.
