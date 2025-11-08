@@ -1,5 +1,5 @@
-#ifndef SOURCE_EXECUTABLE_CREATION_EXECUTABLE_CREATION_HPP
-#define SOURCE_EXECUTABLE_CREATION_EXECUTABLE_CREATION_HPP
+#ifndef SOURCE_COMMANDS_BUILD_BUILD_HPP
+#define SOURCE_COMMANDS_BUILD_BUILD_HPP
 
 #include <expected>
 #include <filesystem>
@@ -25,9 +25,9 @@ auto get_code_files(const Configuration& configuration,
 
 namespace commands
 {
-    auto create_executable(const CompileCommandInfo& info,
-                           const std::vector<Configuration>& configurations,
-                           const std::filesystem::path& path_to_root) -> int;
+    auto build(const BuildCommandInfo& info,
+               const std::vector<Configuration>& configurations,
+               const std::filesystem::path& path_to_root) -> int;
 }
 
-#endif // SOURCE_EXECUTABLE_CREATION_EXECUTABLE_CREATION_HPP
+#endif // SOURCE_COMMANDS_BUILD_BUILD_HPP

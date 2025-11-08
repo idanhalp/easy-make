@@ -4,9 +4,9 @@
 #include <vector>
 
 #include "source/argument_parsing/argument_parsing.hpp"
+#include "source/commands/build/build.hpp"
 #include "source/commands/clean/clean.hpp"
 #include "source/commands/clean_all/clean_all.hpp"
-#include "source/commands/executable_creation/executable_creation.hpp"
 #include "source/commands/list/list.hpp"
 #include "source/commands/print_version/print_version.hpp"
 #include "source/configuration_parsing/configuration.hpp"
@@ -54,17 +54,17 @@ auto main(const int num_of_arguments, const char* arguments[]) -> int
         {
             using CommandType = std::decay_t<decltype(info)>;
 
-            if constexpr (std::is_same_v<CommandType, CleanCommandInfo>)
+            if constexpr (std::is_same_v<CommandType, BuildCommandInfo>)
+            {
+                return commands::build(info, *configurations, current_path);
+            }
+            else if constexpr (std::is_same_v<CommandType, CleanCommandInfo>)
             {
                 return commands::clean(info, *configurations, current_path);
             }
             else if constexpr (std::is_same_v<CommandType, CleanAllCommandInfo>)
             {
                 return commands::clean_all(info, *configurations, current_path);
-            }
-            else if constexpr (std::is_same_v<CommandType, CompileCommandInfo>)
-            {
-                return commands::create_executable(info, *configurations, current_path);
             }
             else if constexpr (std::is_same_v<CommandType, ListCommandInfo>)
             {

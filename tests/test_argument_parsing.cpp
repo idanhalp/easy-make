@@ -8,6 +8,50 @@
 
 TEST_SUITE("argument_parsing")
 {
+    TEST_CASE("'build' command")
+    {
+        SUBCASE("Valid case")
+        {
+            const std::vector arguments = {"./easy-make", "build", "config-name"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<BuildCommandInfo>(*command_info));
+
+            const auto& build_command_info = std::get<BuildCommandInfo>(*command_info);
+            CHECK_EQ(build_command_info.configuration_name, "config-name");
+        }
+
+        SUBCASE("Missing configuration name")
+        {
+            const std::vector arguments = {"./easy-make", "build"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Must specify a configuration name when using 'build' command.");
+        }
+
+        SUBCASE("Multiple configuration names")
+        {
+            const std::vector arguments = {"./easy-make", "build", "config-name-1", "config-name-2"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(),
+                     "Error: Command 'build' requires one configuration name, "
+                     "instead got both 'config-name-1' and 'config-name-2'.");
+        }
+
+        SUBCASE("Invalid flag")
+        {
+            const std::vector arguments = {"./easy-make", "build", "--fast"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Unknown flag '--fast' provided to command 'build'.");
+        }
+    }
+
     TEST_CASE("'clean' command")
     {
         SUBCASE("Valid case without flags")
@@ -148,50 +192,6 @@ TEST_SUITE("argument_parsing")
 
             REQUIRE_FALSE(command_info.has_value());
             CHECK_EQ(command_info.error(), "Error: Unknown argument 'config-name' provided to command 'clean-all'.");
-        }
-    }
-
-    TEST_CASE("'compile' command")
-    {
-        SUBCASE("Valid case")
-        {
-            const std::vector arguments = {"./easy-make", "compile", "config-name"};
-            const auto command_info     = parse_arguments(arguments);
-
-            REQUIRE(command_info.has_value());
-            REQUIRE(std::holds_alternative<CompileCommandInfo>(*command_info));
-
-            const auto& compile_command_info = std::get<CompileCommandInfo>(*command_info);
-            CHECK_EQ(compile_command_info.configuration_name, "config-name");
-        }
-
-        SUBCASE("Missing configuration name")
-        {
-            const std::vector arguments = {"./easy-make", "compile"};
-            const auto command_info     = parse_arguments(arguments);
-
-            REQUIRE_FALSE(command_info.has_value());
-            CHECK_EQ(command_info.error(), "Error: Must specify a configuration name when using 'compile' command.");
-        }
-
-        SUBCASE("Multiple configuration names")
-        {
-            const std::vector arguments = {"./easy-make", "compile", "config-name-1", "config-name-2"};
-            const auto command_info     = parse_arguments(arguments);
-
-            REQUIRE_FALSE(command_info.has_value());
-            CHECK_EQ(command_info.error(),
-                     "Error: Command 'compile' requires one configuration name, "
-                     "instead got both 'config-name-1' and 'config-name-2'.");
-        }
-
-        SUBCASE("Invalid flag")
-        {
-            const std::vector arguments = {"./easy-make", "compile", "--fast"};
-            const auto command_info     = parse_arguments(arguments);
-
-            REQUIRE_FALSE(command_info.has_value());
-            CHECK_EQ(command_info.error(), "Error: Unknown flag '--fast' provided to command 'compile'.");
         }
     }
 
@@ -341,11 +341,11 @@ TEST_SUITE("argument_parsing")
 
         SUBCASE("Nonexistent command similar to a valid one")
         {
-            const std::vector arguments = {"./easy-make", "compil"};
+            const std::vector arguments = {"./easy-make", "buil"};
             const auto command_info     = parse_arguments(arguments);
 
             REQUIRE_FALSE(command_info.has_value());
-            CHECK_EQ(command_info.error(), "Error: Unknown command 'compil'. Did you mean 'compile'?");
+            CHECK_EQ(command_info.error(), "Error: Unknown command 'buil'. Did you mean 'build'?");
         }
     }
 }

@@ -1,4 +1,4 @@
-#include "source/commands/executable_creation/executable_creation.hpp"
+#include "source/commands/build/build.hpp"
 
 #include <cstdlib> // `std::system`
 #include <format>
@@ -9,9 +9,9 @@
 #include <unordered_set>
 #include <vector>
 
-#include "source/commands/executable_creation/build_caching/build_caching.hpp"
-#include "source/commands/executable_creation/compilation.hpp"
-#include "source/commands/executable_creation/linking.hpp"
+#include "source/commands/build/build_caching/build_caching.hpp"
+#include "source/commands/build/compilation.hpp"
+#include "source/commands/build/linking.hpp"
 #include "source/parameters/parameters.hpp"
 #include "source/utils/find_closest_word.hpp"
 #include "source/utils/graph.hpp"
@@ -320,9 +320,9 @@ auto get_code_files(const Configuration& configuration,
     return code_files | std::ranges::to<std::vector>();
 }
 
-auto commands::create_executable(const CompileCommandInfo& info,
-                                 const std::vector<Configuration>& configurations,
-                                 const std::filesystem::path& path_to_root) -> int
+auto commands::build(const BuildCommandInfo& info,
+                     const std::vector<Configuration>& configurations,
+                     const std::filesystem::path& path_to_root) -> int
 {
     const auto actual_configuration = get_actual_configuration(info.configuration_name, configurations);
 

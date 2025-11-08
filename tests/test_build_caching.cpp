@@ -4,7 +4,7 @@
 
 #include "third_party/doctest/doctest.hpp"
 
-#include "source/commands/executable_creation/build_caching/build_caching.hpp"
+#include "source/commands/build/build_caching/build_caching.hpp"
 #include "tests/utils/utils.hpp"
 
 TEST_SUITE("build_caching")

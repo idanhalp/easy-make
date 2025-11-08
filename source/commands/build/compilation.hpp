@@ -1,5 +1,5 @@
-#ifndef SOURCE_EXECUTABLE_CREATION_COMPILATION_HPP
-#define SOURCE_EXECUTABLE_CREATION_COMPILATION_HPP
+#ifndef SOURCE_COMMANDS_BUILD_COMPILATION_HPP
+#define SOURCE_COMMANDS_BUILD_COMPILATION_HPP
 
 #include <filesystem>
 #include <string>
@@ -13,4 +13,4 @@ auto compile_files(const Configuration& configuration,
                    const std::filesystem::path& path_to_root,
                    const std::vector<std::filesystem::path>& files_to_compile) -> bool;
 
-#endif // SOURCE_EXECUTABLE_CREATION_COMPILATION_HPP
+#endif // SOURCE_COMMANDS_BUILD_COMPILATION_HPP

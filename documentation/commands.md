@@ -4,9 +4,9 @@ This document specifies the commands which can be supplied to the program.
 
 | Command     | Description                                                                     | Parameters         |
 | ----------- | ------------------------------------------------------------------------------- | ------------------ |
+| `build`     | Builds the specified configuration.                                             | configuration name |
 | `clean`     | Removes the executable and object files related to the specified configuration. | configuration name |
 | `clean-all` | Removes all the executables and object files.                                   | none               |
-| `compile`   | Compiles the specified configuration.                                           | configuration name |
 | `list`      | Lists the configurations in the `easy-make-configurations.json` file            | none               |
 | `version`   | Prints the program version.                                                     | none               |
 

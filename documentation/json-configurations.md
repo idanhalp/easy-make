@@ -196,6 +196,6 @@ Each configuration must contain the following fields:
   ]
   ```
 
-  To compile a specific configuration, run `easy-make compile <configuration-name>`.  
-  In this example, we can run `easy-make compile debug` or `easy-make compile release`.  
-  Note that running `easy-make compile default` is invalid, as the configuration is incomplete (no value for `output.name`).
+  To compile a specific configuration, run `easy-make build <configuration-name>`.  
+  In this example, we can run `easy-make build debug` or `easy-make build release`.  
+  Note that running `easy-make build default` is invalid, as the configuration is incomplete (no value for `output.name`).

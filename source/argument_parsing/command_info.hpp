@@ -4,6 +4,11 @@
 #include <string>
 #include <variant>
 
+struct BuildCommandInfo
+{
+    std::string configuration_name;
+};
+
 struct CleanCommandInfo
 {
     std::string configuration_name;
@@ -13,11 +18,6 @@ struct CleanCommandInfo
 struct CleanAllCommandInfo
 {
     bool is_quiet;
-};
-
-struct CompileCommandInfo
-{
-    std::string configuration_name;
 };
 
 struct ListCommandInfo
@@ -34,6 +34,6 @@ struct PrintVersionCommandInfo
 };
 
 using CommandInfo =
-    std::variant<CleanCommandInfo, CleanAllCommandInfo, CompileCommandInfo, ListCommandInfo, PrintVersionCommandInfo>;
+    std::variant<BuildCommandInfo, CleanCommandInfo, CleanAllCommandInfo, ListCommandInfo, PrintVersionCommandInfo>;
 
 #endif // SOURCE_ARGUMENT_PARSING_COMMAND_INFO_HPP

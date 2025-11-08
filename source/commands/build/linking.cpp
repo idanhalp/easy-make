@@ -1,4 +1,4 @@
-#include "source/commands/executable_creation/linking.hpp"
+#include "source/commands/build/linking.hpp"
 
 #include <cstdlib>
 #include <format>

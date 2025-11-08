@@ -6,7 +6,7 @@
 #include <string_view>
 #include <vector>
 
-#include "source/commands/executable_creation/executable_creation.hpp"
+#include "source/commands/build/build.hpp"
 #include "source/parameters/parameters.hpp"
 #include "source/utils/find_closest_word.hpp"
 #include "source/utils/macros/assert.hpp"

@@ -70,14 +70,14 @@ For example, a `easy-make-configurations.json` file for the aforementioned proje
 From the project root, run:
 
 ```
-easy-make compile <configuration_name>
+easy-make build <configuration_name>
 ```
 
 Examples:
 
 ```
-easy-make compile test
-easy-make compile release
+easy-make build test
+easy-make build release
 ```
 
 easy-make will create an executable in the specified output path.

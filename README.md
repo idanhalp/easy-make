@@ -32,8 +32,8 @@ It helps you build your project using a clear, easy-to-read configuration file w
 
   This defines a configuration with the three specified files and the files inside the `utils` directory.
 
-- Build the project using `easy-make compile <configuration-name>`. This will create an executable with the defined name at the defined path.  
-  In our example, running `easy-make compile example-config` will create an executable called `output.exe` inside a directory called `build`.
+- Build the project using `easy-make build <configuration-name>`. This will create an executable with the defined name at the defined path.  
+  In our example, running `easy-make build example-config` will create an executable called `output.exe` inside a directory called `build`.
 
 ## Features
 

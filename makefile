@@ -7,20 +7,20 @@ TARGETS = easy-make test
 # Source files
 SOURCE_FILES = \
     source/argument_parsing/argument_parsing.cpp \
+    source/argument_parsing/commands/build.cpp \
     source/argument_parsing/commands/clean.cpp \
     source/argument_parsing/commands/clean_all.cpp \
-    source/argument_parsing/commands/compile.cpp \
     source/argument_parsing/commands/list.cpp \
     source/argument_parsing/commands/print_version.cpp \
     source/argument_parsing/utils.cpp \
+    source/commands/build/build_caching/build_caching.cpp \
+    source/commands/build/build_caching/dependency_graph.cpp \
+    source/commands/build/compilation.cpp \
+    source/commands/build/build.cpp \
+    source/commands/build/linking.cpp \
+    source/commands/list/list.cpp \
     source/commands/clean/clean.cpp \
     source/commands/clean_all/clean_all.cpp \
-    source/commands/executable_creation/build_caching/build_caching.cpp \
-    source/commands/executable_creation/build_caching/dependency_graph.cpp \
-    source/commands/executable_creation/compilation.cpp \
-    source/commands/executable_creation/executable_creation.cpp \
-    source/commands/executable_creation/linking.cpp \
-    source/commands/list/list.cpp \
     source/commands/print_version/print_version.cpp \
     source/configuration_parsing/configuration.cpp \
     source/configuration_parsing/configuration_parsing.cpp \
@@ -37,7 +37,7 @@ TEST_FILES = \
     tests/test_clean.cpp \
     tests/test_configuration_parsing.cpp \
     tests/test_dependency_graph.cpp \
-    tests/test_executable_creation.cpp \
+    tests/test_build.cpp \
     tests/test_find_closest_word.cpp \
     tests/test_graph.cpp \
     tests/test_utils.cpp \

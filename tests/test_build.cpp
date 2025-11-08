@@ -4,14 +4,14 @@
 
 #include "third_party/doctest/doctest.hpp"
 
-#include "source/commands/executable_creation/compilation.hpp"
-#include "source/commands/executable_creation/executable_creation.hpp"
+#include "source/commands/build/build.hpp"
+#include "source/commands/build/compilation.hpp"
 #include "source/configuration_parsing/configuration.hpp"
 #include "source/configuration_parsing/configuration_parsing.hpp"
 #include "source/parameters/parameters.hpp"
 #include "tests/utils/utils.hpp"
 
-TEST_SUITE("executable_creation")
+TEST_SUITE("commands::build")
 {
     TEST_CASE("Check names validity")
     {

@@ -5,7 +5,7 @@
 #include <ranges>
 #include <string>
 
-#include "source/commands/executable_creation/executable_creation.hpp" // `get_actual_configuration`
+#include "source/commands/build/build.hpp" // `get_actual_configuration`
 #include "source/parameters/parameters.hpp"
 #include "source/utils/macros/assert.hpp"
 

@@ -1,5 +1,5 @@
-#ifndef SOURCE_EXECUTABLE_CREATION_LINKING_HPP
-#define SOURCE_EXECUTABLE_CREATION_LINKING_HPP
+#ifndef SOURCE_COMMANDS_BUILD_LINKING_HPP
+#define SOURCE_COMMANDS_BUILD_LINKING_HPP
 
 #include <filesystem>
 
@@ -7,4 +7,4 @@
 
 auto link_object_files(const Configuration& configuration, const std::filesystem::path& path_to_root) -> bool;
 
-#endif // SOURCE_EXECUTABLE_CREATION_LINKING_HPP
+#endif // SOURCE_COMMANDS_BUILD_LINKING_HPP

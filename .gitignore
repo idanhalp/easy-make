@@ -1,6 +1,5 @@
 .vscode
 *.o
-build/
 format-all-files.py
 update-exe.py
 test

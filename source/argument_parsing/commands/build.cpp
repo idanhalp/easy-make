@@ -1,19 +1,19 @@
-#include "source/argument_parsing/commands/compile.hpp"
+#include "source/argument_parsing/commands/build.hpp"
 
 #include <format>
 #include <string_view>
 
 #include <source/utils/macros/assert.hpp>
 
-auto parse_compile_command_arguments(std::span<const char* const> arguments)
-    -> std::expected<CompileCommandInfo, std::string>
+auto parse_build_command_arguments(std::span<const char* const> arguments)
+    -> std::expected<BuildCommandInfo, std::string>
 {
-    // The first 2 elements are the program name and the command (which is "compile").
+    // The first 2 elements are the program name and the command (which is "build").
     ASSERT(arguments.size() >= 2);
     const auto command_name       = std::string_view(arguments[1]);
     const auto relevant_arguments = std::span(arguments.begin() + 2, arguments.end());
 
-    CompileCommandInfo info{};
+    BuildCommandInfo info{};
     auto configuration_name_specified = false;
 
     for (const std::string_view argument : relevant_arguments)
