@@ -39,11 +39,16 @@ static const auto string_to_key_map = []
 }();
 
 static const std::flat_set<std::string> valid_outer_json_keys = {
-    key_to_string(JsonKey::Name),     key_to_string(JsonKey::Parent),
-    key_to_string(JsonKey::Warnings), key_to_string(JsonKey::Optimization),
-    key_to_string(JsonKey::Compiler), key_to_string(JsonKey::Standard),
-    key_to_string(JsonKey::Defines),  key_to_string(JsonKey::IncludeDirectories),
-    key_to_string(JsonKey::Source),   key_to_string(JsonKey::Excludes),
+    key_to_string(JsonKey::Name),
+    key_to_string(JsonKey::Parent),
+    key_to_string(JsonKey::Warnings),
+    key_to_string(JsonKey::Optimization),
+    key_to_string(JsonKey::Compiler),
+    key_to_string(JsonKey::Standard),
+    key_to_string(JsonKey::Defines),
+    key_to_string(JsonKey::IncludeDirectories),
+    key_to_string(JsonKey::Source),
+    key_to_string(JsonKey::Excludes),
     key_to_string(JsonKey::Output),
 };
 

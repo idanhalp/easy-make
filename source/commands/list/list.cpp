@@ -52,17 +52,19 @@ static auto print_verbose_output(const ListCommandInfo& info,
     switch (configuration_names.size())
     {
     case 0:
-        std::println("There are no {}configurations in the '{}' file.", description,
-                     params::CONFIGURATIONS_FILE_NAME.native());
+        std::println(
+            "There are no {}configurations in the '{}' file.", description, params::CONFIGURATIONS_FILE_NAME.native());
         break;
 
     case 1:
-        std::println("There is 1 {}configuration in the '{}' file:", description,
-                     params::CONFIGURATIONS_FILE_NAME.native());
+        std::println(
+            "There is 1 {}configuration in the '{}' file:", description, params::CONFIGURATIONS_FILE_NAME.native());
         break;
 
     default:
-        std::println("There are {} {}configurations in the '{}' file:", configuration_names.size(), description,
+        std::println("There are {} {}configurations in the '{}' file:",
+                     configuration_names.size(),
+                     description,
                      params::CONFIGURATIONS_FILE_NAME.native());
         break;
     }

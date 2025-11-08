@@ -19,7 +19,11 @@ static const std::string LIST_COMMAND          = "list";
 static const std::string PRINT_VERSION_COMMAND = "version";
 
 static const std::vector<std::string> COMMANDS = {
-    CLEAN_COMMAND, CLEAN_ALL_COMMAND, COMPILE_COMMAND, LIST_COMMAND, PRINT_VERSION_COMMAND,
+    CLEAN_COMMAND,
+    CLEAN_ALL_COMMAND,
+    COMPILE_COMMAND,
+    LIST_COMMAND,
+    PRINT_VERSION_COMMAND,
 };
 
 auto parse_arguments(const std::span<const char* const> arguments) -> std::expected<CommandInfo, std::string>

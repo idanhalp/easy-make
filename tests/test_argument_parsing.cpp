@@ -51,8 +51,9 @@ TEST_SUITE("argument_parsing")
             const auto command_info     = parse_arguments(arguments);
 
             REQUIRE_FALSE(command_info.has_value());
-            CHECK_EQ(command_info.error(), "Error: Command 'clean' requires one configuration name, "
-                                           "instead got both 'config-name-1' and 'config-name-2'.");
+            CHECK_EQ(command_info.error(),
+                     "Error: Command 'clean' requires one configuration name, "
+                     "instead got both 'config-name-1' and 'config-name-2'.");
         }
 
         SUBCASE("Invalid flag")
@@ -70,8 +71,9 @@ TEST_SUITE("argument_parsing")
             const auto command_info     = parse_arguments(arguments);
 
             REQUIRE_FALSE(command_info.has_value());
-            CHECK_EQ(command_info.error(), "Error: Unknown flag '--quie' provided to command 'clean'. "
-                                           "Did you mean '--quiet'?");
+            CHECK_EQ(command_info.error(),
+                     "Error: Unknown flag '--quie' provided to command 'clean'. "
+                     "Did you mean '--quiet'?");
         }
 
         SUBCASE("Duplicate flag")
@@ -125,8 +127,9 @@ TEST_SUITE("argument_parsing")
             const auto command_info     = parse_arguments(arguments);
 
             REQUIRE_FALSE(command_info.has_value());
-            CHECK_EQ(command_info.error(), "Error: Unknown flag '--quie' provided to command 'clean-all'. "
-                                           "Did you mean '--quiet'?");
+            CHECK_EQ(command_info.error(),
+                     "Error: Unknown flag '--quie' provided to command 'clean-all'. "
+                     "Did you mean '--quiet'?");
         }
 
         SUBCASE("Duplicate flag")
@@ -177,8 +180,9 @@ TEST_SUITE("argument_parsing")
             const auto command_info     = parse_arguments(arguments);
 
             REQUIRE_FALSE(command_info.has_value());
-            CHECK_EQ(command_info.error(), "Error: Command 'compile' requires one configuration name, "
-                                           "instead got both 'config-name-1' and 'config-name-2'.");
+            CHECK_EQ(command_info.error(),
+                     "Error: Command 'compile' requires one configuration name, "
+                     "instead got both 'config-name-1' and 'config-name-2'.");
         }
 
         SUBCASE("Invalid flag")

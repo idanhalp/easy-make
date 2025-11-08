@@ -31,7 +31,8 @@ auto check_names_validity(const std::vector<Configuration>& configurations) -> s
 
         if (!configuration.name.has_value())
         {
-            return std::format("Error: The {}{} configuration does not have a name.", actual_index,
+            return std::format("Error: The {}{} configuration does not have a name.",
+                               actual_index,
                                utils::get_ordinal_indicator(actual_index));
         }
 
@@ -41,8 +42,10 @@ auto check_names_validity(const std::vector<Configuration>& configurations) -> s
         {
             return std::format("Error: Both the {}{} and {}{} configurations have '{}' as name.",
                                configuration_to_index.at(name),
-                               utils::get_ordinal_indicator(configuration_to_index.at(name)), actual_index,
-                               utils::get_ordinal_indicator(actual_index), name);
+                               utils::get_ordinal_indicator(configuration_to_index.at(name)),
+                               actual_index,
+                               utils::get_ordinal_indicator(actual_index),
+                               name);
         }
 
         configuration_to_index[name] = actual_index;
@@ -96,9 +99,12 @@ auto check_parents_validity(const std::unordered_map<std::string, Configuration>
             return closest_parent.has_value()
                        ? std::format("Error: Configuration '{}' has a non-existent configuration as its parent ('{}'). "
                                      "Did you mean '{}'?",
-                                     *configuration.name, *configuration.parent, *closest_parent)
+                                     *configuration.name,
+                                     *configuration.parent,
+                                     *closest_parent)
                        : std::format("Error: Configuration '{}' has a non-existent configuration as its parent ('{}').",
-                                     *configuration.name, *configuration.parent);
+                                     *configuration.name,
+                                     *configuration.parent);
         }
     }
 
@@ -227,9 +233,12 @@ auto get_actual_configuration(const std::string& configuration_name, const std::
         const auto error_message =
             closest_name.has_value()
                 ? std::format("'{}' does not contain a configuration named '{}'. Did you mean '{}'?",
-                              params::CONFIGURATIONS_FILE_NAME.native(), configuration_name, *closest_name)
+                              params::CONFIGURATIONS_FILE_NAME.native(),
+                              configuration_name,
+                              *closest_name)
                 : std::format("'{}' does not contain a configuration named '{}'.",
-                              params::CONFIGURATIONS_FILE_NAME.native(), configuration_name);
+                              params::CONFIGURATIONS_FILE_NAME.native(),
+                              configuration_name);
 
         return std::unexpected(error_message);
     }

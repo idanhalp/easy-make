@@ -26,9 +26,12 @@ check_for_errors_in_configuration_json(const nlohmann::json& configuration_json)
 
         return closest_valid_key.has_value()
                    ? std::format("Error: Invalid JSON in '{}' - '{}' is not a valid outer key. Did you mean '{}'?",
-                                 params::CONFIGURATIONS_FILE_NAME.native(), key, *closest_valid_key)
+                                 params::CONFIGURATIONS_FILE_NAME.native(),
+                                 key,
+                                 *closest_valid_key)
                    : std::format("Error: Invalid JSON in '{}' - '{}' is not a valid outer key.",
-                                 params::CONFIGURATIONS_FILE_NAME.native(), key);
+                                 params::CONFIGURATIONS_FILE_NAME.native(),
+                                 key);
     }
 
     if (configuration_json.contains(key_to_string(JsonKey::Source)))
@@ -38,7 +41,8 @@ check_for_errors_in_configuration_json(const nlohmann::json& configuration_json)
         if (!sources.is_object())
         {
             return std::format("Error: Invalid JSON in '{}' - the value of '{}' must be an object.",
-                               params::CONFIGURATIONS_FILE_NAME.native(), key_to_string(JsonKey::Source));
+                               params::CONFIGURATIONS_FILE_NAME.native(),
+                               key_to_string(JsonKey::Source));
         }
 
         for (const auto& [key, _] : sources.items())
@@ -52,10 +56,15 @@ check_for_errors_in_configuration_json(const nlohmann::json& configuration_json)
 
             return closest_valid_key.has_value()
                        ? std::format("Error: Invalid JSON in '{}' - '{}.{}' is not a valid key. Did you mean '{}.{}'?",
-                                     params::CONFIGURATIONS_FILE_NAME.native(), key_to_string(JsonKey::Source), key,
-                                     key_to_string(JsonKey::Source), *closest_valid_key)
+                                     params::CONFIGURATIONS_FILE_NAME.native(),
+                                     key_to_string(JsonKey::Source),
+                                     key,
+                                     key_to_string(JsonKey::Source),
+                                     *closest_valid_key)
                        : std::format("Error: Invalid JSON in '{}' - '{}.{}' is not a valid key.",
-                                     params::CONFIGURATIONS_FILE_NAME.native(), key_to_string(JsonKey::Source), key);
+                                     params::CONFIGURATIONS_FILE_NAME.native(),
+                                     key_to_string(JsonKey::Source),
+                                     key);
         }
     }
 
@@ -66,7 +75,8 @@ check_for_errors_in_configuration_json(const nlohmann::json& configuration_json)
         if (!excludes.is_object())
         {
             return std::format("Error: Invalid JSON in '{}' - the value of '{}' must be an object.",
-                               params::CONFIGURATIONS_FILE_NAME.native(), key_to_string(JsonKey::Excludes));
+                               params::CONFIGURATIONS_FILE_NAME.native(),
+                               key_to_string(JsonKey::Excludes));
         }
 
         for (const auto& [key, _] : excludes.items())
@@ -80,10 +90,15 @@ check_for_errors_in_configuration_json(const nlohmann::json& configuration_json)
 
             return closest_valid_key.has_value()
                        ? std::format("Error: Invalid JSON in '{}' - '{}.{}' is not a valid key. Did you mean '{}.{}'?",
-                                     params::CONFIGURATIONS_FILE_NAME.native(), key_to_string(JsonKey::Excludes), key,
-                                     key_to_string(JsonKey::Excludes), *closest_valid_key)
+                                     params::CONFIGURATIONS_FILE_NAME.native(),
+                                     key_to_string(JsonKey::Excludes),
+                                     key,
+                                     key_to_string(JsonKey::Excludes),
+                                     *closest_valid_key)
                        : std::format("Error: Invalid JSON in '{}' - '{}.{}' is not a valid key.",
-                                     params::CONFIGURATIONS_FILE_NAME.native(), key_to_string(JsonKey::Excludes), key);
+                                     params::CONFIGURATIONS_FILE_NAME.native(),
+                                     key_to_string(JsonKey::Excludes),
+                                     key);
         }
     }
 
@@ -94,7 +109,8 @@ check_for_errors_in_configuration_json(const nlohmann::json& configuration_json)
         if (!output.is_object())
         {
             return std::format("Error: Invalid JSON in '{}' - the value of '{}' must be an object.",
-                               params::CONFIGURATIONS_FILE_NAME.native(), key_to_string(JsonKey::Output));
+                               params::CONFIGURATIONS_FILE_NAME.native(),
+                               key_to_string(JsonKey::Output));
         }
 
         for (const auto& [key, _] : output.items())
@@ -108,10 +124,15 @@ check_for_errors_in_configuration_json(const nlohmann::json& configuration_json)
 
             return closest_valid_key.has_value()
                        ? std::format("Error: Invalid JSON in '{}' - '{}.{}' is not a valid key. Did you mean '{}.{}'?",
-                                     params::CONFIGURATIONS_FILE_NAME.native(), key_to_string(JsonKey::Output), key,
-                                     key_to_string(JsonKey::Output), *closest_valid_key)
+                                     params::CONFIGURATIONS_FILE_NAME.native(),
+                                     key_to_string(JsonKey::Output),
+                                     key,
+                                     key_to_string(JsonKey::Output),
+                                     *closest_valid_key)
                        : std::format("Error: Invalid JSON in '{}' - '{}.{}' is not a valid key.",
-                                     params::CONFIGURATIONS_FILE_NAME.native(), key_to_string(JsonKey::Output), key);
+                                     params::CONFIGURATIONS_FILE_NAME.native(),
+                                     key_to_string(JsonKey::Output),
+                                     key);
         }
     }
 
@@ -249,8 +270,8 @@ check_for_error_in_sources_and_excludes(const Configuration& configuration,
         {
             if (!std::filesystem::is_regular_file(path_to_root / file))
             {
-                return std::format("Error: Configuration '{}' - source file '{}' does not exist.", *configuration.name,
-                                   file);
+                return std::format(
+                    "Error: Configuration '{}' - source file '{}' does not exist.", *configuration.name, file);
             }
         }
     }
@@ -262,7 +283,8 @@ check_for_error_in_sources_and_excludes(const Configuration& configuration,
             if (!std::filesystem::is_directory(path_to_root / directory))
             {
                 return std::format("Error: Configuration '{}' - source directory '{}' does not exist.",
-                                   *configuration.name, directory);
+                                   *configuration.name,
+                                   directory);
             }
         }
     }
@@ -273,8 +295,8 @@ check_for_error_in_sources_and_excludes(const Configuration& configuration,
         {
             if (!std::filesystem::is_regular_file(path_to_root / file))
             {
-                return std::format("Error: Configuration '{}' - excluded file '{}' does not exist.",
-                                   *configuration.name, file);
+                return std::format(
+                    "Error: Configuration '{}' - excluded file '{}' does not exist.", *configuration.name, file);
             }
         }
     }
@@ -286,7 +308,8 @@ check_for_error_in_sources_and_excludes(const Configuration& configuration,
             if (!std::filesystem::is_directory(path_to_root / directory))
             {
                 return std::format("Error: Configuration '{}' - excluded directory '{}' does not exist.",
-                                   *configuration.name, directory);
+                                   *configuration.name,
+                                   directory);
             }
         }
     }

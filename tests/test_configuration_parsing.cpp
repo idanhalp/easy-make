@@ -85,8 +85,9 @@ TEST_SUITE("configuration_parsing")
             const auto configurations  = parse_configurations(project_11_path);
 
             REQUIRE(!configurations.has_value());
-            CHECK_EQ(configurations.error(), "Error: Invalid JSON in 'easy-make-configurations.json' - 'optimizatio' "
-                                             "is not a valid outer key. Did you mean 'optimization'?");
+            CHECK_EQ(configurations.error(),
+                     "Error: Invalid JSON in 'easy-make-configurations.json' - 'optimizatio' "
+                     "is not a valid outer key. Did you mean 'optimization'?");
         }
     }
 
@@ -97,8 +98,9 @@ TEST_SUITE("configuration_parsing")
             const auto configurations  = parse_configurations(project_12_path);
 
             REQUIRE(!configurations.has_value());
-            CHECK_EQ(configurations.error(), "Error: Invalid JSON in 'easy-make-configurations.json' - "
-                                             "'sources.someInvalidKey' is not a valid key.");
+            CHECK_EQ(configurations.error(),
+                     "Error: Invalid JSON in 'easy-make-configurations.json' - "
+                     "'sources.someInvalidKey' is not a valid key.");
         }
 
         {
@@ -119,8 +121,9 @@ TEST_SUITE("configuration_parsing")
             const auto configurations  = parse_configurations(project_14_path);
 
             REQUIRE(!configurations.has_value());
-            CHECK_EQ(configurations.error(), "Error: Invalid JSON in 'easy-make-configurations.json' - "
-                                             "'exclude.someInvalidKey' is not a valid key.");
+            CHECK_EQ(configurations.error(),
+                     "Error: Invalid JSON in 'easy-make-configurations.json' - "
+                     "'exclude.someInvalidKey' is not a valid key.");
         }
 
         {
@@ -141,8 +144,9 @@ TEST_SUITE("configuration_parsing")
             const auto configurations  = parse_configurations(project_16_path);
 
             REQUIRE(!configurations.has_value());
-            CHECK_EQ(configurations.error(), "Error: Invalid JSON in 'easy-make-configurations.json' - "
-                                             "'output.someInvalidKey' is not a valid key.");
+            CHECK_EQ(configurations.error(),
+                     "Error: Invalid JSON in 'easy-make-configurations.json' - "
+                     "'output.someInvalidKey' is not a valid key.");
         }
 
         {

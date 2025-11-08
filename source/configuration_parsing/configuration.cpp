@@ -44,8 +44,10 @@ auto Configuration::check_for_errors() const -> std::optional<std::string>
         const auto closest_compiler = utils::find_closest_word(*compiler, valid_compilers);
 
         return closest_compiler.has_value()
-                   ? std::format("Error: Configuration '{}' - unknown compiler '{}'. Did you mean '{}'?", *name,
-                                 *compiler, *closest_compiler)
+                   ? std::format("Error: Configuration '{}' - unknown compiler '{}'. Did you mean '{}'?",
+                                 *name,
+                                 *compiler,
+                                 *closest_compiler)
                    : std::format("Error: Configuration '{}' - unknown compiler '{}'.", *name, *compiler);
     }
 
@@ -73,8 +75,10 @@ auto Configuration::check_for_errors() const -> std::optional<std::string>
 
         if (invalid_warning_exists)
         {
-            return std::format("Error: Configuration '{}' - warning '{}' is invalid when compiling with '{}'.", *name,
-                               *invalid_warning, *compiler);
+            return std::format("Error: Configuration '{}' - warning '{}' is invalid when compiling with '{}'.",
+                               *name,
+                               *invalid_warning,
+                               *compiler);
         }
     }
 
@@ -99,7 +103,10 @@ auto Configuration::check_for_errors() const -> std::optional<std::string>
 
             return std::format("Error: Configuration '{}' - optimization '{}' does not match specified compiler '{}'. "
                                "Did you mean to compile with {} instead?",
-                               *name, *optimization, *compiler, correct_compiler);
+                               *name,
+                               *optimization,
+                               *compiler,
+                               correct_compiler);
         }
         else
         {

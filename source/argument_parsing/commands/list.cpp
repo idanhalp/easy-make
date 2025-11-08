@@ -16,7 +16,11 @@ static const std::string PORCELAIN_FLAG                     = "--porcelain";
 static const std::string SORTED_FLAG                        = "--sorted";
 
 static const std::vector<std::string> FLAGS = {
-    COMPLETE_CONFIGURATINS_ONLY_FLAG, COUNT_FLAG, INCOMPLETE_CONFIGURATINS_ONLY_FLAG, PORCELAIN_FLAG, SORTED_FLAG,
+    COMPLETE_CONFIGURATINS_ONLY_FLAG,
+    COUNT_FLAG,
+    INCOMPLETE_CONFIGURATINS_ONLY_FLAG,
+    PORCELAIN_FLAG,
+    SORTED_FLAG,
 };
 
 // Validates `flag` and updates `info` if recognized.
@@ -58,7 +62,9 @@ static auto parse_flag(const std::string_view flag,
     const auto closest_flag = utils::find_closest_word(std::string(flag), FLAGS);
     const auto error_message =
         closest_flag.has_value()
-            ? std::format("Error: Unknown flag '{}' provided to command '{}'. Did you mean '{}'?", flag, command_name,
+            ? std::format("Error: Unknown flag '{}' provided to command '{}'. Did you mean '{}'?",
+                          flag,
+                          command_name,
                           *closest_flag)
             : std::format("Error: Unknown flag '{}' provided to command '{}'.", flag, command_name);
 
@@ -71,19 +77,23 @@ static auto check_for_conflicting_flags(const ListCommandInfo& info,
     if (info.complete_configurations_only && info.incomplete_configurations_only)
     {
         return std::format("Error: Both '{}' and '{}' flags were supplied to command '{}'.",
-                           COMPLETE_CONFIGURATINS_ONLY_FLAG, INCOMPLETE_CONFIGURATINS_ONLY_FLAG, command_name);
+                           COMPLETE_CONFIGURATINS_ONLY_FLAG,
+                           INCOMPLETE_CONFIGURATINS_ONLY_FLAG,
+                           command_name);
     }
 
     if (info.count && info.porcelain_output)
     {
-        return std::format("Error: Cannot provide '{}' flag to command '{}' with '{}' flag", PORCELAIN_FLAG,
-                           command_name, COUNT_FLAG);
+        return std::format(
+            "Error: Cannot provide '{}' flag to command '{}' with '{}' flag", PORCELAIN_FLAG, command_name, COUNT_FLAG);
     }
 
     if (info.count && info.sorted_output)
     {
-        return std::format("Error: Cannot provide '{}' flag to command '{}' when '{}' flag is provided.", SORTED_FLAG,
-                           command_name, COUNT_FLAG);
+        return std::format("Error: Cannot provide '{}' flag to command '{}' when '{}' flag is provided.",
+                           SORTED_FLAG,
+                           command_name,
+                           COUNT_FLAG);
     }
 
     return std::nullopt;
@@ -124,8 +134,8 @@ auto parse_list_command_arguments(std::span<const char* const> arguments) -> std
 
     if (duplicate_flag_exists)
     {
-        return std::unexpected(std::format("Error: Flag '{}' was provided to command '{}' more than once.",
-                                           *duplicate_flag, command_name));
+        return std::unexpected(std::format(
+            "Error: Flag '{}' was provided to command '{}' more than once.", *duplicate_flag, command_name));
     }
 
     const auto conflicting_flags       = check_for_conflicting_flags(info, command_name);

@@ -333,8 +333,9 @@ TEST_SUITE("executable_creation")
 
             const auto result = get_actual_configuration(*configuration.name, {configuration});
             REQUIRE_FALSE(result.has_value());
-            CHECK_EQ(result.error(), "Error: Configuration 'test' - optimization 'd' does not match specified compiler "
-                                     "'g++'. Did you mean to compile with 'cl' instead?");
+            CHECK_EQ(result.error(),
+                     "Error: Configuration 'test' - optimization 'd' does not match specified compiler "
+                     "'g++'. Did you mean to compile with 'cl' instead?");
         }
 
         if (params::ENABLE_MSVC)
@@ -347,8 +348,9 @@ TEST_SUITE("executable_creation")
 
             const auto result = get_actual_configuration(*configuration.name, {configuration});
             REQUIRE_FALSE(result.has_value());
-            CHECK_EQ(result.error(), "Error: Configuration 'test' - optimization '0' does not match specified compiler "
-                                     "'cl'. Did you mean to compile with 'g++' or 'clang++' instead?");
+            CHECK_EQ(result.error(),
+                     "Error: Configuration 'test' - optimization '0' does not match specified compiler "
+                     "'cl'. Did you mean to compile with 'g++' or 'clang++' instead?");
         }
     }
 

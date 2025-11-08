@@ -29,7 +29,9 @@ static auto parse_flag(const std::string_view flag,
     const auto closest_flag = utils::find_closest_word(std::string(flag), FLAGS);
     const auto error_message =
         closest_flag.has_value()
-            ? std::format("Error: Unknown flag '{}' provided to command '{}'. Did you mean '{}'?", flag, command_name,
+            ? std::format("Error: Unknown flag '{}' provided to command '{}'. Did you mean '{}'?",
+                          flag,
+                          command_name,
                           *closest_flag)
             : std::format("Error: Unknown flag '{}' provided to command '{}'.", flag, command_name);
 
@@ -72,8 +74,8 @@ auto parse_clean_all_command_arguments(std::span<const char* const> arguments)
 
     if (duplicate_flag_exists)
     {
-        return std::unexpected(std::format("Error: Flag '{}' was provided to command '{}' more than once.",
-                                           *duplicate_flag, command_name));
+        return std::unexpected(std::format(
+            "Error: Flag '{}' was provided to command '{}' more than once.", *duplicate_flag, command_name));
     }
 
     return info;

@@ -40,7 +40,8 @@ static auto print_clean_failure_error_message(const CleanCommandInfo& info,
     if (found_closer_name)
     {
         utils::print_error("Error: Nothing to delete for configuration '{}'. Did you mean '{}'?",
-                           info.configuration_name, *closest_name);
+                           info.configuration_name,
+                           *closest_name);
     }
     else
     {

@@ -17,8 +17,8 @@ static auto get_weighted_distance_between_words(const std::string& word_1,
     // Therefore swap `word_1` and `word_2` if `word_2` is longer.
     if (word_1.size() < word_2.size())
     {
-        return get_weighted_distance_between_words(word_2, word_1, swap_penalty, substitution_penalty,
-                                                   insertion_penalty, deletion_penalty);
+        return get_weighted_distance_between_words(
+            word_2, word_1, swap_penalty, substitution_penalty, insertion_penalty, deletion_penalty);
     }
 
     std::vector<int> before_previous(word_2.size() + 1);
@@ -65,8 +65,8 @@ static auto get_distance_between_words(const std::string& word_1, const std::str
     const auto insertion_penalty    = 1;
     const auto deletion_penalty     = 3;
 
-    return get_weighted_distance_between_words(word_1, word_2, swap_penalty, substitution_penalty, insertion_penalty,
-                                               deletion_penalty);
+    return get_weighted_distance_between_words(
+        word_1, word_2, swap_penalty, substitution_penalty, insertion_penalty, deletion_penalty);
 }
 
 /// @brief   Finds the closest string to `target_word` in `candidates`.

@@ -74,8 +74,8 @@ static auto compile(const std::filesystem::path& file_name,
     ASSERT(configuration.compiler.has_value());
 
     const auto object_file_path    = object_files_path / utils::get_object_file_name(file_name);
-    const auto compilation_command = std::format("{} {} -c {} -o {}", *configuration.compiler, compilation_flags,
-                                                 file_name.native(), object_file_path.native());
+    const auto compilation_command = std::format(
+        "{} {} -c {} -o {}", *configuration.compiler, compilation_flags, file_name.native(), object_file_path.native());
 
     const auto file_compiled_successfully = std::system(compilation_command.c_str()) == EXIT_SUCCESS;
 
@@ -139,8 +139,12 @@ auto compile_files(const Configuration& configuration,
         // Print current info, for example:
         // 12/20 [ 60%] path/to/file.cpp
         const auto completion_percentage = 100 * (index + 1) / files_to_compile.size();
-        std::println("{0:>{2}}/{1} [{3:>3}%] {4}", index + 1, files_to_compile.size(), max_index_width,
-                     completion_percentage, file_name.native());
+        std::println("{0:>{2}}/{1} [{3:>3}%] {4}",
+                     index + 1,
+                     files_to_compile.size(),
+                     max_index_width,
+                     completion_percentage,
+                     file_name.native());
 
         const auto file_compiled_successfully = compile(file_name, object_files_path, compilation_flags, configuration);
 

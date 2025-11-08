@@ -35,7 +35,9 @@ auto parse_compile_command_arguments(std::span<const char* const> arguments)
 
             return std::unexpected(std::format("Error: Command '{}' requires one configuration name, "
                                                "instead got both '{}' and '{}'.",
-                                               command_name, name_1, name_2));
+                                               command_name,
+                                               name_1,
+                                               name_2));
         }
 
         info.configuration_name      = argument;

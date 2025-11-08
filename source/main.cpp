@@ -22,7 +22,8 @@ auto main(const int num_of_arguments, const char* arguments[]) -> int
 
     if (!configuration_file_exists)
     {
-        utils::print_error("The file '{}' could not be located in '{}'.", params::CONFIGURATIONS_FILE_NAME.native(),
+        utils::print_error("The file '{}' could not be located in '{}'.",
+                           params::CONFIGURATIONS_FILE_NAME.native(),
                            current_path.native());
 
         return EXIT_FAILURE;
