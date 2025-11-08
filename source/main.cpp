@@ -7,6 +7,7 @@
 #include "source/commands/clean/clean.hpp"
 #include "source/commands/clean_all/clean_all.hpp"
 #include "source/commands/executable_creation/executable_creation.hpp"
+#include "source/commands/list/list.hpp"
 #include "source/commands/print_version/print_version.hpp"
 #include "source/configuration_parsing/configuration.hpp"
 #include "source/configuration_parsing/configuration_parsing.hpp"
@@ -62,7 +63,11 @@ auto main(const int num_of_arguments, const char* arguments[]) -> int
             }
             else if constexpr (std::is_same_v<CommandType, CompileCommandInfo>)
             {
-                return create_executable(info, *configurations, current_path);
+                return commands::create_executable(info, *configurations, current_path);
+            }
+            else if constexpr (std::is_same_v<CommandType, ListCommandInfo>)
+            {
+                return commands::list(info, *configurations);
             }
             else if constexpr (std::is_same_v<CommandType, PrintVersionCommandInfo>)
             {

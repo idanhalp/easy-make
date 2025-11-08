@@ -311,9 +311,9 @@ auto get_code_files(const Configuration& configuration,
     return code_files | std::ranges::to<std::vector>();
 }
 
-auto create_executable(const CompileCommandInfo& info,
-                       const std::vector<Configuration>& configurations,
-                       const std::filesystem::path& path_to_root) -> int
+auto commands::create_executable(const CompileCommandInfo& info,
+                                 const std::vector<Configuration>& configurations,
+                                 const std::filesystem::path& path_to_root) -> int
 {
     const auto actual_configuration = get_actual_configuration(info.configuration_name, configurations);
 

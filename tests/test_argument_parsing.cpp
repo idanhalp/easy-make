@@ -94,8 +94,8 @@ TEST_SUITE("argument_parsing")
             REQUIRE(command_info.has_value());
             REQUIRE(std::holds_alternative<CleanAllCommandInfo>(*command_info));
 
-            const auto& clean_command_info = std::get<CleanAllCommandInfo>(*command_info);
-            CHECK_FALSE(clean_command_info.is_quiet);
+            const auto& clean_all_command_info = std::get<CleanAllCommandInfo>(*command_info);
+            CHECK_FALSE(clean_all_command_info.is_quiet);
         }
 
         SUBCASE("Valid case with flags")
@@ -106,8 +106,8 @@ TEST_SUITE("argument_parsing")
             REQUIRE(command_info.has_value());
             REQUIRE(std::holds_alternative<CleanAllCommandInfo>(*command_info));
 
-            const auto& clean_command_info = std::get<CleanAllCommandInfo>(*command_info);
-            CHECK(clean_command_info.is_quiet);
+            const auto& clean_all_command_info = std::get<CleanAllCommandInfo>(*command_info);
+            CHECK(clean_all_command_info.is_quiet);
         }
 
         SUBCASE("Invalid flag")
@@ -188,6 +188,109 @@ TEST_SUITE("argument_parsing")
 
             REQUIRE_FALSE(command_info.has_value());
             CHECK_EQ(command_info.error(), "Error: Unknown flag '--fast' provided to command 'compile'.");
+        }
+    }
+
+    TEST_CASE("'list' command")
+    {
+        SUBCASE("Valid case without flags")
+        {
+            const std::vector arguments = {"./easy-make", "list"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<ListCommandInfo>(*command_info));
+
+            const auto& list_command_info = std::get<ListCommandInfo>(*command_info);
+            CHECK_FALSE(list_command_info.complete_configurations_only);
+            CHECK_FALSE(list_command_info.count);
+            CHECK_FALSE(list_command_info.incomplete_configurations_only);
+            CHECK_FALSE(list_command_info.porcelain_output);
+            CHECK_FALSE(list_command_info.sorted_output);
+        }
+
+        SUBCASE("Valid case with flags #1")
+        {
+            const std::vector arguments = {"./easy-make", "list", "--sorted", "--porcelain"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<ListCommandInfo>(*command_info));
+
+            const auto& list_command_info = std::get<ListCommandInfo>(*command_info);
+            CHECK_FALSE(list_command_info.complete_configurations_only);
+            CHECK_FALSE(list_command_info.count);
+            CHECK_FALSE(list_command_info.incomplete_configurations_only);
+            CHECK(list_command_info.porcelain_output);
+            CHECK(list_command_info.sorted_output);
+        }
+
+        SUBCASE("Valid case with flags #2")
+        {
+            const std::vector arguments = {"./easy-make", "list", "--complete-only", "--porcelain"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<ListCommandInfo>(*command_info));
+
+            const auto& list_command_info = std::get<ListCommandInfo>(*command_info);
+            CHECK(list_command_info.complete_configurations_only);
+            CHECK_FALSE(list_command_info.count);
+            CHECK_FALSE(list_command_info.incomplete_configurations_only);
+            CHECK(list_command_info.porcelain_output);
+            CHECK_FALSE(list_command_info.sorted_output);
+        }
+
+        SUBCASE("Valid case with flags #3")
+        {
+            const std::vector arguments = {"./easy-make", "list", "--incomplete-only", "--sorted"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<ListCommandInfo>(*command_info));
+
+            const auto& list_command_info = std::get<ListCommandInfo>(*command_info);
+            CHECK_FALSE(list_command_info.complete_configurations_only);
+            CHECK_FALSE(list_command_info.count);
+            CHECK(list_command_info.incomplete_configurations_only);
+            CHECK_FALSE(list_command_info.porcelain_output);
+            CHECK(list_command_info.sorted_output);
+        }
+
+        SUBCASE("Valid case with flags #4")
+        {
+            const std::vector arguments = {"./easy-make", "list", "--complete-only", "--count"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<ListCommandInfo>(*command_info));
+
+            const auto& list_command_info = std::get<ListCommandInfo>(*command_info);
+            CHECK(list_command_info.complete_configurations_only);
+            CHECK(list_command_info.count);
+            CHECK_FALSE(list_command_info.incomplete_configurations_only);
+            CHECK_FALSE(list_command_info.porcelain_output);
+            CHECK_FALSE(list_command_info.sorted_output);
+        }
+
+        SUBCASE("Conflicting flags #1")
+        {
+            const std::vector arguments = {"./easy-make", "list", "--incomplete-only", "--complete-only", "--sorted"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            REQUIRE_EQ(command_info.error(),
+                       "Error: Both '--complete-only' and '--incomplete-only' flags were supplied to command 'list'.");
+        }
+
+        SUBCASE("Conflicting flags #2")
+        {
+            const std::vector arguments = {"./easy-make", "list", "--count", "--sorted"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            REQUIRE_EQ(command_info.error(),
+                       "Error: Cannot provide '--sorted' flag to command 'list' when '--count' flag is provided.");
         }
     }
 

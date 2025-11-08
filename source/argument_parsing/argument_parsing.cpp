@@ -8,19 +8,18 @@
 #include "source/argument_parsing/commands/clean.hpp"
 #include "source/argument_parsing/commands/clean_all.hpp"
 #include "source/argument_parsing/commands/compile.hpp"
+#include "source/argument_parsing/commands/list.hpp"
 #include "source/argument_parsing/commands/print_version.hpp"
 #include "source/utils/find_closest_word.hpp"
 
 static const std::string CLEAN_COMMAND         = "clean";
 static const std::string CLEAN_ALL_COMMAND     = "clean-all";
 static const std::string COMPILE_COMMAND       = "compile";
+static const std::string LIST_COMMAND          = "list";
 static const std::string PRINT_VERSION_COMMAND = "version";
 
 static const std::vector<std::string> COMMANDS = {
-    CLEAN_COMMAND,
-    CLEAN_ALL_COMMAND,
-    COMPILE_COMMAND,
-    PRINT_VERSION_COMMAND,
+    CLEAN_COMMAND, CLEAN_ALL_COMMAND, COMPILE_COMMAND, LIST_COMMAND, PRINT_VERSION_COMMAND,
 };
 
 auto parse_arguments(const std::span<const char* const> arguments) -> std::expected<CommandInfo, std::string>
@@ -47,6 +46,10 @@ auto parse_arguments(const std::span<const char* const> arguments) -> std::expec
     else if (command == COMPILE_COMMAND)
     {
         return parse_compile_command_arguments(arguments);
+    }
+    else if (command == LIST_COMMAND)
+    {
+        return parse_list_command_arguments(arguments);
     }
     else if (command == PRINT_VERSION_COMMAND)
     {
