@@ -8,21 +8,21 @@
 #include "source/argument_parsing/commands/build.hpp"
 #include "source/argument_parsing/commands/clean.hpp"
 #include "source/argument_parsing/commands/clean_all.hpp"
-#include "source/argument_parsing/commands/list.hpp"
+#include "source/argument_parsing/commands/list_configurations.hpp"
 #include "source/argument_parsing/commands/print_version.hpp"
 #include "source/utils/find_closest_word.hpp"
 
-static const std::string CLEAN_COMMAND         = "clean";
-static const std::string CLEAN_ALL_COMMAND     = "clean-all";
-static const std::string BUILD_COMMAND         = "build";
-static const std::string LIST_COMMAND          = "list";
-static const std::string PRINT_VERSION_COMMAND = "version";
+static const std::string CLEAN_COMMAND               = "clean";
+static const std::string CLEAN_ALL_COMMAND           = "clean-all";
+static const std::string BUILD_COMMAND               = "build";
+static const std::string LIST_CONFIGURATIONS_COMMAND = "list-configs";
+static const std::string PRINT_VERSION_COMMAND       = "version";
 
 static const std::vector<std::string> COMMANDS = {
     CLEAN_COMMAND,
     CLEAN_ALL_COMMAND,
     BUILD_COMMAND,
-    LIST_COMMAND,
+    LIST_CONFIGURATIONS_COMMAND,
     PRINT_VERSION_COMMAND,
 };
 
@@ -51,9 +51,9 @@ auto parse_arguments(const std::span<const char* const> arguments) -> std::expec
     {
         return parse_build_command_arguments(arguments);
     }
-    else if (command == LIST_COMMAND)
+    else if (command == LIST_CONFIGURATIONS_COMMAND)
     {
-        return parse_list_command_arguments(arguments);
+        return parse_list_configurations_command_arguments(arguments);
     }
     else if (command == PRINT_VERSION_COMMAND)
     {

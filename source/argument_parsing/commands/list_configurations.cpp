@@ -1,4 +1,4 @@
-#include "source/argument_parsing/commands/list.hpp"
+#include "source/argument_parsing/commands/list_configurations.hpp"
 
 #include <format>
 #include <string>
@@ -27,7 +27,7 @@ static const std::vector<std::string> FLAGS = {
 // Returns `std::nullopt` on success, or an error message otherwise.
 static auto parse_flag(const std::string_view flag,
                        const std::string_view command_name,
-                       ListCommandInfo& info) -> std::optional<std::string>
+                       ListConfigurationsCommandInfo& info) -> std::optional<std::string>
 {
     if (flag == COMPLETE_CONFIGURATINS_ONLY_FLAG)
     {
@@ -71,7 +71,7 @@ static auto parse_flag(const std::string_view flag,
     return error_message;
 }
 
-static auto check_for_conflicting_flags(const ListCommandInfo& info,
+static auto check_for_conflicting_flags(const ListConfigurationsCommandInfo& info,
                                         const std::string_view command_name) -> std::optional<std::string>
 {
     if (info.complete_configurations_only && info.incomplete_configurations_only)
@@ -99,14 +99,15 @@ static auto check_for_conflicting_flags(const ListCommandInfo& info,
     return std::nullopt;
 }
 
-auto parse_list_command_arguments(std::span<const char* const> arguments) -> std::expected<ListCommandInfo, std::string>
+auto parse_list_configurations_command_arguments(std::span<const char* const> arguments)
+    -> std::expected<ListConfigurationsCommandInfo, std::string>
 {
-    // The first 2 elements are the program name and the command (which is "list").
+    // The first 2 elements are the program name and the command (which is "list-configs").
     ASSERT(arguments.size() >= 2);
     const auto command_name       = std::string_view(arguments[1]);
     const auto relevant_arguments = std::span(arguments.begin() + 2, arguments.end());
 
-    ListCommandInfo info{};
+    ListConfigurationsCommandInfo info{};
 
     for (const std::string_view argument : relevant_arguments)
     {

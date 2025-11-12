@@ -2,13 +2,13 @@
 
 This document specifies the commands which can be supplied to the program.
 
-| Command     | Description                                                                     | Parameters         |
-| ----------- | ------------------------------------------------------------------------------- | ------------------ |
-| `build`     | Builds the specified configuration.                                             | configuration name |
-| `clean`     | Removes the executable and object files related to the specified configuration. | configuration name |
-| `clean-all` | Removes all the executables and object files.                                   | none               |
-| `list`      | Lists the configurations in the `easy-make-configurations.json` file            | none               |
-| `version`   | Prints the program version.                                                     | none               |
+| Command        | Description                                                                     | Parameters         |
+| -------------- | ------------------------------------------------------------------------------- | ------------------ |
+| `build`        | Builds the specified configuration.                                             | configuration name |
+| `clean`        | Removes the executable and object files related to the specified configuration. | configuration name |
+| `clean-all`    | Removes all the executables and object files.                                   | none               |
+| `list-configs` | Lists the configurations in the `easy-make-configurations.json` file            | none               |
+| `version`      | Prints the program version.                                                     | none               |
 
 ## Flags
 
@@ -20,7 +20,7 @@ This document specifies the commands which can be supplied to the program.
 
 - `--quiet`: Prevents printing information.
 
-### `list`
+### `list-configs`
 
 - `--complete-only`: Print only the names of complete configurations.
 - `--count`: Print only the number of relevant configurations.

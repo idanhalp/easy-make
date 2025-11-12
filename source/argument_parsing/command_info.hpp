@@ -20,7 +20,7 @@ struct CleanAllCommandInfo
     bool is_quiet;
 };
 
-struct ListCommandInfo
+struct ListConfigurationsCommandInfo
 {
     bool complete_configurations_only;
     bool count;
@@ -33,7 +33,10 @@ struct PrintVersionCommandInfo
 {
 };
 
-using CommandInfo =
-    std::variant<BuildCommandInfo, CleanCommandInfo, CleanAllCommandInfo, ListCommandInfo, PrintVersionCommandInfo>;
+using CommandInfo = std::variant<BuildCommandInfo,
+                                 CleanCommandInfo,
+                                 CleanAllCommandInfo,
+                                 ListConfigurationsCommandInfo,
+                                 PrintVersionCommandInfo>;
 
 #endif // SOURCE_ARGUMENT_PARSING_COMMAND_INFO_HPP

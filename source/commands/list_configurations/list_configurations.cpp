@@ -1,4 +1,4 @@
-#include "source/commands/list/list.hpp"
+#include "source/commands/list_configurations/list_configurations.hpp"
 
 #include <algorithm>
 #include <print>
@@ -10,7 +10,7 @@
 #include "source/utils/macros/assert.hpp"
 
 static auto
-get_relevant_configuration_names(const ListCommandInfo& info,
+get_relevant_configuration_names(const ListConfigurationsCommandInfo& info,
                                  const std::vector<Configuration>& configurations) -> std::vector<std::string>
 {
     const auto is_complete = [&](const Configuration& configuration)
@@ -42,7 +42,7 @@ static auto print_porcelain_output(const std::vector<std::string>& configuration
     }
 }
 
-static auto print_verbose_output(const ListCommandInfo& info,
+static auto print_verbose_output(const ListConfigurationsCommandInfo& info,
                                  const std::vector<std::string>& configuration_names) -> void
 {
     const auto description = info.complete_configurations_only     ? "complete "
@@ -75,7 +75,8 @@ static auto print_verbose_output(const ListCommandInfo& info,
     }
 }
 
-auto commands::list(const ListCommandInfo& info, const std::vector<Configuration>& configurations) -> int
+auto commands::list_configurations(const ListConfigurationsCommandInfo& info,
+                                   const std::vector<Configuration>& configurations) -> int
 {
     // If both flags are set then all configurations are irrelevant.
     ASSERT(!info.complete_configurations_only || !info.incomplete_configurations_only);

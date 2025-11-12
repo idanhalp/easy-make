@@ -7,7 +7,7 @@
 #include "source/commands/build/build.hpp"
 #include "source/commands/clean/clean.hpp"
 #include "source/commands/clean_all/clean_all.hpp"
-#include "source/commands/list/list.hpp"
+#include "source/commands/list_configurations/list_configurations.hpp"
 #include "source/commands/print_version/print_version.hpp"
 #include "source/configuration_parsing/configuration.hpp"
 #include "source/configuration_parsing/configuration_parsing.hpp"
@@ -66,9 +66,9 @@ auto main(const int num_of_arguments, const char* arguments[]) -> int
             {
                 return commands::clean_all(info, *configurations, current_path);
             }
-            else if constexpr (std::is_same_v<CommandType, ListCommandInfo>)
+            else if constexpr (std::is_same_v<CommandType, ListConfigurationsCommandInfo>)
             {
-                return commands::list(info, *configurations);
+                return commands::list_configurations(info, *configurations);
             }
             else if constexpr (std::is_same_v<CommandType, PrintVersionCommandInfo>)
             {
