@@ -59,11 +59,7 @@ auto parse_clean_all_command_arguments(std::span<const char* const> arguments)
         const auto flag_parse_error = parse_flag(argument, command_name, info);
         const auto flag_is_valid    = !flag_parse_error.has_value();
 
-        if (flag_is_valid)
-        {
-            continue;
-        }
-        else
+        if (!flag_is_valid)
         {
             return std::unexpected(*flag_parse_error);
         }
