@@ -34,16 +34,17 @@ get_relevant_configuration_names(const ListConfigurationsCommandInfo& info,
     return relevant_configuration_names;
 }
 
-static auto print_porcelain_output(const std::vector<std::string>& configuration_names) -> void
+static auto print_porcelain_output(const std::vector<std::string>& configuration_names, std::ostream& output) -> void
 {
     for (const auto& configuration_name : configuration_names)
     {
-        std::println("{}", configuration_name);
+        std::println(output, "{}", configuration_name);
     }
 }
 
 static auto print_verbose_output(const ListConfigurationsCommandInfo& info,
-                                 const std::vector<std::string>& configuration_names) -> void
+                                 const std::vector<std::string>& configuration_names,
+                                 std::ostream& output) -> void
 {
     const auto description = info.complete_configurations_only     ? "complete "
                              : info.incomplete_configurations_only ? "incomplete "
@@ -52,17 +53,22 @@ static auto print_verbose_output(const ListConfigurationsCommandInfo& info,
     switch (configuration_names.size())
     {
     case 0:
-        std::println(
-            "There are no {}configurations in the '{}' file.", description, params::CONFIGURATIONS_FILE_NAME.native());
+        std::println(output,
+                     "There are no {}configurations in the '{}' file.",
+                     description,
+                     params::CONFIGURATIONS_FILE_NAME.native());
         break;
 
     case 1:
-        std::println(
-            "There is 1 {}configuration in the '{}' file:", description, params::CONFIGURATIONS_FILE_NAME.native());
+        std::println(output,
+                     "There is 1 {}configuration in the '{}' file:",
+                     description,
+                     params::CONFIGURATIONS_FILE_NAME.native());
         break;
 
     default:
-        std::println("There are {} {}configurations in the '{}' file:",
+        std::println(output,
+                     "There are {} {}configurations in the '{}' file:",
                      configuration_names.size(),
                      description,
                      params::CONFIGURATIONS_FILE_NAME.native());
@@ -71,12 +77,13 @@ static auto print_verbose_output(const ListConfigurationsCommandInfo& info,
 
     for (const auto [index, name] : std::views::enumerate(configuration_names) | std::views::as_const)
     {
-        std::println("{} {}", index + 1, name);
+        std::println(output, "{} {}", index + 1, name);
     }
 }
 
 auto commands::list_configurations(const ListConfigurationsCommandInfo& info,
-                                   const std::vector<Configuration>& configurations) -> int
+                                   const std::vector<Configuration>& configurations,
+                                   std::ostream& output) -> int
 {
     // If both flags are set then all configurations are irrelevant.
     ASSERT(!info.complete_configurations_only || !info.incomplete_configurations_only);
@@ -95,15 +102,15 @@ auto commands::list_configurations(const ListConfigurationsCommandInfo& info,
 
     if (info.count)
     {
-        std::println("{}", relevant_configuration_names.size());
+        std::println(output, "{}", relevant_configuration_names.size());
     }
     else if (info.porcelain_output)
     {
-        print_porcelain_output(relevant_configuration_names);
+        print_porcelain_output(relevant_configuration_names, output);
     }
     else
     {
-        print_verbose_output(info, relevant_configuration_names);
+        print_verbose_output(info, relevant_configuration_names, output);
     }
 
     return EXIT_SUCCESS;
