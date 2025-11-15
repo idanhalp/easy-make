@@ -3,9 +3,11 @@
 **easy-make** is a simple and friendly build tool for C++.  
 It helps you build your project using a clear, easy-to-read configuration file without any messy makefiles, just straightforward builds.
 
-**CHANGE THIS IMAGE AFTER UPDATING VERSION!!!!**
-
-![example-output](/documentation/assets/example-output.png)
+<picture>
+  <source srcset="./documentation/assets/build-release-config-dark.png" media="(prefers-color-scheme: dark)">
+  <source srcset="./documentation/assets/build-release-config-light.png" media="(prefers-color-scheme: light)">
+  <img src="./documentation/assets/build-release-config-dark.png" alt="Building 'release' configuration">
+</picture>
 
 ## How to Use
 
@@ -38,7 +40,7 @@ It helps you build your project using a clear, easy-to-read configuration file w
 ## Features
 
 - **Simple Setup:** All your sources, excludes, and flags live in one easy JSON file.
-- **Automatic Builds:** Just describe your project once, and `easy-make` takes care of the rest.
+- **Automatic Builds:** Just describe your project once, and **easy-make** takes care of the rest.
 - **Smart Rebuilds:** Only recompiles what changed, saving you time and frustration.
 - **Built-in Safety Checks:** Warns you if a file or folder is missing before things break.
 - **Custom Flags Made Easy:** Add defines, include paths, and extra compiler options effortlessly.

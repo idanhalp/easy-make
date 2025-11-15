@@ -164,7 +164,7 @@ Each configuration must contain the following fields:
 
 ## 3. Configurations
 
-- `easy-make` supports several configurations in one `.json` file.
+- **easy-make** supports several configurations in one `.json` file.
 - Example:
 
   ```json
@@ -196,6 +196,14 @@ Each configuration must contain the following fields:
   ]
   ```
 
-  To compile a specific configuration, run `easy-make build <configuration-name>`.  
-  In this example, we can run `easy-make build debug` or `easy-make build release`.  
-  Note that running `easy-make build default` is invalid, as the configuration is incomplete (no value for `output.name`).
+To compile a specific configuration, run `easy-make build <configuration-name>`.  
+In this example, we can run `easy-make build debug` or `easy-make build release`.
+
+Note that running `easy-make build default` is invalid as the configuration is incomplete (no value for `output.name`).  
+Running this invalid command will cause the following error to be printed:
+
+<picture>
+  <source srcset="./assets/incomplete-config-error-dark.png" media="(prefers-color-scheme: dark)">
+  <source srcset="./assets/incomplete-config-error-light.png" media="(prefers-color-scheme: light)">
+  <img src="./assets/incomplete-config-error-dark.png" alt="Incomplete configuration error">
+</picture>
