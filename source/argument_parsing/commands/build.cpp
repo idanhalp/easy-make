@@ -30,14 +30,20 @@ auto parse_build_command_arguments(std::span<const char* const> arguments)
 
         if (configuration_name_specified)
         {
-            const auto& name_1 = info.configuration_name;
-            const auto& name_2 = argument;
+            const auto& name_1       = info.configuration_name;
+            const auto& name_2       = argument;
+            const auto error_message = (name_1 == name_2)
+                                           ? std::format("Error: Command '{}' requires one configuration name, "
+                                                         "instead got '{}' twice.",
+                                                         command_name,
+                                                         name_1)
+                                           : std::format("Error: Command '{}' requires one configuration name, "
+                                                         "instead got both '{}' and '{}'.",
+                                                         command_name,
+                                                         name_1,
+                                                         name_2);
 
-            return std::unexpected(std::format("Error: Command '{}' requires one configuration name, "
-                                               "instead got both '{}' and '{}'.",
-                                               command_name,
-                                               name_1,
-                                               name_2));
+            return std::unexpected(error_message);
         }
 
         info.configuration_name      = argument;
