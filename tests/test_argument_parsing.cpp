@@ -301,6 +301,144 @@ TEST_SUITE("argument_parsing")
         }
     }
 
+    TEST_CASE("'list-files' command")
+    {
+        SUBCASE("Valid case without flags")
+        {
+            const std::vector arguments = {"./easy-make", "list-files", "config-name"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<ListFilesCommandInfo>(*command_info));
+
+            const auto& list_files_command_info = std::get<ListFilesCommandInfo>(*command_info);
+            CHECK_EQ(list_files_command_info.configuration_name, "config-name");
+            CHECK_FALSE(list_files_command_info.count);
+            CHECK_FALSE(list_files_command_info.header_only);
+            CHECK_FALSE(list_files_command_info.porcelain_output);
+            CHECK_FALSE(list_files_command_info.source_only);
+        }
+
+        SUBCASE("Valid case with flags #1")
+        {
+            const std::vector arguments = {
+                "./easy-make", "list-files", "config-name-1", "--source-only", "--porcelain"};
+            const auto command_info = parse_arguments(arguments);
+
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<ListFilesCommandInfo>(*command_info));
+
+            const auto& list_files_command_info = std::get<ListFilesCommandInfo>(*command_info);
+            CHECK_EQ(list_files_command_info.configuration_name, "config-name-1");
+            CHECK_FALSE(list_files_command_info.count);
+            CHECK_FALSE(list_files_command_info.header_only);
+            CHECK(list_files_command_info.porcelain_output);
+            CHECK(list_files_command_info.source_only);
+        }
+
+        SUBCASE("Valid case with flags #2")
+        {
+            const std::vector arguments = {"./easy-make", "list-files", "config-name-2", "--header-only"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<ListFilesCommandInfo>(*command_info));
+
+            const auto& list_files_command_info = std::get<ListFilesCommandInfo>(*command_info);
+            CHECK_EQ(list_files_command_info.configuration_name, "config-name-2");
+            CHECK_FALSE(list_files_command_info.count);
+            CHECK(list_files_command_info.header_only);
+            CHECK_FALSE(list_files_command_info.porcelain_output);
+            CHECK_FALSE(list_files_command_info.source_only);
+        }
+
+        SUBCASE("Valid case with flags #3")
+        {
+            const std::vector arguments = {"./easy-make", "list-files", "config-name-3", "--count"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<ListFilesCommandInfo>(*command_info));
+
+            const auto& list_files_command_info = std::get<ListFilesCommandInfo>(*command_info);
+            CHECK_EQ(list_files_command_info.configuration_name, "config-name-3");
+            CHECK(list_files_command_info.count);
+            CHECK_FALSE(list_files_command_info.header_only);
+            CHECK_FALSE(list_files_command_info.porcelain_output);
+            CHECK_FALSE(list_files_command_info.source_only);
+        }
+
+        SUBCASE("Missing configuration name")
+        {
+            const std::vector arguments = {"./easy-make", "list-files"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Must specify a configuration name when using 'list-files' command.");
+        }
+
+        SUBCASE("Missing configuration name with flags provided")
+        {
+            const std::vector arguments = {"./easy-make", "list-files", "--source-only", "--porcelain"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Must specify a configuration name when using 'list-files' command.");
+        }
+
+        SUBCASE("Multiple configuration names")
+        {
+            const std::vector arguments = {"./easy-make", "list-files", "config-name-1", "config-name-2"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(),
+                     "Error: Command 'list-files' requires one configuration name, "
+                     "instead got both 'config-name-1' and 'config-name-2'.");
+        }
+
+        SUBCASE("Conflicting flags #1")
+        {
+            const std::vector arguments = {
+                "./easy-make", "list-files", "config-name", "--source-only", "--header-only"};
+            const auto command_info = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            REQUIRE_EQ(command_info.error(),
+                       "Error: Both '--header-only' and '--source-only' flags were supplied to command 'list-files'.");
+        }
+
+        SUBCASE("Conflicting flags #2")
+        {
+            const std::vector arguments = {"./easy-make", "list-files", "config-name", "--count", "--porcelain"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            REQUIRE_EQ(
+                command_info.error(),
+                "Error: Cannot provide '--porcelain' flag to command 'list-files' when '--count' flag is provided.");
+        }
+
+        SUBCASE("Invalid flag")
+        {
+            const std::vector arguments = {"./easy-make", "list-files", "config-name", "--count", "--quiet"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Unknown flag '--quiet' provided to command 'list-files'.");
+        }
+
+        SUBCASE("Duplicate flag")
+        {
+            const std::vector arguments = {"./easy-make", "list-files", "config-name", "--count", "--count"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(),
+                     "Error: Flag '--count' was provided to command 'list-files' more than once.");
+        }
+    }
+
     TEST_CASE("'version' command")
     {
         SUBCASE("Valid case")

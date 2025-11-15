@@ -1,6 +1,8 @@
 #ifndef SOURCE_UTILS_PRINT_HPP
 #define SOURCE_UTILS_PRINT_HPP
 
+#include <fstream>
+#include <iostream>
 #include <print>
 
 namespace utils
@@ -13,6 +15,15 @@ namespace utils
         constexpr auto ANSI_reset = "\033[0m";
 
         std::println("{}{}{}", ANSI_red, std::format(fmt, std::forward<Args>(args)...), ANSI_reset);
+    }
+
+    template <class... Args>
+    auto print_error(std::ostream& output, std::format_string<Args...> fmt, Args&&... args) -> void
+    {
+        constexpr auto ANSI_red   = "\033[31m";
+        constexpr auto ANSI_reset = "\033[0m";
+
+        std::println(output, "{}{}{}", ANSI_red, std::format(fmt, std::forward<Args>(args)...), ANSI_reset);
     }
 
     // Prints text in green.

@@ -10,7 +10,8 @@ SOURCE_FILES = \
     source/argument_parsing/commands/build.cpp \
     source/argument_parsing/commands/clean.cpp \
     source/argument_parsing/commands/clean_all.cpp \
-    source/argument_parsing/commands/list.cpp \
+    source/argument_parsing/commands/list_configurations.cpp \
+    source/argument_parsing/commands/list_files.cpp \
     source/argument_parsing/commands/print_version.cpp \
     source/argument_parsing/utils.cpp \
     source/commands/build/build_caching/build_caching.cpp \
@@ -18,7 +19,8 @@ SOURCE_FILES = \
     source/commands/build/compilation.cpp \
     source/commands/build/build.cpp \
     source/commands/build/linking.cpp \
-    source/commands/list/list.cpp \
+    source/commands/list_configurations/list_configurations.cpp \
+    source/commands/list_files/list_files.cpp \
     source/commands/clean/clean.cpp \
     source/commands/clean_all/clean_all.cpp \
     source/commands/print_version/print_version.cpp \

@@ -29,6 +29,15 @@ struct ListConfigurationsCommandInfo
     bool sorted_output;
 };
 
+struct ListFilesCommandInfo
+{
+    std::string configuration_name;
+    bool count;
+    bool header_only;
+    bool porcelain_output;
+    bool source_only;
+};
+
 struct PrintVersionCommandInfo
 {
 };
@@ -37,6 +46,7 @@ using CommandInfo = std::variant<BuildCommandInfo,
                                  CleanCommandInfo,
                                  CleanAllCommandInfo,
                                  ListConfigurationsCommandInfo,
+                                 ListFilesCommandInfo,
                                  PrintVersionCommandInfo>;
 
 #endif // SOURCE_ARGUMENT_PARSING_COMMAND_INFO_HPP

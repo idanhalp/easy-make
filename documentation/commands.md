@@ -8,6 +8,7 @@ This document specifies the commands which can be supplied to the program.
 | `clean`        | Removes the executable and object files related to the specified configuration. | configuration name |
 | `clean-all`    | Removes all the executables and object files.                                   | none               |
 | `list-configs` | Lists the configurations in the `easy-make-configurations.json` file            | none               |
+| `list-files`   | Lists the files in a configuration.                                             | configuration name |
 | `version`      | Prints the program version.                                                     | none               |
 
 ## Flags
@@ -28,3 +29,10 @@ This document specifies the commands which can be supplied to the program.
 - `--porcelain`: Print only configuration names, with no additional formatting.
 - `--sorted`: Print configurations in lexicographical order.  
   If not provided, configurations are printed in the order they appear in the `easy-make-configurations.json` file.
+
+### `list-files`
+
+- `--count`: Print only the number of files in the configuration.
+- `--header-only`: Print only the names of header files in the configuration.
+- `--porcelain`: Print only file names, with no additional formatting.
+- `--source-only`: Print only the names of source files in the configuration.
