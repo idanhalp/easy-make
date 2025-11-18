@@ -1,10 +1,10 @@
 #include "source/argument_parsing/commands/clean_all.hpp"
 
-#include <format>
 #include <string>
 #include <string_view>
 #include <vector>
 
+#include "source/argument_parsing/error_formatting.hpp"
 #include "source/argument_parsing/utils.hpp"
 #include "source/utils/find_closest_word.hpp"
 #include "source/utils/macros/assert.hpp"
@@ -26,16 +26,7 @@ static auto parse_flag(const std::string_view flag,
         return std::nullopt;
     }
 
-    const auto closest_flag = utils::find_closest_word(std::string(flag), FLAGS);
-    const auto error_message =
-        closest_flag.has_value()
-            ? std::format("Error: Unknown flag '{}' provided to command '{}'. Did you mean '{}'?",
-                          flag,
-                          command_name,
-                          *closest_flag)
-            : std::format("Error: Unknown flag '{}' provided to command '{}'.", flag, command_name);
-
-    return error_message;
+    return create_unknown_flag_error(command_name, std::string(flag), FLAGS);
 }
 
 auto parse_clean_all_command_arguments(std::span<const char* const> arguments)
@@ -52,8 +43,7 @@ auto parse_clean_all_command_arguments(std::span<const char* const> arguments)
     {
         if (!utils::is_flag(argument))
         {
-            return std::unexpected(
-                std::format("Error: Unknown argument '{}' provided to command '{}'.", argument, command_name));
+            return std::unexpected(create_unknown_argument_error(command_name, std::string(argument), {}));
         }
 
         const auto flag_parse_error = parse_flag(argument, command_name, info);
@@ -70,8 +60,7 @@ auto parse_clean_all_command_arguments(std::span<const char* const> arguments)
 
     if (duplicate_flag_exists)
     {
-        return std::unexpected(std::format(
-            "Error: Flag '{}' was provided to command '{}' more than once.", *duplicate_flag, command_name));
+        return std::unexpected(create_duplicate_flag_error(command_name, *duplicate_flag));
     }
 
     return info;

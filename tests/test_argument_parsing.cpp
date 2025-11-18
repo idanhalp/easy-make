@@ -42,7 +42,7 @@ TEST_SUITE("argument_parsing")
                      "instead got both 'config-name-1' and 'config-name-2'.");
         }
 
-        SUBCASE("Same configuration name provided twice")
+        SUBCASE("Same configuration name provided more than once")
         {
             const std::vector arguments = {"./easy-make", "build", "config-name", "config-name"};
             const auto command_info     = parse_arguments(arguments);
@@ -50,7 +50,7 @@ TEST_SUITE("argument_parsing")
             REQUIRE_FALSE(command_info.has_value());
             CHECK_EQ(command_info.error(),
                      "Error: Command 'build' requires one configuration name, "
-                     "instead got 'config-name' twice.");
+                     "instead got 'config-name' more than once.");
         }
 
         SUBCASE("Invalid flag")
@@ -111,7 +111,7 @@ TEST_SUITE("argument_parsing")
                      "instead got both 'config-name-1' and 'config-name-2'.");
         }
 
-        SUBCASE("Same configuration name provided twice")
+        SUBCASE("Same configuration name provided more than once")
         {
             const std::vector arguments = {"./easy-make", "clean", "config-name", "config-name"};
             const auto command_info     = parse_arguments(arguments);
@@ -119,7 +119,7 @@ TEST_SUITE("argument_parsing")
             REQUIRE_FALSE(command_info.has_value());
             CHECK_EQ(command_info.error(),
                      "Error: Command 'clean' requires one configuration name, "
-                     "instead got 'config-name' twice.");
+                     "instead got 'config-name' more than once.");
         }
 
         SUBCASE("Invalid flag")
@@ -419,7 +419,7 @@ TEST_SUITE("argument_parsing")
                      "instead got both 'config-name-1' and 'config-name-2'.");
         }
 
-        SUBCASE("Same configuration name provided twice")
+        SUBCASE("Same configuration name provided more than once")
         {
             const std::vector arguments = {"./easy-make", "list-files", "config-name", "config-name"};
             const auto command_info     = parse_arguments(arguments);
@@ -427,7 +427,7 @@ TEST_SUITE("argument_parsing")
             REQUIRE_FALSE(command_info.has_value());
             CHECK_EQ(command_info.error(),
                      "Error: Command 'list-files' requires one configuration name, "
-                     "instead got 'config-name' twice.");
+                     "instead got 'config-name' more than once.");
         }
 
         SUBCASE("Conflicting flags #1")

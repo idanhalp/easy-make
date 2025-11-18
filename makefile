@@ -7,6 +7,7 @@ TARGETS = easy-make test
 # Source files
 SOURCE_FILES = \
     source/argument_parsing/argument_parsing.cpp \
+    source/argument_parsing/error_formatting.cpp \
     source/argument_parsing/commands/build.cpp \
     source/argument_parsing/commands/clean.cpp \
     source/argument_parsing/commands/clean_all.cpp \

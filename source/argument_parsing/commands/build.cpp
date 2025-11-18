@@ -1,9 +1,9 @@
 #include "source/argument_parsing/commands/build.hpp"
 
-#include <format>
 #include <string_view>
 
-#include <source/utils/macros/assert.hpp>
+#include "source/argument_parsing/error_formatting.hpp"
+#include "source/utils/macros/assert.hpp"
 
 auto parse_build_command_arguments(std::span<const char* const> arguments)
     -> std::expected<BuildCommandInfo, std::string>
@@ -22,28 +22,17 @@ auto parse_build_command_arguments(std::span<const char* const> arguments)
 
         if (is_flag)
         {
-            return std::unexpected(
-                std::format("Error: Unknown flag '{}' provided to command '{}'.", argument, command_name));
+            return std::unexpected(create_unknown_flag_error(command_name, std::string(argument), {}));
         }
 
         // Argument is not a flag - assume it is a configuration name.
 
         if (configuration_name_specified)
         {
-            const auto& name_1       = info.configuration_name;
-            const auto& name_2       = argument;
-            const auto error_message = (name_1 == name_2)
-                                           ? std::format("Error: Command '{}' requires one configuration name, "
-                                                         "instead got '{}' twice.",
-                                                         command_name,
-                                                         name_1)
-                                           : std::format("Error: Command '{}' requires one configuration name, "
-                                                         "instead got both '{}' and '{}'.",
-                                                         command_name,
-                                                         name_1,
-                                                         name_2);
+            const auto& name_1 = info.configuration_name;
+            const auto& name_2 = argument;
 
-            return std::unexpected(error_message);
+            return std::unexpected(create_multiple_configuration_names_error(command_name, name_1, name_2));
         }
 
         info.configuration_name      = argument;
@@ -52,8 +41,7 @@ auto parse_build_command_arguments(std::span<const char* const> arguments)
 
     if (!configuration_name_specified)
     {
-        return std::unexpected(
-            std::format("Error: Must specify a configuration name when using '{}' command.", command_name));
+        return std::unexpected(create_missing_configuration_name_error(command_name));
     }
 
     return info;

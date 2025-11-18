@@ -5,6 +5,7 @@
 #include <string_view>
 #include <vector>
 
+#include "source/argument_parsing/error_formatting.hpp"
 #include "source/argument_parsing/utils.hpp"
 #include "source/utils/find_closest_word.hpp"
 #include "source/utils/macros/assert.hpp"
@@ -51,16 +52,7 @@ static auto parse_flag(const std::string_view flag,
         return std::nullopt;
     }
 
-    const auto closest_flag = utils::find_closest_word(std::string(flag), FLAGS);
-    const auto error_message =
-        closest_flag.has_value()
-            ? std::format("Error: Unknown flag '{}' provided to command '{}'. Did you mean '{}'?",
-                          flag,
-                          command_name,
-                          *closest_flag)
-            : std::format("Error: Unknown flag '{}' provided to command '{}'.", flag, command_name);
-
-    return error_message;
+    return create_unknown_flag_error(command_name, std::string(flag), FLAGS);
 }
 
 static auto check_for_conflicting_flags(const ListFilesCommandInfo& info,
@@ -118,20 +110,10 @@ auto parse_list_files_command_arguments(std::span<const char* const> arguments)
 
         if (multiple_configuration_names_provided)
         {
-            const auto& name_1       = info.configuration_name;
-            const auto& name_2       = argument;
-            const auto error_message = (name_1 == name_2)
-                                           ? std::format("Error: Command '{}' requires one configuration name, "
-                                                         "instead got '{}' twice.",
-                                                         command_name,
-                                                         name_1)
-                                           : std::format("Error: Command '{}' requires one configuration name, "
-                                                         "instead got both '{}' and '{}'.",
-                                                         command_name,
-                                                         name_1,
-                                                         name_2);
+            const auto& name_1 = info.configuration_name;
+            const auto& name_2 = argument;
 
-            return std::unexpected(error_message);
+            return std::unexpected(create_multiple_configuration_names_error(command_name, name_1, name_2));
         }
 
         info.configuration_name     = argument;
@@ -140,8 +122,7 @@ auto parse_list_files_command_arguments(std::span<const char* const> arguments)
 
     if (!configuration_name_provided)
     {
-        return std::unexpected(
-            std::format("Error: Must specify a configuration name when using '{}' command.", command_name));
+        return std::unexpected(create_missing_configuration_name_error(command_name));
     }
 
     const auto duplicate_flag        = utils::check_for_duplicate_flags(arguments);
@@ -149,8 +130,7 @@ auto parse_list_files_command_arguments(std::span<const char* const> arguments)
 
     if (duplicate_flag_exists)
     {
-        return std::unexpected(std::format(
-            "Error: Flag '{}' was provided to command '{}' more than once.", *duplicate_flag, command_name));
+        return std::unexpected(create_duplicate_flag_error(command_name, *duplicate_flag));
     }
 
     const auto conflicting_flags       = check_for_conflicting_flags(info, command_name);

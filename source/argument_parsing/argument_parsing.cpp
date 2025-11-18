@@ -1,7 +1,6 @@
 #include "source/argument_parsing/argument_parsing.hpp"
 
 #include <algorithm>
-#include <format>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -12,6 +11,7 @@
 #include "source/argument_parsing/commands/list_configurations.hpp"
 #include "source/argument_parsing/commands/list_files.hpp"
 #include "source/argument_parsing/commands/print_version.hpp"
+#include "source/argument_parsing/error_formatting.hpp"
 #include "source/utils/find_closest_word.hpp"
 #include "source/utils/macros/assert.hpp"
 
@@ -80,14 +80,5 @@ auto parse_arguments(const std::span<const char* const> arguments) -> std::expec
     // If we reach this point, the command is unknown.
     ASSERT(!std::ranges::contains(COMMANDS, command));
 
-    // The given command is invalid.
-    // Check if a similar valid command exists, and return a relevant error.
-
-    const auto closest_command = utils::find_closest_word(std::string(command), COMMANDS);
-    const auto error_message =
-        closest_command.has_value()
-            ? std::format("Error: Unknown command '{}'. Did you mean '{}'?", command, *closest_command)
-            : std::format("Error: Unknown command '{}'.", command);
-
-    return std::unexpected(error_message);
+    return std::unexpected(create_unknown_command_error(std::string(command), COMMANDS));
 }
