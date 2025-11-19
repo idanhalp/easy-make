@@ -79,6 +79,14 @@ static auto compile(const std::filesystem::path& file_name,
 
     const auto file_compiled_successfully = std::system(compilation_command.c_str()) == EXIT_SUCCESS;
 
+    // If compilation fails and the user retries without modifying the source file,
+    // we still need to force a recompilation.
+    // Removing the existing object file guarantees that the build system won't treat it as up-to-date.
+    if (!file_compiled_successfully)
+    {
+        std::filesystem::remove(object_file_path);
+    }
+
     return file_compiled_successfully;
 }
 
