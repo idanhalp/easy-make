@@ -1,5 +1,6 @@
 #include "source/argument_parsing/commands/list_configurations.hpp"
 
+#include <algorithm>
 #include <format>
 #include <string>
 #include <string_view>
@@ -7,19 +8,20 @@
 
 #include "source/argument_parsing/error_formatting.hpp"
 #include "source/argument_parsing/utils.hpp"
-#include "source/utils/find_closest_word.hpp"
 #include "source/utils/macros/assert.hpp"
 
-static const std::string COMPLETE_CONFIGURATINS_ONLY_FLAG   = "--complete-only";
-static const std::string COUNT_FLAG                         = "--count";
-static const std::string INCOMPLETE_CONFIGURATINS_ONLY_FLAG = "--incomplete-only";
-static const std::string PORCELAIN_FLAG                     = "--porcelain";
-static const std::string SORTED_FLAG                        = "--sorted";
+using namespace std::literals;
 
-static const std::vector<std::string> FLAGS = {
-    COMPLETE_CONFIGURATINS_ONLY_FLAG,
+static const auto COMPLETE_CONFIGURATIONS_ONLY_FLAG   = "--complete-only"s;
+static const auto COUNT_FLAG                          = "--count"s;
+static const auto INCOMPLETE_CONFIGURATIONS_ONLY_FLAG = "--incomplete-only"s;
+static const auto PORCELAIN_FLAG                      = "--porcelain"s;
+static const auto SORTED_FLAG                         = "--sorted"s;
+
+static const std::vector FLAGS = {
+    COMPLETE_CONFIGURATIONS_ONLY_FLAG,
     COUNT_FLAG,
-    INCOMPLETE_CONFIGURATINS_ONLY_FLAG,
+    INCOMPLETE_CONFIGURATIONS_ONLY_FLAG,
     PORCELAIN_FLAG,
     SORTED_FLAG,
 };
@@ -30,7 +32,7 @@ static auto parse_flag(const std::string_view flag,
                        const std::string_view command_name,
                        ListConfigurationsCommandInfo& info) -> std::optional<std::string>
 {
-    if (flag == COMPLETE_CONFIGURATINS_ONLY_FLAG)
+    if (flag == COMPLETE_CONFIGURATIONS_ONLY_FLAG)
     {
         info.complete_configurations_only = true;
         return std::nullopt;
@@ -42,7 +44,7 @@ static auto parse_flag(const std::string_view flag,
         return std::nullopt;
     }
 
-    if (flag == INCOMPLETE_CONFIGURATINS_ONLY_FLAG)
+    if (flag == INCOMPLETE_CONFIGURATIONS_ONLY_FLAG)
     {
         info.incomplete_configurations_only = true;
         return std::nullopt;
@@ -60,6 +62,9 @@ static auto parse_flag(const std::string_view flag,
         return std::nullopt;
     }
 
+    // Make sure we did not forget to handle a valid flag.
+    ASSERT(!std::ranges::contains(FLAGS, flag));
+
     return create_unknown_flag_error(command_name, std::string(flag), FLAGS);
 }
 
@@ -69,8 +74,8 @@ static auto check_for_conflicting_flags(const ListConfigurationsCommandInfo& inf
     if (info.complete_configurations_only && info.incomplete_configurations_only)
     {
         return std::format("Error: Both '{}' and '{}' flags were supplied to command '{}'.",
-                           COMPLETE_CONFIGURATINS_ONLY_FLAG,
-                           INCOMPLETE_CONFIGURATINS_ONLY_FLAG,
+                           COMPLETE_CONFIGURATIONS_ONLY_FLAG,
+                           INCOMPLETE_CONFIGURATIONS_ONLY_FLAG,
                            command_name);
     }
 
@@ -99,6 +104,7 @@ auto parse_list_configurations_command_arguments(std::span<const char* const> ar
     const auto command_name       = std::string_view(arguments[1]);
     const auto relevant_arguments = std::span(arguments.begin() + 2, arguments.end());
 
+    ASSERT(std::ranges::all_of(FLAGS, &utils::is_flag)); // Make sure all the flags are valid.
     ListConfigurationsCommandInfo info{};
 
     for (const std::string_view argument : relevant_arguments)

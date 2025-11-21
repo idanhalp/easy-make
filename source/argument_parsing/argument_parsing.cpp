@@ -12,7 +12,6 @@
 #include "source/argument_parsing/commands/list_files.hpp"
 #include "source/argument_parsing/commands/print_version.hpp"
 #include "source/argument_parsing/error_formatting.hpp"
-#include "source/utils/find_closest_word.hpp"
 #include "source/utils/macros/assert.hpp"
 
 static const std::string BUILD_COMMAND               = "build";

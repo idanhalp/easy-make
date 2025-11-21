@@ -1,5 +1,6 @@
 #include "source/argument_parsing/commands/list_files.hpp"
 
+#include <algorithm>
 #include <format>
 #include <string>
 #include <string_view>
@@ -7,15 +8,16 @@
 
 #include "source/argument_parsing/error_formatting.hpp"
 #include "source/argument_parsing/utils.hpp"
-#include "source/utils/find_closest_word.hpp"
 #include "source/utils/macros/assert.hpp"
 
-static const std::string COUNT_FLAG             = "--count";
-static const std::string HEADER_FILES_ONLY_FLAG = "--header-only";
-static const std::string PORCELAIN_FLAG         = "--porcelain";
-static const std::string SOURCE_FILES_ONLY_FLAG = "--source-only";
+using namespace std::literals;
 
-static const std::vector<std::string> FLAGS = {
+static const auto COUNT_FLAG             = "--count"s;
+static const auto HEADER_FILES_ONLY_FLAG = "--header-only"s;
+static const auto PORCELAIN_FLAG         = "--porcelain"s;
+static const auto SOURCE_FILES_ONLY_FLAG = "--source-only"s;
+
+static const std::vector FLAGS = {
     COUNT_FLAG,
     HEADER_FILES_ONLY_FLAG,
     PORCELAIN_FLAG,
@@ -85,6 +87,7 @@ auto parse_list_files_command_arguments(std::span<const char* const> arguments)
     const auto command_name       = std::string_view(arguments[1]);
     const auto relevant_arguments = std::span(arguments.begin() + 2, arguments.end());
 
+    ASSERT(std::ranges::all_of(FLAGS, &utils::is_flag)); // Make sure all the flags are valid.
     ListFilesCommandInfo info{};
     auto configuration_name_provided = false;
 
