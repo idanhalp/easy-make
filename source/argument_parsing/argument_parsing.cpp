@@ -1,9 +1,9 @@
 #include "source/argument_parsing/argument_parsing.hpp"
 
 #include <algorithm>
+#include <flat_set>
 #include <string>
 #include <string_view>
-#include <vector>
 
 #include "source/argument_parsing/commands/build.hpp"
 #include "source/argument_parsing/commands/clean.hpp"
@@ -14,14 +14,16 @@
 #include "source/argument_parsing/error_formatting.hpp"
 #include "source/utils/macros/assert.hpp"
 
-static const std::string BUILD_COMMAND               = "build";
-static const std::string CLEAN_COMMAND               = "clean";
-static const std::string CLEAN_ALL_COMMAND           = "clean-all";
-static const std::string LIST_CONFIGURATIONS_COMMAND = "list-configs";
-static const std::string LIST_FILES_COMMAND          = "list-files";
-static const std::string PRINT_VERSION_COMMAND       = "version";
+using namespace std::literals;
 
-static const std::vector<std::string> COMMANDS = {
+static const auto BUILD_COMMAND               = "build"sv;
+static const auto CLEAN_COMMAND               = "clean"sv;
+static const auto CLEAN_ALL_COMMAND           = "clean-all"sv;
+static const auto LIST_CONFIGURATIONS_COMMAND = "list-configs"sv;
+static const auto LIST_FILES_COMMAND          = "list-files"sv;
+static const auto PRINT_VERSION_COMMAND       = "version"sv;
+
+static const std::flat_set COMMANDS = {
     BUILD_COMMAND,
     CLEAN_COMMAND,
     CLEAN_ALL_COMMAND,
@@ -79,5 +81,5 @@ auto parse_arguments(const std::span<const char* const> arguments) -> std::expec
     // If we reach this point, the command is unknown.
     ASSERT(!std::ranges::contains(COMMANDS, command));
 
-    return std::unexpected(create_unknown_command_error(std::string(command), COMMANDS));
+    return std::unexpected(create_unknown_command_error(command, COMMANDS));
 }

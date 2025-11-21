@@ -1,9 +1,9 @@
 #include "source/argument_parsing/commands/clean_all.hpp"
 
 #include <algorithm>
+#include <flat_set>
 #include <string>
 #include <string_view>
-#include <vector>
 
 #include "source/argument_parsing/error_formatting.hpp"
 #include "source/argument_parsing/utils.hpp"
@@ -11,9 +11,9 @@
 
 using namespace std::literals;
 
-static const auto QUIET_FLAG = "--quiet"s;
+static const auto QUIET_FLAG = "--quiet"sv;
 
-static const std::vector FLAGS = {
+static const std::flat_set FLAGS = {
     QUIET_FLAG,
 };
 
@@ -31,9 +31,9 @@ static auto parse_flag(const std::string_view flag,
     }
 
     // Make sure we did not forget to handle a valid flag.
-    ASSERT(!std::ranges::contains(FLAGS, flag));
+    ASSERT(!FLAGS.contains(flag));
 
-    return create_unknown_flag_error(command_name, std::string(flag), FLAGS);
+    return create_unknown_flag_error(command_name, flag, FLAGS);
 }
 
 auto parse_clean_all_command_arguments(std::span<const char* const> arguments)
@@ -51,7 +51,7 @@ auto parse_clean_all_command_arguments(std::span<const char* const> arguments)
     {
         if (!utils::is_flag(argument))
         {
-            return std::unexpected(create_unknown_argument_error(command_name, std::string(argument), {}));
+            return std::unexpected(create_unknown_argument_error(command_name, argument, {}));
         }
 
         const auto flag_parse_error = parse_flag(argument, command_name, info);

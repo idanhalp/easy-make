@@ -3,9 +3,10 @@
 #include <algorithm>
 #include <limits>
 #include <ranges>
+#include <vector>
 
-static auto get_weighted_distance_between_words(const std::string& word_1,
-                                                const std::string& word_2,
+static auto get_weighted_distance_between_words(const std::string_view word_1,
+                                                const std::string_view word_2,
                                                 const int swap_penalty,
                                                 const int substitution_penalty,
                                                 const int insertion_penalty,
@@ -57,7 +58,7 @@ static auto get_weighted_distance_between_words(const std::string& word_1,
     return previous[word_2.size()];
 }
 
-static auto get_distance_between_words(const std::string& word_1, const std::string& word_2) -> int
+static auto get_distance_between_words(const std::string_view word_1, const std::string_view word_2) -> int
 {
     // Git-style penalty values for weighted Damerau–Levenshtein distance.
     const auto swap_penalty         = 0;
@@ -73,17 +74,19 @@ static auto get_distance_between_words(const std::string& word_1, const std::str
 /// @param   target_word
 /// @param   candidates
 /// @return  `std::nullopt` if no string in `candidates` is close enough, else the closest word.
-/// @example find_closest_word("releas", {"release", "test", "debug"}) => "release"
-/// @example find_closest_word("releas", {"test", "debug"})            => nullopt
-auto utils::find_closest_word(const std::string& target_word,
-                              const std::vector<std::string>& candidates) -> std::optional<std::string>
+/// @example find_closest_word_implementation("releas", {"release", "test", "debug"}) => "release"
+/// @example find_closest_word_implementation("releas", {"test", "debug"})            => nullopt
+template <typename T>
+    requires std::convertible_to<T, std::string_view> && std::constructible_from<std::string, T>
+static auto find_closest_word_implementation(const std::string_view target_word,
+                                             const std::span<const T> candidates) -> std::optional<std::string>
 {
     if (candidates.empty())
     {
         return std::nullopt;
     }
 
-    const auto distance_from_target = [&](const std::string& s) { return get_distance_between_words(s, target_word); };
+    const auto distance_from_target = [&](const T& s) { return get_distance_between_words(s, target_word); };
     const auto closest_word         = std::ranges::min_element(candidates, std::ranges::less{}, distance_from_target);
 
     const auto MAX_SIMILARITY_DIFFERENCE = 7;
@@ -91,10 +94,22 @@ auto utils::find_closest_word(const std::string& target_word,
 
     if (candidate_is_close_enough)
     {
-        return *closest_word;
+        return std::string(*closest_word);
     }
     else
     {
         return std::nullopt;
     }
+}
+
+auto utils::find_closest_word(const std::string_view target_word,
+                              const std::span<const std::string> candidates) -> std::optional<std::string>
+{
+    return find_closest_word_implementation(target_word, candidates);
+}
+
+auto utils::find_closest_word(const std::string_view target_word,
+                              const std::span<const std::string_view> candidates) -> std::optional<std::string>
+{
+    return find_closest_word_implementation(target_word, candidates);
 }

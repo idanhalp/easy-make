@@ -21,7 +21,7 @@ auto parse_build_command_arguments(std::span<const char* const> arguments)
     {
         if (utils::is_flag(argument))
         {
-            return std::unexpected(create_unknown_flag_error(command_name, std::string(argument), {}));
+            return std::unexpected(create_unknown_flag_error(command_name, argument, {}));
         }
 
         // Assume `argument` is a configuration name.

@@ -33,8 +33,8 @@ auto create_multiple_configuration_names_error(const std::string_view command_na
 }
 
 auto create_unknown_flag_error(const std::string_view command_name,
-                               const std::string& flag,
-                               const std::vector<std::string>& valid_flags) -> std::string
+                               const std::string_view flag,
+                               const std::span<const std::string_view> valid_flags) -> std::string
 {
     const auto closest_flag = utils::find_closest_word(flag, valid_flags);
 
@@ -57,8 +57,8 @@ auto create_duplicate_flag_error(const std::string_view command_name, const std:
     return std::format("Error: Flag '{}' was provided to command '{}' more than once.", flag, command_name);
 }
 
-auto create_unknown_argument_error(std::string_view command_name,
-                                   const std::string& argument,
+auto create_unknown_argument_error(const std::string_view command_name,
+                                   const std::string_view argument,
                                    const std::vector<std::string>& valid_arguments) -> std::string
 {
     const auto closest_argument = utils::find_closest_word(argument, valid_arguments);
@@ -77,8 +77,8 @@ auto create_unknown_argument_error(std::string_view command_name,
     }
 }
 
-auto create_unknown_command_error(const std::string& command,
-                                  const std::vector<std::string>& valid_commands) -> std::string
+auto create_unknown_command_error(const std::string_view command,
+                                  const std::span<const std::string_view> valid_commands) -> std::string
 {
     const auto closest_command = utils::find_closest_word(command, valid_commands);
 

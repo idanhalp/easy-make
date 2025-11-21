@@ -1,10 +1,10 @@
 #include "source/argument_parsing/commands/list_configurations.hpp"
 
 #include <algorithm>
+#include <flat_set>
 #include <format>
 #include <string>
 #include <string_view>
-#include <vector>
 
 #include "source/argument_parsing/error_formatting.hpp"
 #include "source/argument_parsing/utils.hpp"
@@ -12,13 +12,13 @@
 
 using namespace std::literals;
 
-static const auto COMPLETE_CONFIGURATIONS_ONLY_FLAG   = "--complete-only"s;
-static const auto COUNT_FLAG                          = "--count"s;
-static const auto INCOMPLETE_CONFIGURATIONS_ONLY_FLAG = "--incomplete-only"s;
-static const auto PORCELAIN_FLAG                      = "--porcelain"s;
-static const auto SORTED_FLAG                         = "--sorted"s;
+static const auto COMPLETE_CONFIGURATIONS_ONLY_FLAG   = "--complete-only"sv;
+static const auto COUNT_FLAG                          = "--count"sv;
+static const auto INCOMPLETE_CONFIGURATIONS_ONLY_FLAG = "--incomplete-only"sv;
+static const auto PORCELAIN_FLAG                      = "--porcelain"sv;
+static const auto SORTED_FLAG                         = "--sorted"sv;
 
-static const std::vector FLAGS = {
+static const std::flat_set FLAGS = {
     COMPLETE_CONFIGURATIONS_ONLY_FLAG,
     COUNT_FLAG,
     INCOMPLETE_CONFIGURATIONS_ONLY_FLAG,
@@ -63,9 +63,9 @@ static auto parse_flag(const std::string_view flag,
     }
 
     // Make sure we did not forget to handle a valid flag.
-    ASSERT(!std::ranges::contains(FLAGS, flag));
+    ASSERT(!FLAGS.contains(flag));
 
-    return create_unknown_flag_error(command_name, std::string(flag), FLAGS);
+    return create_unknown_flag_error(command_name, flag, FLAGS);
 }
 
 static auto check_for_conflicting_flags(const ListConfigurationsCommandInfo& info,
@@ -111,7 +111,7 @@ auto parse_list_configurations_command_arguments(std::span<const char* const> ar
     {
         if (!utils::is_flag(argument))
         {
-            return std::unexpected(create_unknown_argument_error(command_name, std::string(argument), {}));
+            return std::unexpected(create_unknown_argument_error(command_name, argument, {}));
         }
 
         const auto flag_parse_error = parse_flag(argument, command_name, info);
