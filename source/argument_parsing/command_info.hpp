@@ -20,6 +20,12 @@ struct CleanAllCommandInfo
     bool is_quiet;
 };
 
+struct InitCommandInfo
+{
+    bool is_quiet;
+    bool overwrite_existing_configuration_file;
+};
+
 struct ListConfigurationsCommandInfo
 {
     bool complete_configurations_only;
@@ -45,6 +51,7 @@ struct PrintVersionCommandInfo
 using CommandInfo = std::variant<BuildCommandInfo,
                                  CleanCommandInfo,
                                  CleanAllCommandInfo,
+                                 InitCommandInfo,
                                  ListConfigurationsCommandInfo,
                                  ListFilesCommandInfo,
                                  PrintVersionCommandInfo>;

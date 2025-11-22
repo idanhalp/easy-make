@@ -7,6 +7,7 @@ This document specifies the commands which can be supplied to the program.
 | `build`        | Builds the specified configuration.                                             | configuration name |
 | `clean`        | Removes the executable and object files related to the specified configuration. | configuration name |
 | `clean-all`    | Removes all the executables and object files.                                   | none               |
+| `init`         | Creates a new `easy-make-configurations.json` file                              | none               |
 | `list-configs` | Lists the configurations in the `easy-make-configurations.json` file            | none               |
 | `list-files`   | Lists the files in a configuration.                                             | configuration name |
 | `version`      | Prints the program version.                                                     | none               |
@@ -20,6 +21,11 @@ This document specifies the commands which can be supplied to the program.
 ### `clean-all`
 
 - `--quiet`: Prevents printing information.
+
+### `init`
+
+- `--quiet`: Prevents printing information.
+- `--overwrite`: Overwrite the `easy-make-configurations.json` file if it exists.
 
 ### `list-configs`
 

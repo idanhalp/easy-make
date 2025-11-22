@@ -8,6 +8,7 @@
 #include "source/argument_parsing/commands/build.hpp"
 #include "source/argument_parsing/commands/clean.hpp"
 #include "source/argument_parsing/commands/clean_all.hpp"
+#include "source/argument_parsing/commands/init.hpp"
 #include "source/argument_parsing/commands/list_configurations.hpp"
 #include "source/argument_parsing/commands/list_files.hpp"
 #include "source/argument_parsing/commands/print_version.hpp"
@@ -19,6 +20,7 @@ using namespace std::literals;
 static const auto BUILD_COMMAND               = "build"sv;
 static const auto CLEAN_COMMAND               = "clean"sv;
 static const auto CLEAN_ALL_COMMAND           = "clean-all"sv;
+static const auto INIT_COMMAND                = "init"sv;
 static const auto LIST_CONFIGURATIONS_COMMAND = "list-configs"sv;
 static const auto LIST_FILES_COMMAND          = "list-files"sv;
 static const auto PRINT_VERSION_COMMAND       = "version"sv;
@@ -27,6 +29,7 @@ static const std::flat_set COMMANDS = {
     BUILD_COMMAND,
     CLEAN_COMMAND,
     CLEAN_ALL_COMMAND,
+    INIT_COMMAND,
     LIST_CONFIGURATIONS_COMMAND,
     LIST_FILES_COMMAND,
     PRINT_VERSION_COMMAND,
@@ -38,7 +41,6 @@ auto parse_arguments(const std::span<const char* const> arguments) -> std::expec
     ASSERT(COMMANDS.size() == (std::variant_size_v<CommandInfo>));
 
     // Ensure commands are unique.
-    ASSERT(std::ranges::is_sorted(COMMANDS));
     ASSERT(std::ranges::adjacent_find(COMMANDS, std::ranges::equal_to{}) == COMMANDS.end());
 
     // `arguments[0]` is the program's name.
@@ -52,7 +54,11 @@ auto parse_arguments(const std::span<const char* const> arguments) -> std::expec
 
     const auto command = std::string_view(arguments[1]);
 
-    if (command == CLEAN_COMMAND)
+    if (command == BUILD_COMMAND)
+    {
+        return parse_build_command_arguments(arguments);
+    }
+    else if (command == CLEAN_COMMAND)
     {
         return parse_clean_command_arguments(arguments);
     }
@@ -60,9 +66,9 @@ auto parse_arguments(const std::span<const char* const> arguments) -> std::expec
     {
         return parse_clean_all_command_arguments(arguments);
     }
-    else if (command == BUILD_COMMAND)
+    else if (command == INIT_COMMAND)
     {
-        return parse_build_command_arguments(arguments);
+        return parse_init_command_arguments(arguments);
     }
     else if (command == LIST_CONFIGURATIONS_COMMAND)
     {

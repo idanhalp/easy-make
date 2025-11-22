@@ -11,6 +11,7 @@ SOURCE_FILES = \
     source/argument_parsing/commands/build.cpp \
     source/argument_parsing/commands/clean.cpp \
     source/argument_parsing/commands/clean_all.cpp \
+    source/argument_parsing/commands/init.cpp \
     source/argument_parsing/commands/list_configurations.cpp \
     source/argument_parsing/commands/list_files.cpp \
     source/argument_parsing/commands/print_version.cpp \
@@ -24,6 +25,7 @@ SOURCE_FILES = \
     source/commands/list_files/list_files.cpp \
     source/commands/clean/clean.cpp \
     source/commands/clean_all/clean_all.cpp \
+    source/commands/init/init.cpp \
     source/commands/print_version/print_version.cpp \
     source/configuration_parsing/configuration.cpp \
     source/configuration_parsing/configuration_parsing.cpp \

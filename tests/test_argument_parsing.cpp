@@ -217,6 +217,98 @@ TEST_SUITE("argument_parsing")
         }
     }
 
+    TEST_CASE("'init' command")
+    {
+        SUBCASE("Valid case without flags")
+        {
+            const std::vector arguments = {"./easy-make", "init"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<InitCommandInfo>(*command_info));
+
+            const auto& init_command_info = std::get<InitCommandInfo>(*command_info);
+            CHECK_FALSE(init_command_info.is_quiet);
+            CHECK_FALSE(init_command_info.overwrite_existing_configuration_file);
+        }
+
+        SUBCASE("Valid case with flags #1")
+        {
+            const std::vector arguments = {"./easy-make", "init", "--quiet"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<InitCommandInfo>(*command_info));
+
+            const auto& init_command_info = std::get<InitCommandInfo>(*command_info);
+            CHECK(init_command_info.is_quiet);
+            CHECK_FALSE(init_command_info.overwrite_existing_configuration_file);
+        }
+
+        SUBCASE("Valid case with flags #2")
+        {
+            const std::vector arguments = {"./easy-make", "init", "--overwrite"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<InitCommandInfo>(*command_info));
+
+            const auto& init_command_info = std::get<InitCommandInfo>(*command_info);
+            CHECK_FALSE(init_command_info.is_quiet);
+            CHECK(init_command_info.overwrite_existing_configuration_file);
+        }
+
+        SUBCASE("Valid case with both flags")
+        {
+            const std::vector arguments = {"./easy-make", "init", "--quiet", "--overwrite"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<InitCommandInfo>(*command_info));
+
+            const auto& init_command_info = std::get<InitCommandInfo>(*command_info);
+            CHECK(init_command_info.is_quiet);
+            CHECK(init_command_info.overwrite_existing_configuration_file);
+        }
+
+        SUBCASE("Invalid argument")
+        {
+            const std::vector arguments = {"./easy-make", "init", "config-name"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Unknown argument 'config-name' provided to command 'init'.");
+        }
+
+        SUBCASE("Invalid flag")
+        {
+            const std::vector arguments = {"./easy-make", "init", "--fast"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Unknown flag '--fast' provided to command 'init'.");
+        }
+
+        SUBCASE("Invalid flag similar to a valid one")
+        {
+            const std::vector arguments = {"./easy-make", "init", "--overwreit"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(),
+                     "Error: Unknown flag '--overwreit' provided to command 'init'. Did you mean '--overwrite'?");
+        }
+
+        SUBCASE("Duplicate flag")
+        {
+            const std::vector arguments = {"./easy-make", "init", "--quiet", "--quiet"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Flag '--quiet' was provided to command 'init' more than once.");
+        }
+    }
+
     TEST_CASE("'list-configs' command")
     {
         SUBCASE("Valid case without flags")

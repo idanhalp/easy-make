@@ -1,12 +1,14 @@
 #include <cstdlib>
 #include <filesystem>
 #include <type_traits>
+#include <utility> // std::unreachable
 #include <vector>
 
 #include "source/argument_parsing/argument_parsing.hpp"
 #include "source/commands/build/build.hpp"
 #include "source/commands/clean/clean.hpp"
 #include "source/commands/clean_all/clean_all.hpp"
+#include "source/commands/init/init.hpp"
 #include "source/commands/list_configurations/list_configurations.hpp"
 #include "source/commands/list_files/list_files.hpp"
 #include "source/commands/print_version/print_version.hpp"
@@ -18,7 +20,26 @@
 
 auto main(const int num_of_arguments, const char* arguments[]) -> int
 {
-    const auto current_path              = std::filesystem::absolute(std::filesystem::current_path());
+    const auto command_info        = parse_arguments(std::span(arguments, num_of_arguments));
+    const auto arguments_are_valid = command_info.has_value();
+
+    if (!arguments_are_valid)
+    {
+        utils::print_error("{}", command_info.error());
+
+        return EXIT_FAILURE;
+    }
+
+    const auto current_path = std::filesystem::absolute(std::filesystem::current_path());
+
+    // The "init" command does not require a configuration file.
+    if (std::holds_alternative<InitCommandInfo>(*command_info))
+    {
+        const auto& init_command_info = std::get<InitCommandInfo>(*command_info);
+        return commands::init(init_command_info, current_path);
+    }
+
+    // The rest of the commands do require a configurations file.
     const auto configuration_file_exists = utils::check_if_configurations_file_exists(current_path);
 
     if (!configuration_file_exists)
@@ -40,18 +61,8 @@ auto main(const int num_of_arguments, const char* arguments[]) -> int
         return EXIT_FAILURE;
     }
 
-    const auto command_info        = parse_arguments(std::span(arguments, num_of_arguments));
-    const auto arguments_are_valid = command_info.has_value();
-
-    if (!arguments_are_valid)
-    {
-        utils::print_error("{}", command_info.error());
-
-        return EXIT_FAILURE;
-    }
-
     const auto exit_code = std::visit(
-        [&](auto&& info)
+        [&](auto&& info) -> int
         {
             using CommandType = std::decay_t<decltype(info)>;
 
@@ -66,6 +77,12 @@ auto main(const int num_of_arguments, const char* arguments[]) -> int
             else if constexpr (std::is_same_v<CommandType, CleanAllCommandInfo>)
             {
                 return commands::clean_all(info, *configurations, current_path);
+            }
+            else if constexpr (std::is_same_v<CommandType, InitCommandInfo>)
+            {
+                // The flow will never reach here as the "init" command is executed
+                // before the configurations file is checked.
+                std::unreachable();
             }
             else if constexpr (std::is_same_v<CommandType, ListConfigurationsCommandInfo>)
             {
