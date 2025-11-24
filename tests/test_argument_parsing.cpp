@@ -10,7 +10,7 @@ TEST_SUITE("argument_parsing")
 {
     TEST_CASE("'build' command")
     {
-        SUBCASE("Valid case")
+        SUBCASE("Valid case without flags")
         {
             const std::vector arguments = {"./easy-make", "build", "config-name"};
             const auto command_info     = parse_arguments(arguments);
@@ -20,6 +20,20 @@ TEST_SUITE("argument_parsing")
 
             const auto& build_command_info = std::get<BuildCommandInfo>(*command_info);
             CHECK_EQ(build_command_info.configuration_name, "config-name");
+            CHECK_FALSE(build_command_info.is_quiet);
+        }
+
+        SUBCASE("Valid case with flag")
+        {
+            const std::vector arguments = {"./easy-make", "build", "config-name", "--quiet"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<BuildCommandInfo>(*command_info));
+
+            const auto& build_command_info = std::get<BuildCommandInfo>(*command_info);
+            CHECK_EQ(build_command_info.configuration_name, "config-name");
+            CHECK(build_command_info.is_quiet);
         }
 
         SUBCASE("Missing configuration name")
@@ -51,6 +65,15 @@ TEST_SUITE("argument_parsing")
             CHECK_EQ(command_info.error(),
                      "Error: Command 'build' requires one configuration name, "
                      "instead got 'config-name' more than once.");
+        }
+
+        SUBCASE("Duplicate flag")
+        {
+            const std::vector arguments = {"./easy-make", "build", "config-name", "--quiet", "--quiet"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Flag '--quiet' was provided to command 'build' more than once.");
         }
 
         SUBCASE("Invalid flag")

@@ -348,14 +348,15 @@ auto commands::build(const BuildCommandInfo& info,
 
     // TODO: delete object files of files that don't exist anymore (`files_to_delete`).
 
-    const auto compilation_successful = compile_files(*actual_configuration, path_to_root, files_to_compile);
+    const auto compilation_successful =
+        compile_files(*actual_configuration, path_to_root, files_to_compile, info.is_quiet);
 
     if (!compilation_successful)
     {
         return EXIT_FAILURE;
     }
 
-    const auto linking_successful = link_object_files(*actual_configuration, path_to_root);
+    const auto linking_successful = link_object_files(*actual_configuration, path_to_root, info.is_quiet);
 
     if (!linking_successful)
     {

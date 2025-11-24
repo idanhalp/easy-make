@@ -13,6 +13,27 @@
 #include "source/utils/print.hpp"
 #include "source/utils/utils.hpp"
 
+static auto print_number_of_files_to_compile(const int number_of_files,
+                                             const std::string_view configuration_name) -> void
+{
+    ASSERT(number_of_files >= 0);
+
+    switch (number_of_files)
+    {
+    case 0:
+        std::println("No files to compile for configuration '{}'.", configuration_name);
+        break;
+
+    case 1:
+        std::println("Compiling 1 file for configuration '{}'...", configuration_name);
+        break;
+
+    default:
+        std::println("Compiling {} files for configuration '{}'...", number_of_files, configuration_name);
+        break;
+    }
+}
+
 auto create_compilation_flags_string(const Configuration& configuration) -> std::string
 {
     std::string result;
@@ -117,42 +138,35 @@ static auto print_compilation_result(const std::vector<std::filesystem::path>& f
 
 auto compile_files(const Configuration& configuration,
                    const std::filesystem::path& path_to_root,
-                   const std::vector<std::filesystem::path>& files_to_compile) -> bool
+                   const std::vector<std::filesystem::path>& files_to_compile,
+                   const bool is_quiet) -> bool
 {
     ASSERT(configuration.name.has_value());
 
-    const auto compilation_flags = create_compilation_flags_string(configuration);
-    const auto object_files_path = path_to_root / params::BUILD_DIRECTORY_NAME / *configuration.name;
-
-    switch (files_to_compile.size())
+    if (!is_quiet)
     {
-    case 0:
-        std::println("No files to compile.");
-        break;
-
-    case 1:
-        std::println("Compiling one file...");
-        break;
-
-    default:
-        std::println("Compiling {} files...", files_to_compile.size());
-        break;
+        print_number_of_files_to_compile(files_to_compile.size(), *configuration.name);
     }
 
-    const auto max_index_width = utils::count_digits(files_to_compile.size()); // For formatting.
+    const auto compilation_flags = create_compilation_flags_string(configuration);
+    const auto object_files_path = path_to_root / params::BUILD_DIRECTORY_NAME / *configuration.name;
+    const auto max_index_width   = utils::count_digits(files_to_compile.size()); // For formatting.
     std::vector<std::filesystem::path> failed_compilation;
 
     for (const auto& [index, file_name] : std::views::enumerate(files_to_compile) | std::views::as_const)
     {
-        // Print current info, for example:
-        // 12/20 [ 60%] path/to/file.cpp
-        const auto completion_percentage = 100 * (index + 1) / files_to_compile.size();
-        std::println("{0:>{2}}/{1} [{3:>3}%] {4}",
-                     index + 1,
-                     files_to_compile.size(),
-                     max_index_width,
-                     completion_percentage,
-                     file_name.native());
+        if (!is_quiet)
+        {
+            // Print current info, for example:
+            // 12/20 [ 60%] path/to/file.cpp
+            const auto completion_percentage = 100 * (index + 1) / files_to_compile.size();
+            std::println("{0:>{2}}/{1} [{3:>3}%] {4}",
+                         index + 1,
+                         files_to_compile.size(),
+                         max_index_width,
+                         completion_percentage,
+                         file_name.native());
+        }
 
         const auto file_compiled_successfully = compile(file_name, object_files_path, compilation_flags, configuration);
 
@@ -162,7 +176,10 @@ auto compile_files(const Configuration& configuration,
         }
     }
 
-    print_compilation_result(failed_compilation);
+    if (!is_quiet)
+    {
+        print_compilation_result(failed_compilation);
+    }
 
     return failed_compilation.empty(); // All files compiled successfully.
 }

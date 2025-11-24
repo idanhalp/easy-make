@@ -7,6 +7,7 @@
 struct BuildCommandInfo
 {
     std::string configuration_name;
+    bool is_quiet;
 };
 
 struct CleanCommandInfo

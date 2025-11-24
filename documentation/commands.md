@@ -14,6 +14,10 @@ This document specifies the commands which can be supplied to the program.
 
 ## Flags
 
+### `build`
+
+- `--quiet`: Prevents printing information. Compiler warning and errors are still printed.
+
 ### `clean`
 
 - `--quiet`: Prevents printing information.

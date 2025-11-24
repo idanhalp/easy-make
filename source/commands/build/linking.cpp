@@ -2,12 +2,27 @@
 
 #include <cstdlib>
 #include <format>
+#include <string_view>
 
 #include "source/parameters/parameters.hpp"
 #include "source/utils/macros/assert.hpp"
 #include "source/utils/print.hpp"
 
-auto link_object_files(const Configuration& configuration, const std::filesystem::path& path_to_root) -> bool
+static auto print_linking_result(const bool linking_successful, const std::string_view output_path) -> void
+{
+    if (linking_successful)
+    {
+        utils::print_success("Linking complete. Executable located at '{}'.", output_path);
+    }
+    else
+    {
+        utils::print_error("Linking failed.");
+    }
+}
+
+auto link_object_files(const Configuration& configuration,
+                       const std::filesystem::path& path_to_root,
+                       const bool is_quiet) -> bool
 {
     ASSERT(configuration.name.has_value());
     ASSERT(configuration.compiler.has_value());
@@ -22,18 +37,17 @@ auto link_object_files(const Configuration& configuration, const std::filesystem
         std::filesystem::create_directories(*configuration.output_path);
     }
 
-    std::println("Linking...");
+    if (!is_quiet)
+    {
+        std::println("Linking...");
+    }
 
     const auto link_command = std::format("{} {}/*.o -o {}", *configuration.compiler, object_files_path, output_path);
     const auto linking_successful = std::system(link_command.c_str()) == EXIT_SUCCESS;
 
-    if (linking_successful)
+    if (!is_quiet)
     {
-        utils::print_success("Linking complete. Executable located at '{}'.", output_path);
-    }
-    else
-    {
-        utils::print_error("Linking failed.");
+        print_linking_result(linking_successful, output_path);
     }
 
     return linking_successful;
