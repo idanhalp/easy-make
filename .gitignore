@@ -4,7 +4,7 @@
 *.o
 
 # Don't ignore tests that need to check object files.
-!tests/resources/project_08/easy-make-build/conf/*.o
+!tests/unit_tests/resources/project_08/easy-make-build/conf/*.o
 
 # Executables
 easy-make

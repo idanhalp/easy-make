@@ -8,7 +8,7 @@
 #include "source/commands/clean_all/clean_all.hpp"
 #include "source/configuration_parsing/configuration.hpp"
 #include "source/parameters/parameters.hpp"
-#include "tests/utils/utils.hpp"
+#include "tests/unit_tests/utils/utils.hpp"
 
 namespace
 {

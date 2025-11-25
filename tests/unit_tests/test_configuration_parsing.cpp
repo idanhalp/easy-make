@@ -4,7 +4,7 @@
 
 #include "source/configuration_parsing/configuration.hpp"
 #include "source/configuration_parsing/configuration_parsing.hpp"
-#include "tests/utils/utils.hpp"
+#include "tests/unit_tests/utils/utils.hpp"
 
 TEST_SUITE("configuration_parsing")
 {

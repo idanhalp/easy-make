@@ -3,7 +3,7 @@
 #include "third_party/doctest/doctest.hpp"
 
 #include "source/commands/list_configurations/list_configurations.hpp"
-#include "tests/utils/temporary_file_creator.hpp"
+#include "tests/unit_tests/utils/temporary_file_creator.hpp"
 
 using namespace std::literals;
 

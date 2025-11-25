@@ -3,7 +3,7 @@
 #include "third_party/doctest/doctest.hpp"
 
 #include "source/utils/utils.hpp"
-#include "tests/utils/utils.hpp"
+#include "tests/unit_tests/utils/utils.hpp"
 
 TEST_SUITE("check_if_configurations_file_exists")
 {

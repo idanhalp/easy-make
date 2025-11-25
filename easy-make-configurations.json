@@ -9,7 +9,7 @@
       "directories": ["."]
     },
     "exclude": {
-      "directories": ["tests/resources"]
+      "directories": ["tests/unit_tests/resources", "tests/regression_tests/resources"]
     }
   },
   {

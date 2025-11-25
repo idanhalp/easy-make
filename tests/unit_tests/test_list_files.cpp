@@ -5,8 +5,8 @@
 #include "source/argument_parsing/command_info.hpp"
 #include "source/commands/list_files/list_files.hpp"
 #include "source/configuration_parsing/configuration.hpp"
-#include "tests/utils/temporary_file_creator.hpp"
-#include "tests/utils/utils.hpp" // `utils::get_path_to_resources_project`
+#include "tests/unit_tests/utils/temporary_file_creator.hpp"
+#include "tests/unit_tests/utils/utils.hpp" // `utils::get_path_to_resources_project`
 
 using namespace std::literals;
 

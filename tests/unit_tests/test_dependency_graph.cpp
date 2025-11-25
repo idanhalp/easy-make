@@ -1,7 +1,7 @@
 #include "third_party/doctest/doctest.hpp"
 
 #include "source/commands/build/build_caching/dependency_graph.hpp"
-#include "tests/utils/utils.hpp"
+#include "tests/unit_tests/utils/utils.hpp"
 
 TEST_SUITE("Dependency graph")
 {
