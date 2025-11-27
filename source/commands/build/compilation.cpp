@@ -7,6 +7,7 @@
 #include <print>
 #include <ranges>
 #include <string_view>
+#include <system_error> // std::error_code
 
 #include "source/parameters/parameters.hpp"
 #include "source/utils/macros/assert.hpp"
@@ -31,6 +32,27 @@ static auto print_number_of_files_to_compile(const int number_of_files,
     default:
         std::println("Compiling {} files for configuration '{}'...", number_of_files, configuration_name);
         break;
+    }
+}
+
+static auto remove_outdated_object_files(const std::filesystem::path& object_files_directory,
+                                         const std::vector<std::filesystem::path>& files_to_compile) -> void
+{
+    if (!std::filesystem::is_directory(object_files_directory))
+    {
+        return;
+    }
+
+    for (const auto& file_name : files_to_compile)
+    {
+        const auto object_file_path = object_files_directory / utils::get_object_file_name(file_name);
+        std::error_code error;
+        std::filesystem::remove(object_file_path, error);
+
+        if (error)
+        {
+            std::println("Error: Failed to remove stale object file for '{}': {}", file_name.native(), error.message());
+        }
     }
 }
 
@@ -87,26 +109,21 @@ auto create_compilation_flags_string(const Configuration& configuration) -> std:
     return result;
 }
 
+/// @brief  Compiles a single source file into an object file.
+/// @return true if compilation succeeded, false otherwise.
 static auto compile(const std::filesystem::path& file_name,
-                    const std::filesystem::path& object_files_path,
+                    const std::filesystem::path& object_files_directory,
                     const std::string_view compilation_flags,
                     const Configuration& configuration) -> bool
 {
+    ASSERT(utils::is_source_file(file_name));
     ASSERT(configuration.compiler.has_value());
 
-    const auto object_file_path    = object_files_path / utils::get_object_file_name(file_name);
+    const auto object_file_path    = object_files_directory / utils::get_object_file_name(file_name);
     const auto compilation_command = std::format(
         "{} {} -c {} -o {}", *configuration.compiler, compilation_flags, file_name.native(), object_file_path.native());
 
     const auto file_compiled_successfully = std::system(compilation_command.c_str()) == EXIT_SUCCESS;
-
-    // If compilation fails and the user retries without modifying the source file,
-    // we still need to force a recompilation.
-    // Removing the existing object file guarantees that the build system won't treat it as up-to-date.
-    if (!file_compiled_successfully)
-    {
-        std::filesystem::remove(object_file_path);
-    }
 
     return file_compiled_successfully;
 }
@@ -148,8 +165,14 @@ auto compile_files(const Configuration& configuration,
         print_number_of_files_to_compile(files_to_compile.size(), *configuration.name);
     }
 
+    // If a previous build was interrupted or a file failed to compile, some object files
+    // may be left in an inconsistent state. Before starting a new build, we remove all
+    // object files for this configuration to ensure we don't incorrectly treat any of them
+    // as up-to-date. This guarantees that the next build recompiles everything cleanly.
+    const auto object_files_directory = path_to_root / params::BUILD_DIRECTORY_NAME / *configuration.name;
+    remove_outdated_object_files(object_files_directory, files_to_compile);
+
     const auto compilation_flags = create_compilation_flags_string(configuration);
-    const auto object_files_path = path_to_root / params::BUILD_DIRECTORY_NAME / *configuration.name;
     const auto max_index_width   = utils::count_digits(files_to_compile.size()); // For formatting.
     std::vector<std::filesystem::path> failed_compilation;
 
@@ -168,9 +191,9 @@ auto compile_files(const Configuration& configuration,
                          file_name.native());
         }
 
-        const auto file_compiled_successfully = compile(file_name, object_files_path, compilation_flags, configuration);
+        const auto compilation_failed = !compile(file_name, object_files_directory, compilation_flags, configuration);
 
-        if (!file_compiled_successfully)
+        if (compilation_failed)
         {
             failed_compilation.push_back(file_name);
         }
