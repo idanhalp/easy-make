@@ -6,6 +6,7 @@
 
 #include "source/commands/build/build.hpp"
 #include "source/configuration_parsing/configuration_parsing.hpp"
+#include "tests/parameters.hpp"
 #include "tests/regression_tests/utils/test_environment_guard.hpp"
 
 using namespace std::literals;
@@ -55,7 +56,7 @@ auto FileCreator::write_content(const std::string_view content) -> void
     main << content;
 }
 
-TEST_SUITE("Regression tests - bug #2")
+TEST_SUITE("Regression tests - bug #2" * doctest::test_suite(test_type::regression))
 {
     TEST_CASE_FIXTURE(TestEnvironmentGuard<2>, "Recompilation after failure")
     {

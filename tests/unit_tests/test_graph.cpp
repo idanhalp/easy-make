@@ -4,8 +4,9 @@
 #include "third_party/doctest/doctest.hpp"
 
 #include "source/utils/graph.hpp"
+#include "tests/parameters.hpp"
 
-TEST_SUITE("DirectedGraph class")
+TEST_SUITE("DirectedGraph class" * doctest::test_suite(test_type::unit))
 {
     TEST_CASE("get_reachable_nodes")
     {

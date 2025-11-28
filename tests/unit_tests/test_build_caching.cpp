@@ -5,9 +5,10 @@
 #include "third_party/doctest/doctest.hpp"
 
 #include "source/commands/build/build_caching/build_caching.hpp"
+#include "tests/parameters.hpp"
 #include "tests/unit_tests/utils/utils.hpp"
 
-TEST_SUITE("build_caching")
+TEST_SUITE("build_caching" * doctest::test_suite(test_type::unit))
 {
     TEST_CASE("'hash_file_contents' works.")
     {

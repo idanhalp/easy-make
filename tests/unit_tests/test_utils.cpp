@@ -4,9 +4,10 @@
 #include "third_party/doctest/doctest.hpp"
 
 #include "source/utils/utils.hpp"
+#include "tests/parameters.hpp"
 #include "tests/unit_tests/utils/utils.hpp"
 
-TEST_SUITE("Basic utils")
+TEST_SUITE("Basic utils" * doctest::test_suite(test_type::unit))
 {
     TEST_CASE("'get_path_to_resources_project' works.")
     {

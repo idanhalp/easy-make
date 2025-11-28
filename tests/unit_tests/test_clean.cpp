@@ -8,6 +8,7 @@
 #include "source/commands/clean_all/clean_all.hpp"
 #include "source/configuration_parsing/configuration.hpp"
 #include "source/parameters/parameters.hpp"
+#include "tests/parameters.hpp"
 #include "tests/unit_tests/utils/utils.hpp"
 
 namespace
@@ -72,7 +73,7 @@ TestSetUp::~TestSetUp()
     std::filesystem::remove_all(path_to_project);
 }
 
-TEST_SUITE("commands::clean")
+TEST_SUITE("commands::clean" * doctest::test_suite(test_type::unit))
 {
     TEST_CASE_FIXTURE(TestSetUp, "Basic functionality")
     {
@@ -159,7 +160,7 @@ TEST_SUITE("commands::clean")
     }
 }
 
-TEST_SUITE("commands::clean_all")
+TEST_SUITE("commands::clean_all" * doctest::test_suite(test_type::unit))
 {
     TEST_CASE_FIXTURE(TestSetUp, "Basic functionality")
     {

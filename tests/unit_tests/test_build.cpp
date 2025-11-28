@@ -9,9 +9,10 @@
 #include "source/configuration_parsing/configuration.hpp"
 #include "source/configuration_parsing/configuration_parsing.hpp"
 #include "source/parameters/parameters.hpp"
+#include "tests/parameters.hpp"
 #include "tests/unit_tests/utils/utils.hpp"
 
-TEST_SUITE("commands::build")
+TEST_SUITE("commands::build" * doctest::test_suite(test_type::unit))
 {
     TEST_CASE("Check names validity")
     {

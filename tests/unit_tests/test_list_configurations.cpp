@@ -3,11 +3,12 @@
 #include "third_party/doctest/doctest.hpp"
 
 #include "source/commands/list_configurations/list_configurations.hpp"
+#include "tests/parameters.hpp"
 #include "tests/unit_tests/utils/temporary_file_creator.hpp"
 
 using namespace std::literals;
 
-TEST_SUITE("'list-configs' command")
+TEST_SUITE("'list-configs' command" * doctest::test_suite(test_type::unit))
 {
     TEST_CASE_FIXTURE(TemporaryFileCreator, "Valid case without arguments")
     {

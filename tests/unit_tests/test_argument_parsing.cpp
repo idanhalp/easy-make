@@ -5,8 +5,9 @@
 
 #include "source/argument_parsing/argument_parsing.hpp"
 #include "source/argument_parsing/command_info.hpp"
+#include "tests/parameters.hpp"
 
-TEST_SUITE("argument_parsing")
+TEST_SUITE("argument_parsing" * doctest::test_suite(test_type::unit))
 {
     TEST_CASE("'build' command")
     {

@@ -1,9 +1,10 @@
 #include "third_party/doctest/doctest.hpp"
 
 #include "source/commands/build/build_caching/dependency_graph.hpp"
+#include "tests/parameters.hpp"
 #include "tests/unit_tests/utils/utils.hpp"
 
-TEST_SUITE("Dependency graph")
+TEST_SUITE("Dependency graph" * doctest::test_suite(test_type::unit))
 {
     TEST_CASE("build_caching::get_included_files")
     {

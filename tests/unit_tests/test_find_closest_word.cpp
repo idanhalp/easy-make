@@ -3,10 +3,11 @@
 #include "third_party/doctest/doctest.hpp"
 
 #include "source/utils/find_closest_word.hpp"
+#include "tests/parameters.hpp"
 
 using namespace std::literals;
 
-TEST_SUITE("find_closest_word")
+TEST_SUITE("find_closest_word" * doctest::test_suite(test_type::unit))
 {
     const auto candidates = {
         "release"s,

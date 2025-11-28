@@ -3,9 +3,10 @@
 #include "third_party/doctest/doctest.hpp"
 
 #include "source/utils/utils.hpp"
+#include "tests/parameters.hpp"
 #include "tests/unit_tests/utils/utils.hpp"
 
-TEST_SUITE("check_if_configurations_file_exists")
+TEST_SUITE("check_if_configurations_file_exists" * doctest::test_suite(test_type::unit))
 {
     TEST_CASE("Checks if configuration file exists correctly")
     {
