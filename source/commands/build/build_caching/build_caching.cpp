@@ -3,7 +3,9 @@
 #include <algorithm>
 #include <format>
 #include <fstream>
+#include <iterator> // std::make_move_iterator
 #include <ranges>
+#include <set>
 #include <stdexcept>
 
 #include "third_party/nlohmann/json.hpp"
@@ -13,6 +15,8 @@
 #include "source/utils/graph.hpp"
 #include "source/utils/macros/assert.hpp"
 #include "source/utils/utils.hpp"
+
+using build_caching::DependencyGraph;
 
 auto build_caching::hash_file_contents(const std::filesystem::path& path) -> std::uint64_t
 {
@@ -72,6 +76,45 @@ auto build_caching::get_old_file_hashes(const std::string_view configuration_nam
     return old_hashes;
 }
 
+auto build_caching::get_old_dependency_graph(const std::string_view configuration_name,
+                                             const std::filesystem::path& path_to_root) -> DependencyGraph
+{
+    const auto dependency_graph_data_file_path =
+        path_to_root / params::BUILD_DIRECTORY_NAME / configuration_name / params::DEPENDENCY_GRAPH_DATA_FILE_NAME;
+
+    if (!std::filesystem::is_regular_file(dependency_graph_data_file_path))
+    {
+        return {};
+    }
+
+    auto data_file = std::ifstream(dependency_graph_data_file_path);
+
+    if (!data_file.is_open())
+    {
+        return {};
+    }
+
+    nlohmann::json json;
+    data_file >> json;
+    ASSERT(json.is_object());
+
+    DependencyGraph dependency_graph;
+
+    for (const auto& [node, neighbors] : json.items())
+    {
+        ASSERT(!node.empty());
+        ASSERT(neighbors.is_array());
+        ASSERT(std::ranges::all_of(neighbors, &nlohmann::json::is_string));
+
+        for (const auto& neighbor : neighbors)
+        {
+            dependency_graph.add_edge(node, neighbor);
+        }
+    }
+
+    return dependency_graph;
+}
+
 auto build_caching::get_new_file_hashes(const std::vector<std::filesystem::path>& code_files)
     -> std::unordered_map<std::filesystem::path, std::uint64_t>
 {
@@ -128,42 +171,52 @@ auto build_caching::get_changed_files(std::string_view configuration_name,
     return changed_files;
 }
 
-auto build_caching::get_files_to_compile(const std::filesystem::path& path_to_root,
-                                         const std::vector<std::filesystem::path>& code_files,
-                                         const std::vector<std::filesystem::path>& changed_files,
-                                         const std::vector<std::string>& include_directories)
-    -> std::expected<std::vector<std::filesystem::path>, std::string>
+static auto
+get_files_affected_by_removal(const DependencyGraph& old_dependency_graph,
+                              const DependencyGraph& new_dependency_graph) -> std::vector<std::filesystem::path>
 {
-    const auto dependency_graph      = get_dependency_graph(path_to_root, code_files, include_directories);
-    const auto cycle                 = dependency_graph.check_for_cycle();
-    const auto cycle_exists_in_graph = cycle.has_value();
+    std::vector<std::filesystem::path> affected_files;
 
-    if (cycle_exists_in_graph)
+    for (const auto& [file, dependent_files] : old_dependency_graph.data())
     {
-        const auto error = std::format("Error: Circular header dependency detected.\n\n"
-                                       "The following headers form a cycle:\n"
-                                       "{}\n\n"
-                                       "Consider restructuring the code to break the circular dependency.",
-                                       *cycle);
+        const auto file_was_removed = !new_dependency_graph.data().contains(file);
 
-        return std::unexpected(error);
+        if (file_was_removed)
+        {
+            affected_files.insert(affected_files.end(), dependent_files.begin(), dependent_files.end());
+        }
     }
 
-    // Find all files affected by changes (including transitive dependencies).
-    const auto affected_files = dependency_graph.get_reachable_nodes(changed_files);
-    auto files_to_compile =
-        affected_files | std::views::filter(&utils::is_source_file) | std::ranges::to<std::vector>();
-
-    // Make sure the files are compiled in lexicographic order.
-    std::ranges::sort(files_to_compile);
-
-    return files_to_compile;
+    return affected_files;
 }
 
-auto build_caching::write_info_to_build_data_file(
-    const std::string_view configuration_name,
-    const std::filesystem::path& path_to_root,
-    const std::unordered_map<std::filesystem::path, std::uint64_t>& hashes) -> void
+auto build_caching::get_files_to_compile(const DependencyGraph& old_dependency_graph,
+                                         const DependencyGraph& new_dependency_graph,
+                                         const std::vector<std::filesystem::path>& changed_files)
+    -> std::vector<std::filesystem::path>
+{
+    std::vector<std::filesystem::path> files_to_compile;
+
+    auto files_affected_by_removal = get_files_affected_by_removal(old_dependency_graph, new_dependency_graph);
+    files_to_compile.insert(files_to_compile.end(),
+                            std::make_move_iterator(files_affected_by_removal.begin()),
+                            std::make_move_iterator(files_affected_by_removal.end()));
+
+    auto files_affected_by_change = new_dependency_graph.get_reachable_nodes(changed_files);
+    files_to_compile.insert(files_to_compile.end(),
+                            std::make_move_iterator(files_affected_by_change.begin()),
+                            std::make_move_iterator(files_affected_by_change.end()));
+
+    return files_to_compile                             //
+           | std::views::filter(&utils::is_source_file) //
+           | std::ranges::to<std::set>()                // Sort and remove duplicates.
+           | std::ranges::to<std::vector>();            //
+}
+
+auto build_caching::write_to_build_data_file(const std::string_view configuration_name,
+                                             const std::filesystem::path& path_to_root,
+                                             const std::unordered_map<std::filesystem::path, std::uint64_t>& hashes)
+    -> void
 {
     std::filesystem::create_directories(path_to_root / params::BUILD_DIRECTORY_NAME / configuration_name);
 
@@ -192,6 +245,55 @@ auto build_caching::write_info_to_build_data_file(
     data_file << json.dump(); // Write to file.
 }
 
+auto build_caching::write_to_dependency_graph_data_file(const std::string_view configuration_name,
+                                                        const std::filesystem::path& path_to_root,
+                                                        const DependencyGraph& graph) -> void
+{
+    std::filesystem::create_directories(path_to_root / params::BUILD_DIRECTORY_NAME / configuration_name);
+
+    const auto data_file_path =
+        path_to_root / params::BUILD_DIRECTORY_NAME / configuration_name / params::DEPENDENCY_GRAPH_DATA_FILE_NAME;
+
+    auto data_file = std::ofstream(data_file_path, std::ios::trunc); // Override file if it exists.
+
+    if (!data_file.is_open())
+    {
+        throw std::runtime_error(std::format("Failed to open '{}'.", data_file_path.native()));
+    }
+
+    nlohmann::json json;
+
+    for (const auto& [node, neighbors] : graph.data())
+    {
+        auto array = nlohmann::json::array();
+
+        for (const auto& neighbor : neighbors)
+        {
+            array.push_back(neighbor);
+        }
+
+        json[node] = std::move(array);
+    }
+
+    if (json.empty()) // Calling `dump` on empty object actually writes `null`.
+    {
+        std::filesystem::remove(data_file_path);
+    }
+    else
+    {
+        data_file << json.dump(); // Write to file.
+    }
+}
+
+static auto create_circular_dependencies_error_message(const std::string_view cycle) -> std::string
+{
+    return std::format("Error: Circular header dependency detected.\n\n"
+                       "The following headers form a cycle:\n"
+                       "{}\n\n"
+                       "Consider restructuring the code to break the circular dependency.",
+                       cycle);
+}
+
 auto build_caching::handle_build_caching(const Configuration& configuration,
                                          const std::filesystem::path& path_to_root,
                                          const std::vector<std::filesystem::path>& code_files)
@@ -199,21 +301,34 @@ auto build_caching::handle_build_caching(const Configuration& configuration,
 {
     ASSERT(configuration.name.has_value());
 
-    const auto old_file_hashes = get_old_file_hashes(*configuration.name, path_to_root);
+    // Gather information about the previous state.
+    const auto old_file_hashes      = get_old_file_hashes(*configuration.name, path_to_root);
+    const auto old_dependency_graph = get_old_dependency_graph(*configuration.name, path_to_root);
+
+    // Gather information about the current state.
     const auto new_file_hashes = get_new_file_hashes(code_files);
-    const auto files_to_delete = get_files_to_delete(old_file_hashes, new_file_hashes);
-    const auto changed_files   = get_changed_files(*configuration.name, path_to_root, old_file_hashes, new_file_hashes);
-    const auto files_to_compile =
-        get_files_to_compile(path_to_root, code_files, changed_files, configuration.include_directories.value_or({}));
+    const auto new_dependency_graph =
+        get_dependency_graph(path_to_root, code_files, configuration.include_directories.value_or({}));
 
-    const auto circular_header_dependency_detected = !files_to_compile.has_value();
+    // Make sure new state does not contain any circular includes.
+    const auto cycle_in_new_dependency_graph = new_dependency_graph.check_for_cycle();
+    const auto detected_cycle                = cycle_in_new_dependency_graph.has_value();
 
-    if (circular_header_dependency_detected)
+    if (detected_cycle)
     {
-        return std::unexpected(files_to_compile.error());
+        return std::unexpected(create_circular_dependencies_error_message(*cycle_in_new_dependency_graph));
     }
 
-    write_info_to_build_data_file(*configuration.name, path_to_root, new_file_hashes);
+    // Decide which files to delete and which to recompile.
+    const auto files_to_delete = get_files_to_delete(old_file_hashes, new_file_hashes);
+    const auto changed_files   = get_changed_files(*configuration.name, path_to_root, old_file_hashes, new_file_hashes);
+    const auto files_to_compile = get_files_to_compile(old_dependency_graph, new_dependency_graph, changed_files);
 
-    return Info{.files_to_delete = files_to_delete, .files_to_compile = *files_to_compile};
+    write_to_build_data_file(*configuration.name, path_to_root, new_file_hashes);
+    write_to_dependency_graph_data_file(*configuration.name, path_to_root, new_dependency_graph);
+
+    return Info{
+        .files_to_delete  = files_to_delete,
+        .files_to_compile = files_to_compile,
+    };
 }

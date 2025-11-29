@@ -64,10 +64,9 @@ auto build_caching::resolve_include(const std::filesystem::path& include_path,
 
 auto build_caching::get_dependency_graph(const std::filesystem::path& path_to_root,
                                          const std::vector<std::filesystem::path>& code_files,
-                                         const std::vector<std::string>& include_directories)
-    -> utils::DirectedGraph<std::filesystem::path>
+                                         const std::vector<std::string>& include_directories) -> DependencyGraph
 {
-    utils::DirectedGraph<std::filesystem::path> graph;
+    DependencyGraph graph;
 
     // There is an edge from file `f_1` to `f_2` if `f_2` includes `f_1`.
     // This way if `f_2` changes we can check for all the files that are

@@ -25,9 +25,15 @@ auto get_code_files(const Configuration& configuration,
 
 namespace commands
 {
+    struct BuildCommandResult
+    {
+        int num_of_compilation_failures; // Number of files that failed to compile.
+        int exit_status;
+    };
+
     auto build(const BuildCommandInfo& info,
                const std::vector<Configuration>& configurations,
-               const std::filesystem::path& path_to_root) -> int;
+               const std::filesystem::path& path_to_root) -> BuildCommandResult;
 }
 
 #endif // SOURCE_COMMANDS_BUILD_BUILD_HPP

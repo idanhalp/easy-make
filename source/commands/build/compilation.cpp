@@ -131,6 +131,7 @@ static auto compile(const std::filesystem::path& file_name,
 static auto print_compilation_result(const std::vector<std::filesystem::path>& failed_compilation) -> void
 {
     ASSERT(std::ranges::is_sorted(failed_compilation));
+    ASSERT(std::ranges::adjacent_find(failed_compilation) == failed_compilation.end()) // Files are unique.
 
     const auto all_files_compiled_successfully = failed_compilation.empty();
 
@@ -156,9 +157,10 @@ static auto print_compilation_result(const std::vector<std::filesystem::path>& f
 auto compile_files(const Configuration& configuration,
                    const std::filesystem::path& path_to_root,
                    const std::vector<std::filesystem::path>& files_to_compile,
-                   const bool is_quiet) -> bool
+                   const bool is_quiet) -> int
 {
     ASSERT(configuration.name.has_value());
+    ASSERT(std::ranges::is_sorted(files_to_compile));
 
     if (!is_quiet)
     {
@@ -204,5 +206,5 @@ auto compile_files(const Configuration& configuration,
         print_compilation_result(failed_compilation);
     }
 
-    return failed_compilation.empty(); // All files compiled successfully.
+    return failed_compilation.size();
 }

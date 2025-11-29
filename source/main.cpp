@@ -68,7 +68,7 @@ auto main(const int num_of_arguments, const char* arguments[]) -> int
 
             if constexpr (std::is_same_v<CommandType, BuildCommandInfo>)
             {
-                return commands::build(info, *configurations, current_path);
+                return commands::build(info, *configurations, current_path).exit_status;
             }
             else if constexpr (std::is_same_v<CommandType, CleanCommandInfo>)
             {

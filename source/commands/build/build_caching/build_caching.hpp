@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "source/commands/build/build_caching/dependency_graph.hpp"
 #include "source/configuration_parsing/configuration.hpp"
 
 namespace build_caching
@@ -23,6 +24,9 @@ namespace build_caching
     auto get_old_file_hashes(std::string_view configuration_name, const std::filesystem::path& path_to_root)
         -> std::unordered_map<std::filesystem::path, std::uint64_t>;
 
+    auto get_old_dependency_graph(const std::string_view configuration_name,
+                                  const std::filesystem::path& path_to_root) -> DependencyGraph;
+
     auto get_new_file_hashes(const std::vector<std::filesystem::path>& code_files)
         -> std::unordered_map<std::filesystem::path, std::uint64_t>;
 
@@ -36,15 +40,18 @@ namespace build_caching
                            const std::unordered_map<std::filesystem::path, std::uint64_t>& new_file_hashes)
         -> std::vector<std::filesystem::path>;
 
-    auto get_files_to_compile(const std::filesystem::path& path_to_root,
-                              const std::vector<std::filesystem::path>& code_files,
-                              const std::vector<std::filesystem::path>& changed_files,
-                              const std::vector<std::string>& include_directories)
-        -> std::expected<std::vector<std::filesystem::path>, std::string>;
+    auto
+    get_files_to_compile(const DependencyGraph& old_dependency_graph,
+                         const DependencyGraph& new_dependency_graph,
+                         const std::vector<std::filesystem::path>& changed_files) -> std::vector<std::filesystem::path>;
 
-    auto write_info_to_build_data_file(std::string_view configuration_name,
-                                       const std::filesystem::path& path_to_root,
-                                       const std::unordered_map<std::filesystem::path, std::uint64_t>& info) -> void;
+    auto write_to_build_data_file(std::string_view configuration_name,
+                                  const std::filesystem::path& path_to_root,
+                                  const std::unordered_map<std::filesystem::path, std::uint64_t>& info) -> void;
+
+    auto write_to_dependency_graph_data_file(std::string_view configuration_name,
+                                             const std::filesystem::path& path_to_root,
+                                             const DependencyGraph& graph) -> void;
 
     auto handle_build_caching(const Configuration& configuration,
                               const std::filesystem::path& path_to_root,

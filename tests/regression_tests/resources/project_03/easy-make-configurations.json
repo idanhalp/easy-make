@@ -1,0 +1,13 @@
+
+[
+  {
+    "name": "config",
+    "compiler": "g++",
+    "sources": {
+      "directories": ["."]
+    },
+    "output": {
+      "name": "output.exe"
+    }
+  }
+]

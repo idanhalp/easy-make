@@ -35,6 +35,11 @@ namespace utils
 
         auto operator<=>(const DirectedGraph<T>& other) const = default;
 
+        auto data() const -> const std::unordered_map<T, std::unordered_set<T>>&
+        {
+            return edges;
+        }
+
       private:
         enum class VisitStatus
         {

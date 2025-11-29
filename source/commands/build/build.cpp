@@ -322,7 +322,7 @@ auto get_code_files(const Configuration& configuration,
 
 auto commands::build(const BuildCommandInfo& info,
                      const std::vector<Configuration>& configurations,
-                     const std::filesystem::path& path_to_root) -> int
+                     const std::filesystem::path& path_to_root) -> BuildCommandResult
 {
     const auto actual_configuration = get_actual_configuration(info.configuration_name, configurations);
 
@@ -330,7 +330,10 @@ auto commands::build(const BuildCommandInfo& info,
     {
         utils::print_error("{}", actual_configuration.error());
 
-        return EXIT_FAILURE;
+        return {
+            .num_of_compilation_failures = 0,
+            .exit_status                 = EXIT_FAILURE,
+        };
     }
 
     const auto code_files = get_code_files(*actual_configuration, path_to_root);
@@ -341,27 +344,40 @@ auto commands::build(const BuildCommandInfo& info,
     {
         utils::print_error("{}", build_info.error());
 
-        return EXIT_FAILURE;
+        return {
+            .num_of_compilation_failures = 0,
+            .exit_status                 = EXIT_FAILURE,
+        };
     }
 
-    const auto [files_to_delete, files_to_compile] = *build_info;
+    // TODO: delete object files of files that don't exist anymore (`build_info->files_to_delete`).
 
-    // TODO: delete object files of files that don't exist anymore (`files_to_delete`).
+    const auto num_of_compilation_failures =
+        compile_files(*actual_configuration, path_to_root, build_info->files_to_compile, info.is_quiet);
 
-    const auto compilation_successful =
-        compile_files(*actual_configuration, path_to_root, files_to_compile, info.is_quiet);
+    ASSERT(num_of_compilation_failures >= 0);
+    const auto compilation_successful = (num_of_compilation_failures == 0);
 
     if (!compilation_successful)
     {
-        return EXIT_FAILURE;
+        return {
+            .num_of_compilation_failures = num_of_compilation_failures,
+            .exit_status                 = EXIT_FAILURE,
+        };
     }
 
     const auto linking_successful = link_object_files(*actual_configuration, path_to_root, info.is_quiet);
 
     if (!linking_successful)
     {
-        return EXIT_FAILURE;
+        return {
+            .num_of_compilation_failures = 0,
+            .exit_status                 = EXIT_FAILURE,
+        };
     }
 
-    return EXIT_SUCCESS;
+    return {
+        .num_of_compilation_failures = 0,
+        .exit_status                 = EXIT_SUCCESS,
+    };
 }

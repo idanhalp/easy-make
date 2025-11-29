@@ -28,3 +28,31 @@ If a file was previously compiled successfully and then modified, it will be rec
 ### Solution
 
 If a file fails to compile, delete the object file.
+
+## Bug 3
+
+### Description
+
+When a file is removed, other files that depend on it aren't getting recompiled.
+
+### Original Cause
+
+We're only checking which existing files changed and recompiling what's affected by those changes. If a file gets deleted, nothing happens because there's no changed file to trigger recompilation.
+
+### Solution
+
+Keep track of the previous dependency graph. When a file disappears from the new graph, mark all the files that depended on it for recompilation.
+
+## Bug 4
+
+### Description
+
+Program crashes when compiling a project where no file includes another (and the dependency graph is empty).
+
+### Original Cause
+
+When dumping an empty json, it appears as `null` and not as `{}`.
+
+### Solution
+
+If the dependency graph is empty delete the old data and don't dump anything.

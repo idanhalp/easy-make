@@ -68,19 +68,19 @@ TEST_SUITE("Regression tests - bug #2" * doctest::test_suite(test_type::regressi
         REQUIRE(configurations.has_value());
 
         // Currently the contents of the file are valid.
-        const auto before_failure = commands::build(info, *configurations, std::filesystem::current_path());
+        const auto before_failure = commands::build(info, *configurations, std::filesystem::current_path()).exit_status;
         REQUIRE_EQ(before_failure, EXIT_SUCCESS);
 
         // Change contents of the file to be invalid.
         file_creator.write_content(invalid_content);
 
         // Compilation should fail now.
-        const auto first_failure = commands::build(info, *configurations, std::filesystem::current_path());
+        const auto first_failure = commands::build(info, *configurations, std::filesystem::current_path()).exit_status;
         REQUIRE_NE(first_failure, EXIT_SUCCESS);
 
         // Make sure that even though the compilation was initially successful and the fact that
         // the contents of the file did not change from last time, compilation still fails.
-        const auto second_failure = commands::build(info, *configurations, std::filesystem::current_path());
+        const auto second_failure = commands::build(info, *configurations, std::filesystem::current_path()).exit_status;
         REQUIRE_NE(second_failure, EXIT_SUCCESS);
     }
 }
