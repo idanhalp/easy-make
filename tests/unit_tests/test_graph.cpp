@@ -208,5 +208,21 @@ TEST_SUITE("DirectedGraph class" * doctest::test_suite(test_type::unit))
             const auto expected_cycle_found = (*cycle == "b -> c -> d") || (*cycle == "a -> b -> c -> a");
             CHECK(expected_cycle_found);
         }
+
+        SUBCASE("Cycle with a tail")
+        {
+            utils::DirectedGraph<std::filesystem::path> graph;
+
+            // This order is important because it causes "a" to precede "b" in the iteration order,
+            // But "a" is not part of the cycle.
+            graph.add_edge("b", "c");
+            graph.add_edge("a", "b");
+            graph.add_edge("c", "b");
+
+            const auto cycle = graph.check_for_cycle();
+
+            REQUIRE(cycle.has_value());
+            CHECK_EQ(*cycle, "b -> c -> b");
+        }
     }
 }

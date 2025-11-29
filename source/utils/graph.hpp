@@ -45,7 +45,7 @@ namespace utils
 
         auto dfs(const T& node,
                  std::unordered_map<T, VisitStatus>& visit_status,
-                 std::unordered_map<T, T>& parents) const -> bool;
+                 std::unordered_map<T, T>& parents) const -> std::optional<T>;
 
         static auto reconstruct_cycle(const T& start_node, const std::unordered_map<T, T>& parents) -> std::string;
 
@@ -76,7 +76,7 @@ auto utils::DirectedGraph<T>::add_edge(const T& from, const T& to) -> void
 template <typename T>
 auto utils::DirectedGraph<T>::dfs(const T& node,
                                   std::unordered_map<T, VisitStatus>& visit_status,
-                                  std::unordered_map<T, T>& parents) const -> bool
+                                  std::unordered_map<T, T>& parents) const -> std::optional<T>
 {
     ASSERT(!visit_status.contains(node)); // `node` must be unvisited.
 
@@ -93,11 +93,12 @@ auto utils::DirectedGraph<T>::dfs(const T& node,
         {
             parents[neighbor] = node;
 
-            const auto found_cycle = dfs(neighbor, visit_status, parents);
+            const auto node_in_cycle  = dfs(neighbor, visit_status, parents);
+            const auto cycle_detected = node_in_cycle.has_value();
 
-            if (found_cycle)
+            if (cycle_detected)
             {
-                return true;
+                return *node_in_cycle;
             }
 
             break;
@@ -107,7 +108,7 @@ auto utils::DirectedGraph<T>::dfs(const T& node,
         {
             parents[neighbor] = node;
 
-            return true;
+            return neighbor;
         }
 
         case VisitStatus::FINISHED_PROCESSING:
@@ -117,7 +118,7 @@ auto utils::DirectedGraph<T>::dfs(const T& node,
 
     visit_status[node] = VisitStatus::FINISHED_PROCESSING;
 
-    return false;
+    return std::nullopt;
 }
 
 template <typename T>
@@ -156,8 +157,10 @@ auto utils::DirectedGraph<T>::reconstruct_cycle(const T& start_node,
 
     const std::string_view DELIMITER = " -> ";
 
-    return sorted_cycle | std::ranges::to<std::vector<std::string>>() | std::views::join_with(DELIMITER) |
-           std::ranges::to<std::string>();
+    return sorted_cycle                                  //
+           | std::ranges::to<std::vector<std::string>>() //
+           | std::views::join_with(DELIMITER)            //
+           | std::ranges::to<std::string>();             //
 }
 
 template <typename T>
@@ -168,11 +171,19 @@ auto utils::DirectedGraph<T>::check_for_cycle() const -> std::optional<std::stri
 
     for (const auto& node : std::views::keys(edges))
     {
-        const auto node_is_inside_cycle = !visit_status.contains(node) && dfs(node, visit_status, parents);
+        const auto node_already_visited = visit_status.contains(node);
 
-        if (node_is_inside_cycle)
+        if (node_already_visited)
         {
-            return reconstruct_cycle(node, parents);
+            continue;
+        }
+
+        const auto node_inside_cycle = dfs(node, visit_status, parents);
+        const auto cycle_detected    = node_inside_cycle.has_value();
+
+        if (cycle_detected)
+        {
+            return reconstruct_cycle(*node_inside_cycle, parents);
         }
     }
 
