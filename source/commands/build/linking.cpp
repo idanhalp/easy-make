@@ -25,7 +25,7 @@ static auto print_linking_result(const bool linking_successful, const std::strin
 
 auto link_object_files(const Configuration& configuration,
                        const std::filesystem::path& path_to_root,
-                       const std::vector<std::string>& link_flags,
+                       const std::vector<std::string>& flags,
                        const bool is_quiet) -> bool
 {
     ASSERT(configuration.name.has_value());
@@ -46,9 +46,10 @@ auto link_object_files(const Configuration& configuration,
         std::println("Linking...");
     }
 
-    const auto flags = link_flags | std::views::join_with(" "sv) | std::ranges::to<std::string>();
+    const auto flag_string = flags | std::views::join_with(" "sv) | std::ranges::to<std::string>();
     const auto link_command =
-        std::format("{} {} {}/*.o -o {}", *configuration.compiler, flags, object_files_path, output_path);
+        std::format("{} {} {}/*.o -o {}", *configuration.compiler, flag_string, object_files_path, output_path);
+
     const auto linking_successful = std::system(link_command.c_str()) == EXIT_SUCCESS;
 
     if (!is_quiet)

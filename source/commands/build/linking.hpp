@@ -9,7 +9,7 @@
 
 auto link_object_files(const Configuration& configuration,
                        const std::filesystem::path& path_to_root,
-                       const std::vector<std::string>& link_flags,
+                       const std::vector<std::string>& flags,
                        bool is_quiet) -> bool;
 
 #endif // SOURCE_COMMANDS_BUILD_LINKING_HPP
