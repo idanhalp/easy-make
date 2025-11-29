@@ -81,14 +81,6 @@ auto create_compilation_flags_string(const Configuration& configuration) -> std:
         }
     }
 
-    if (configuration.link_flags.has_value())
-    {
-        for (const auto& link_flag : *configuration.link_flags)
-        {
-            std::format_to(std::back_inserter(result), "{} ", link_flag);
-        }
-    }
-
     if (configuration.optimization.has_value())
     {
         if (*configuration.compiler == "cl") // MSVC.
