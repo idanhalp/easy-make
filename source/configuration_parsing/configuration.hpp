@@ -12,6 +12,8 @@ struct Configuration
     std::optional<std::string> compiler;
     std::optional<std::string> standard;
     std::optional<std::vector<std::string>> warnings;
+    std::optional<std::vector<std::string>> compilation_flags;
+    std::optional<std::vector<std::string>> link_flags;
     std::optional<std::string> optimization;
     std::optional<std::vector<std::string>> defines;
     std::optional<std::vector<std::string>> include_directories;
