@@ -382,12 +382,13 @@ TEST_SUITE("commands::build" * doctest::test_suite(test_type::unit))
             configuration.compiler            = "clang++";
             configuration.standard            = "20";
             configuration.warnings            = {"-Wall", "-Werror"};
+            configuration.compilation_flags   = {"-pg"};
             configuration.optimization        = "2";
             configuration.defines             = {"DEBUG", "VERSION=12"};
             configuration.include_directories = {".", "source", "test"};
 
             CHECK_EQ(create_compilation_flags_string(configuration),
-                     "-std=c++20 -Wall -Werror -O2 -DDEBUG -DVERSION=12 -I. -Isource -Itest");
+                     "-std=c++20 -Wall -Werror -pg -O2 -DDEBUG -DVERSION=12 -I. -Isource -Itest");
         }
 
         SUBCASE("Simple functionality check (cl)")
