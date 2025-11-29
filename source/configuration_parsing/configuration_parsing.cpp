@@ -47,7 +47,7 @@ check_for_errors_in_configuration_json(const nlohmann::json& configuration_json)
                                key_to_string(JsonKey::CompilationFlags));
         }
 
-        for (const std::string& flag : compiler_flags)
+        for (const std::string flag : compiler_flags)
         {
             static_assert(!params::ENABLE_MSVC, "The following checks assume no MSVC.");
             const auto is_optimization = flag.starts_with("-O");
