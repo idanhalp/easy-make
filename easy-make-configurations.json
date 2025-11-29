@@ -9,7 +9,10 @@
       "directories": ["."]
     },
     "exclude": {
-      "directories": ["tests/unit_tests/resources", "tests/regression_tests/resources"]
+      "directories": [
+        "tests/unit_tests/resources",
+        "tests/regression_tests/resources"
+      ]
     }
   },
   {
@@ -52,7 +55,7 @@
     "parent": "debug",
     "compilationFlags": ["-pg"],
     "linkFlags": ["-pg"],
-    "output":{
+    "output": {
       "name": "easy-make-profile"
     }
   }
