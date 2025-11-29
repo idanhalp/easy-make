@@ -11,7 +11,7 @@ static const std::flat_map<JsonKey, std::string> key_to_string_map = {
     {JsonKey::Parent,              "parent"            },
     {JsonKey::Warnings,            "warnings"          },
     {JsonKey::CompilationFlags,    "compilationFlags"  },
-    {JsonKey::LinkFlags,           "LinkFlags"         },
+    {JsonKey::LinkFlags,           "linkFlags"         },
     {JsonKey::Optimization,        "optimization"      },
     {JsonKey::Compiler,            "compiler"          },
     {JsonKey::Standard,            "standard"          },
