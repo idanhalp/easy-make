@@ -319,7 +319,7 @@ auto build_caching::handle_build_caching(const Configuration& configuration,
         return std::unexpected(create_circular_dependencies_error_message(*cycle_in_new_dependency_graph));
     }
 
-    // Decide which files to delete and which to recompile.
+    // Decide which files to delete and which file to recompile.
     const auto files_to_delete = get_files_to_delete(old_file_hashes, new_file_hashes);
     const auto changed_files   = get_changed_files(*configuration.name, path_to_root, old_file_hashes, new_file_hashes);
     const auto files_to_compile = get_files_to_compile(old_dependency_graph, new_dependency_graph, changed_files);

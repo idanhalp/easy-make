@@ -5,6 +5,7 @@
 #include <print>
 #include <ranges>
 #include <string>
+#include <system_error> // std::error_code
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -320,6 +321,31 @@ auto get_code_files(const Configuration& configuration,
     return code_files | std::ranges::to<std::vector>();
 }
 
+static auto remove_object_files_of_deleted_files(const std::string_view configuration_name,
+                                                 const std::vector<std::filesystem::path>& deleted_files,
+                                                 const std::filesystem::path& path_to_root) -> void
+{
+    const auto object_files_directory        = path_to_root / params::BUILD_DIRECTORY_NAME / configuration_name;
+    const auto object_files_directory_exists = std::filesystem::is_directory(object_files_directory);
+
+    if (!object_files_directory_exists)
+    {
+        return;
+    }
+
+    for (const auto& file_name : deleted_files)
+    {
+        const auto object_file_path = object_files_directory / utils::get_object_file_name(file_name);
+        std::error_code error;
+        std::filesystem::remove(object_file_path, error);
+
+        if (error)
+        {
+            std::println("Error: Failed to remove old object file for '{}': {}", file_name.native(), error.message());
+        }
+    }
+}
+
 auto commands::build(const BuildCommandInfo& info,
                      const std::vector<Configuration>& configurations,
                      const std::filesystem::path& path_to_root) -> BuildCommandResult
@@ -350,7 +376,9 @@ auto commands::build(const BuildCommandInfo& info,
         };
     }
 
-    // TODO: delete object files of files that don't exist anymore (`build_info->files_to_delete`).
+    // Delete object files for deleted source files to prevent the linker from using stale objects,
+    // which can cause linker errors or violate the ODR.
+    remove_object_files_of_deleted_files(info.configuration_name, build_info->files_to_delete, path_to_root);
 
     const auto num_of_compilation_failures =
         compile_files(*actual_configuration, path_to_root, build_info->files_to_compile, info.is_quiet);

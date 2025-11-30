@@ -56,3 +56,17 @@ When dumping an empty json, it appears as `null` and not as `{}`.
 ### Solution
 
 If the dependency graph is empty delete the old data and don't dump anything.
+
+## Bug 5
+
+### Description
+
+Program crashes after deleting a source file.
+
+### Original Cause
+
+Object files for deleted source files were not removed, leading the linker to use stale artifacts.
+
+### Solution
+
+Remove object files associated with deleted source files.
