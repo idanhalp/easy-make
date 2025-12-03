@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <expected>
 #include <filesystem>
+#include <string>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
@@ -19,12 +20,17 @@ namespace build_caching
         std::vector<std::filesystem::path> files_to_compile;
     };
 
-    auto hash_file_contents(const std::filesystem::path& path) -> std::uint64_t;
+    auto hash_file_contents(const std::filesystem::path& path, std::string& buffer) -> std::uint64_t;
+
+    auto hash_configuration(const Configuration& configuration) -> std::uint64_t;
 
     auto get_old_file_hashes(std::string_view configuration_name, const std::filesystem::path& path_to_root)
         -> std::unordered_map<std::filesystem::path, std::uint64_t>;
 
-    auto get_old_dependency_graph(const std::string_view configuration_name,
+    auto get_old_configuration_hash(std::string_view configuration_name,
+                                    const std::filesystem::path& path_to_root) -> std::uint64_t;
+
+    auto get_old_dependency_graph(std::string_view configuration_name,
                                   const std::filesystem::path& path_to_root) -> DependencyGraph;
 
     auto get_new_file_hashes(const std::vector<std::filesystem::path>& code_files)
@@ -48,6 +54,10 @@ namespace build_caching
     auto write_to_build_data_file(std::string_view configuration_name,
                                   const std::filesystem::path& path_to_root,
                                   const std::unordered_map<std::filesystem::path, std::uint64_t>& info) -> void;
+
+    auto write_to_configuration_hash_data_file(std::string_view configuration_name,
+                                               const std::filesystem::path& path_to_root,
+                                               std::uint64_t value) -> void;
 
     auto write_to_dependency_graph_data_file(std::string_view configuration_name,
                                              const std::filesystem::path& path_to_root,

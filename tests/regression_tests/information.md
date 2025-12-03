@@ -70,3 +70,18 @@ Object files for deleted source files were not removed, leading the linker to us
 ### Solution
 
 Remove object files associated with deleted source files.
+
+## Bug 6
+
+### Description
+
+After adding `-Werror` to `warnings`, compilation still succeeded even though some files had warnings.
+
+### Original Cause
+
+The program only tracked changes to the codebase and didn't account for changes to the configuration file.
+
+### Solution
+
+Added a mechanism that hashes the critical parts of the configuration (compiler, standard, optimization, warnings, defines, and include directories) 
+and forces a clean rebuild if the hash doesn't match the previous value.

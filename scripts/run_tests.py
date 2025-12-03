@@ -9,10 +9,13 @@ if too_many_arguments:
     print("Too many arguments; expected 0 or 1.")
     sys.exit(1)
 
-compilation_successful = subprocess.run("easy-make build test", shell=True).returncode == 0
+compilation_successful = (
+    subprocess.run("./easy-make build debug", shell=True).returncode == 0
+    and subprocess.run("./easy-make build test", shell=True).returncode == 0
+)
 
 if not compilation_successful:
-    print("Compilation of 'test' executable failed.")
+    print("Compilation of 'debug' and 'test' configurations failed.")
     sys.exit(1)
 
 argument = sys.argv[1] if len(sys.argv) == 2 else None

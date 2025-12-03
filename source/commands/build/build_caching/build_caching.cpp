@@ -3,7 +3,8 @@
 #include <algorithm>
 #include <format>
 #include <fstream>
-#include <iterator> // std::make_move_iterator
+#include <iterator> // std::istreambuf_iterator, std::make_move_iterator
+#include <print>
 #include <ranges>
 #include <set>
 #include <stdexcept>
@@ -18,25 +19,87 @@
 
 using build_caching::DependencyGraph;
 
-auto build_caching::hash_file_contents(const std::filesystem::path& path) -> std::uint64_t
+static const auto FNV_OFFSET_BASIS = 1'469'598'103'934'665'603ULL;
+
+// Hashes `s` using the FNV hash function.
+static auto hash_string(const std::string_view s, const std::uint64_t initial_value) -> std::uint64_t
 {
-    std::ifstream file(path, std::ios::binary);
+    const auto FNV_PRIME = 1'099'511'628'211ULL;
+    auto result          = initial_value;
+
+    for (const auto c : s)
+    {
+        result ^= c;
+        result *= FNV_PRIME;
+    }
+
+    return result;
+}
+
+auto build_caching::hash_file_contents(const std::filesystem::path& path, std::string& buffer) -> std::uint64_t
+{
+    std::ifstream file(path);
 
     if (!file.is_open())
     {
         throw std::runtime_error(std::format("Failed to open '{}'.", path.native()));
     }
 
-    const auto FNV_OFFSET_BASIS = 1'469'598'103'934'665'603ULL;
-    const auto FNV_PRIME        = 1'099'511'628'211ULL;
+    // Read the file into the buffer, preserving capacity.
+    const auto file_size = std::filesystem::file_size(path);
+    buffer.reserve(std::max(buffer.capacity(), file_size));
+    buffer.resize(file_size);
+    file.read(buffer.data(), file_size);
 
-    char byte;
+    return hash_string(buffer, FNV_OFFSET_BASIS);
+}
+
+/// @brief  Hashes the critical fields in a configuration.
+/// @param  configuration contents to hash.
+/// @return An integer hash value.
+/// @note   Only hashes fields that would require a clean rebuild if changed.
+///         Non-critical fields are intentionally ignored.
+auto build_caching::hash_configuration(const Configuration& configuration) -> std::uint64_t
+{
     auto result = FNV_OFFSET_BASIS;
 
-    while (file.get(byte))
+    if (configuration.compiler.has_value())
     {
-        result ^= static_cast<unsigned char>(byte);
-        result *= FNV_PRIME;
+        result = hash_string(*configuration.compiler, result);
+    }
+
+    if (configuration.standard.has_value())
+    {
+        result = hash_string(*configuration.standard, result);
+    }
+
+    if (configuration.optimization.has_value())
+    {
+        result = hash_string(*configuration.optimization, result);
+    }
+
+    if (configuration.warnings.has_value())
+    {
+        for (const auto& warning : *configuration.warnings)
+        {
+            result = hash_string(warning, result);
+        }
+    }
+
+    if (configuration.defines.has_value())
+    {
+        for (const auto& definition : *configuration.defines)
+        {
+            result = hash_string(definition, result);
+        }
+    }
+
+    if (configuration.include_directories.has_value())
+    {
+        for (const auto& included_directory : *configuration.include_directories)
+        {
+            result = hash_string(included_directory, result);
+        }
     }
 
     return result;
@@ -74,6 +137,50 @@ auto build_caching::get_old_file_hashes(const std::string_view configuration_nam
     }
 
     return old_hashes;
+}
+
+auto build_caching::get_old_configuration_hash(const std::string_view configuration_name,
+                                               const std::filesystem::path& path_to_root) -> std::uint64_t
+{
+    const auto hash_data_file_path =
+        path_to_root / params::BUILD_DIRECTORY_NAME / configuration_name / params::CONFIGURATION_HASH_DATA_FILE_NAME;
+
+    // Note: we return 0 to safely trigger recompilation.
+    // Since 0 indicates "no previous hash exists" it will always differ from any valid cached hash,
+    // ensuring a clean rebuild.
+    const auto DEFAULT_VALUE = 0;
+
+    if (!std::filesystem::exists(hash_data_file_path))
+    {
+        return DEFAULT_VALUE;
+    }
+
+    auto data_file = std::ifstream(hash_data_file_path);
+
+    if (!data_file.is_open())
+    {
+        std::println("Failed to open '{}'.", hash_data_file_path.native());
+
+        return DEFAULT_VALUE;
+    }
+
+    nlohmann::json json;
+
+    try
+    {
+        data_file >> json;
+    }
+    catch (const nlohmann::json::parse_error& e)
+    {
+        std::println("Error: Invalid JSON in '{}' - {}", params::CONFIGURATIONS_FILE_NAME.native(), e.what());
+
+        return DEFAULT_VALUE;
+    }
+
+    ASSERT(json.contains("hash"));
+    ASSERT(json["hash"].is_number_integer());
+
+    return json["hash"].get<std::uint64_t>();
 }
 
 auto build_caching::get_old_dependency_graph(const std::string_view configuration_name,
@@ -119,10 +226,16 @@ auto build_caching::get_new_file_hashes(const std::vector<std::filesystem::path>
     -> std::unordered_map<std::filesystem::path, std::uint64_t>
 {
     std::unordered_map<std::filesystem::path, std::uint64_t> file_hashes;
+    std::string buffer;
+    auto previous_capacity = buffer.size();
 
     for (const auto& file : code_files)
     {
-        file_hashes[file] = hash_file_contents(file);
+        file_hashes[file] = hash_file_contents(file, buffer);
+
+        // Using a buffer is only advantageous if its size never decreases.
+        ASSERT(previous_capacity <= buffer.capacity());
+        previous_capacity = buffer.capacity();
     }
 
     return file_hashes;
@@ -190,6 +303,15 @@ get_files_affected_by_removal(const DependencyGraph& old_dependency_graph,
     return affected_files;
 }
 
+// Remove header files and sort `files`.
+static auto sanitize_code_files(const std::vector<std::filesystem::path>& files) -> std::vector<std::filesystem::path>
+{
+    return files                                        //
+           | std::views::filter(&utils::is_source_file) //
+           | std::ranges::to<std::set>()                // Sort and remove duplicates.
+           | std::ranges::to<std::vector>();            //
+}
+
 auto build_caching::get_files_to_compile(const DependencyGraph& old_dependency_graph,
                                          const DependencyGraph& new_dependency_graph,
                                          const std::vector<std::filesystem::path>& changed_files)
@@ -207,10 +329,7 @@ auto build_caching::get_files_to_compile(const DependencyGraph& old_dependency_g
                             std::make_move_iterator(files_affected_by_change.begin()),
                             std::make_move_iterator(files_affected_by_change.end()));
 
-    return files_to_compile                             //
-           | std::views::filter(&utils::is_source_file) //
-           | std::ranges::to<std::set>()                // Sort and remove duplicates.
-           | std::ranges::to<std::vector>();            //
+    return sanitize_code_files(files_to_compile);
 }
 
 auto build_caching::write_to_build_data_file(const std::string_view configuration_name,
@@ -243,6 +362,29 @@ auto build_caching::write_to_build_data_file(const std::string_view configuratio
     }
 
     data_file << json.dump(); // Write to file.
+}
+
+auto build_caching::write_to_configuration_hash_data_file(const std::string_view configuration_name,
+                                                          const std::filesystem::path& path_to_root,
+                                                          const uint64_t value) -> void
+{
+    std::filesystem::create_directories(path_to_root / params::BUILD_DIRECTORY_NAME / configuration_name);
+
+    const auto hash_data_file_path =
+        path_to_root / params::BUILD_DIRECTORY_NAME / configuration_name / params::CONFIGURATION_HASH_DATA_FILE_NAME;
+
+    auto data_file = std::ofstream(hash_data_file_path, std::ios::trunc); // Override file if it exists.
+
+    if (!data_file.is_open())
+    {
+        throw std::runtime_error(std::format("Failed to open '{}'.", hash_data_file_path.native()));
+    }
+
+    auto json = nlohmann::json{
+        {"hash", value}
+    };
+
+    data_file << json.dump();
 }
 
 auto build_caching::write_to_dependency_graph_data_file(const std::string_view configuration_name,
@@ -302,11 +444,13 @@ auto build_caching::handle_build_caching(const Configuration& configuration,
     ASSERT(configuration.name.has_value());
 
     // Gather information about the previous state.
-    const auto old_file_hashes      = get_old_file_hashes(*configuration.name, path_to_root);
-    const auto old_dependency_graph = get_old_dependency_graph(*configuration.name, path_to_root);
+    const auto old_file_hashes        = get_old_file_hashes(*configuration.name, path_to_root);
+    const auto old_configuration_hash = get_old_configuration_hash(*configuration.name, path_to_root);
+    const auto old_dependency_graph   = get_old_dependency_graph(*configuration.name, path_to_root);
 
     // Gather information about the current state.
-    const auto new_file_hashes = get_new_file_hashes(code_files);
+    const auto new_file_hashes        = get_new_file_hashes(code_files);
+    const auto new_configuration_hash = hash_configuration(configuration);
     const auto new_dependency_graph =
         get_dependency_graph(path_to_root, code_files, configuration.include_directories.value_or({}));
 
@@ -319,13 +463,29 @@ auto build_caching::handle_build_caching(const Configuration& configuration,
         return std::unexpected(create_circular_dependencies_error_message(*cycle_in_new_dependency_graph));
     }
 
-    // Decide which files to delete and which file to recompile.
-    const auto files_to_delete = get_files_to_delete(old_file_hashes, new_file_hashes);
-    const auto changed_files   = get_changed_files(*configuration.name, path_to_root, old_file_hashes, new_file_hashes);
-    const auto files_to_compile = get_files_to_compile(old_dependency_graph, new_dependency_graph, changed_files);
-
+    // Update data files.
     write_to_build_data_file(*configuration.name, path_to_root, new_file_hashes);
+    write_to_configuration_hash_data_file(*configuration.name, path_to_root, new_configuration_hash);
     write_to_dependency_graph_data_file(*configuration.name, path_to_root, new_dependency_graph);
+
+    const auto files_to_delete = get_files_to_delete(old_file_hashes, new_file_hashes);
+
+    // Decide which files to compile.
+    // If some critical change happened to the configuration (e.g different optimization level or warning),
+    // All files need to be compiled.
+    const auto detected_critical_changes_to_configuration = old_configuration_hash != new_configuration_hash;
+
+    if (detected_critical_changes_to_configuration)
+    {
+        return Info{
+            .files_to_delete  = files_to_delete,
+            .files_to_compile = sanitize_code_files(code_files), // Compile all the files
+        };
+    };
+
+    // The configuration did not change meaningfully; compile only files affected by changes and removals.
+    const auto changed_files = get_changed_files(*configuration.name, path_to_root, old_file_hashes, new_file_hashes);
+    const auto files_to_compile = get_files_to_compile(old_dependency_graph, new_dependency_graph, changed_files);
 
     return Info{
         .files_to_delete  = files_to_delete,

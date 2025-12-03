@@ -357,6 +357,7 @@ auto commands::build(const BuildCommandInfo& info,
         utils::print_error("{}", actual_configuration.error());
 
         return {
+            .num_of_files_compiled       = 0,
             .num_of_compilation_failures = 0,
             .exit_status                 = EXIT_FAILURE,
         };
@@ -371,6 +372,7 @@ auto commands::build(const BuildCommandInfo& info,
         utils::print_error("{}", build_info.error());
 
         return {
+            .num_of_files_compiled       = 0,
             .num_of_compilation_failures = 0,
             .exit_status                 = EXIT_FAILURE,
         };
@@ -389,6 +391,7 @@ auto commands::build(const BuildCommandInfo& info,
     if (!compilation_successful)
     {
         return {
+            .num_of_files_compiled       = static_cast<int>(build_info->files_to_compile.size()),
             .num_of_compilation_failures = num_of_compilation_failures,
             .exit_status                 = EXIT_FAILURE,
         };
@@ -399,12 +402,14 @@ auto commands::build(const BuildCommandInfo& info,
     if (!linking_successful)
     {
         return {
+            .num_of_files_compiled       = static_cast<int>(build_info->files_to_compile.size()),
             .num_of_compilation_failures = 0,
             .exit_status                 = EXIT_FAILURE,
         };
     }
 
     return {
+        .num_of_files_compiled       = static_cast<int>(build_info->files_to_compile.size()),
         .num_of_compilation_failures = 0,
         .exit_status                 = EXIT_SUCCESS,
     };

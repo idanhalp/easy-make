@@ -27,6 +27,7 @@ namespace commands
 {
     struct BuildCommandResult
     {
+        int num_of_files_compiled;       // Both successes and failures.
         int num_of_compilation_failures; // Number of files that failed to compile.
         int exit_status;
     };

@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <filesystem>
+#include <string>
 #include <unordered_map>
 
 #include "third_party/doctest/doctest.hpp"
@@ -17,15 +18,152 @@ TEST_SUITE("build_caching" * doctest::test_suite(test_type::unit))
         const auto path_to_file_3 = tests::utils::get_path_to_resources_project(6) / "f_3.cpp";
         const auto path_to_file_4 = tests::utils::get_path_to_resources_project(6) / "f_4.cpp";
 
-        const auto hash_1 = build_caching::hash_file_contents(path_to_file_1);
-        const auto hash_2 = build_caching::hash_file_contents(path_to_file_2);
-        const auto hash_3 = build_caching::hash_file_contents(path_to_file_3);
-        const auto hash_4 = build_caching::hash_file_contents(path_to_file_4);
+        std::string buffer;
+        const auto hash_1 = build_caching::hash_file_contents(path_to_file_1, buffer);
+        const auto hash_2 = build_caching::hash_file_contents(path_to_file_2, buffer);
+        const auto hash_3 = build_caching::hash_file_contents(path_to_file_3, buffer);
+        const auto hash_4 = build_caching::hash_file_contents(path_to_file_4, buffer);
 
         CHECK_EQ(hash_1, hash_2);
         CHECK_NE(hash_1, hash_3);
         CHECK_NE(hash_1, hash_4);
         CHECK_NE(hash_3, hash_4);
+    }
+
+    TEST_CASE("hash_configuration")
+    {
+        SUBCASE("is deterministic")
+        {
+            Configuration config{};
+            config.compiler = "g++";
+            config.standard = "17";
+            config.warnings = {"-Wall"};
+
+            const auto hash1 = build_caching::hash_configuration(config);
+            const auto hash2 = build_caching::hash_configuration(config);
+
+            REQUIRE_EQ(hash1, hash2);
+        }
+
+        SUBCASE("changes when compiler changes")
+        {
+            Configuration config{};
+            config.compiler               = "g++";
+            config.standard               = "17";
+            const auto hash_before_change = build_caching::hash_configuration(config);
+
+            config.compiler              = "clang++";
+            const auto hash_after_change = build_caching::hash_configuration(config);
+
+            REQUIRE_NE(hash_before_change, hash_after_change);
+        }
+
+        SUBCASE("changes when standard changes")
+        {
+            Configuration config{};
+            config.compiler               = "g++";
+            config.standard               = "17";
+            const auto hash_before_change = build_caching::hash_configuration(config);
+
+            config.standard              = "20";
+            const auto hash_after_change = build_caching::hash_configuration(config);
+
+            REQUIRE_NE(hash_before_change, hash_after_change);
+        }
+
+        SUBCASE("changes when warnings change")
+        {
+            Configuration config{};
+            config.compiler               = "g++";
+            config.warnings               = {"-Wall"};
+            const auto hash_before_change = build_caching::hash_configuration(config);
+
+            config.warnings              = {"-Wall", "-Werror"};
+            const auto hash_after_change = build_caching::hash_configuration(config);
+
+            REQUIRE_NE(hash_before_change, hash_after_change);
+        }
+
+        SUBCASE("changes when optimization changes")
+        {
+            Configuration config{};
+            config.compiler               = "g++";
+            config.optimization           = "0";
+            const auto hash_before_change = build_caching::hash_configuration(config);
+
+            config.optimization          = "3";
+            const auto hash_after_change = build_caching::hash_configuration(config);
+
+            REQUIRE_NE(hash_before_change, hash_after_change);
+        }
+
+        SUBCASE("changes when defines change")
+        {
+            Configuration config{};
+            config.compiler = "g++";
+            config.defines  = {};
+
+            const auto hash_no_defines = build_caching::hash_configuration(config);
+
+            config.defines               = {"DEBUG=1"};
+            const auto hash_with_defines = build_caching::hash_configuration(config);
+
+            REQUIRE_NE(hash_no_defines, hash_with_defines);
+        }
+
+        SUBCASE("does not change when empty defines added")
+        {
+            Configuration config{};
+            config.compiler               = "g++";
+            const auto hash_before_change = build_caching::hash_configuration(config);
+
+            config.defines               = {};
+            const auto hash_after_change = build_caching::hash_configuration(config);
+
+            REQUIRE_EQ(hash_before_change, hash_after_change);
+        }
+
+        SUBCASE("ignores source files")
+        {
+            Configuration config{};
+            config.compiler     = "g++";
+            config.source_files = {"a.cc"};
+
+            const auto hash1 = build_caching::hash_configuration(config);
+
+            config.source_files = {"a.cc", "b.cc", "c.cc"};
+            const auto hash2    = build_caching::hash_configuration(config);
+
+            REQUIRE_EQ(hash1, hash2);
+        }
+
+        SUBCASE("ignores output name")
+        {
+            Configuration config{};
+            config.compiler    = "g++";
+            config.output_name = "program.exe";
+
+            const auto hash1 = build_caching::hash_configuration(config);
+
+            config.output_name = "different_name.exe";
+            const auto hash2   = build_caching::hash_configuration(config);
+
+            REQUIRE_EQ(hash1, hash2);
+        }
+
+        SUBCASE("is sensitive to warning order")
+        {
+            Configuration config{};
+            config.compiler = "g++";
+            config.warnings = {"-Wall", "-Werror"};
+
+            const auto hash1 = build_caching::hash_configuration(config);
+
+            config.warnings  = {"-Werror", "-Wall"};
+            const auto hash2 = build_caching::hash_configuration(config);
+
+            REQUIRE_NE(hash1, hash2);
+        }
     }
 
     TEST_CASE("'get_old_file_hashes' returns expected results for existing config.")
