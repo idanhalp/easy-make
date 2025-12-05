@@ -56,35 +56,32 @@ auto FileCreator::write_content(const std::string_view content) -> void
     main << content;
 }
 
-TEST_SUITE("Regression tests - bug #2" * doctest::test_suite(test_type::regression))
+TEST_CASE_FIXTURE(TestEnvironmentGuard<2>, "Recompilation after failure [regression]")
 {
-    TEST_CASE_FIXTURE(TestEnvironmentGuard<2>, "Recompilation after failure")
-    {
-        FileCreator file_creator{}; // Creates main.cpp; can be modified; removed on destruction.
+    FileCreator file_creator{}; // Creates main.cpp; can be modified; removed on destruction.
 
-        const auto info = BuildCommandInfo{
-            .configuration_name       = "config",
-            .is_quiet                 = true,
-            .use_parallel_compilation = false,
-        };
-        const auto configurations = parse_configurations(std::filesystem::current_path());
+    const auto info = BuildCommandInfo{
+        .configuration_name       = "config",
+        .is_quiet                 = true,
+        .use_parallel_compilation = false,
+    };
+    const auto configurations = parse_configurations(std::filesystem::current_path());
 
-        REQUIRE(configurations.has_value());
+    REQUIRE(configurations.has_value());
 
-        // Currently the contents of the file are valid.
-        const auto before_failure = commands::build(info, *configurations, std::filesystem::current_path()).exit_status;
-        REQUIRE_EQ(before_failure, EXIT_SUCCESS);
+    // Currently the contents of the file are valid.
+    const auto before_failure = commands::build(info, *configurations, std::filesystem::current_path()).exit_status;
+    REQUIRE_EQ(before_failure, EXIT_SUCCESS);
 
-        // Change contents of the file to be invalid.
-        file_creator.write_content(invalid_content);
+    // Change contents of the file to be invalid.
+    file_creator.write_content(invalid_content);
 
-        // Compilation should fail now.
-        const auto first_failure = commands::build(info, *configurations, std::filesystem::current_path()).exit_status;
-        REQUIRE_NE(first_failure, EXIT_SUCCESS);
+    // Compilation should fail now.
+    const auto first_failure = commands::build(info, *configurations, std::filesystem::current_path()).exit_status;
+    REQUIRE_NE(first_failure, EXIT_SUCCESS);
 
-        // Make sure that even though the compilation was initially successful and the fact that
-        // the contents of the file did not change from last time, compilation still fails.
-        const auto second_failure = commands::build(info, *configurations, std::filesystem::current_path()).exit_status;
-        REQUIRE_NE(second_failure, EXIT_SUCCESS);
-    }
+    // Make sure that even though the compilation was initially successful and the fact that
+    // the contents of the file did not change from last time, compilation still fails.
+    const auto second_failure = commands::build(info, *configurations, std::filesystem::current_path()).exit_status;
+    REQUIRE_NE(second_failure, EXIT_SUCCESS);
 }

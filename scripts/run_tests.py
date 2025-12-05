@@ -29,7 +29,7 @@ match argument:
         subprocess.run('./test --test-case="*[performance]*"', shell=True)
     case "r":
         print("Running regression tests.")
-        subprocess.run("./test --test-suite=regression", shell=True)
+        subprocess.run('./test --test-case="*[regression]*"', shell=True)
     case "u":
         print("Running unit tests.")
         subprocess.run("./test --test-suite=unit", shell=True)

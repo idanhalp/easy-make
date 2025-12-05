@@ -39,38 +39,35 @@ auto FileCreator::remove() -> void
     std::filesystem::remove(file_name);
 }
 
-TEST_SUITE("Regression tests - bug #3" * doctest::test_suite(test_type::regression))
+TEST_CASE_FIXTURE(TestEnvironmentGuard<3>, "Recompilation after removing a file [regression]")
 {
-    TEST_CASE_FIXTURE(TestEnvironmentGuard<3>, "Recompilation after removing a file")
-    {
-        const auto root_path = std::filesystem::current_path();
-        FileCreator file_creator;
+    const auto root_path = std::filesystem::current_path();
+    FileCreator file_creator;
 
-        const auto info = BuildCommandInfo{
-            .configuration_name       = "config",
-            .is_quiet                 = true,
-            .use_parallel_compilation = false,
-        };
-        const auto configurations = parse_configurations(root_path);
-        REQUIRE(configurations.has_value());
+    const auto info = BuildCommandInfo{
+        .configuration_name       = "config",
+        .is_quiet                 = true,
+        .use_parallel_compilation = false,
+    };
+    const auto configurations = parse_configurations(root_path);
+    REQUIRE(configurations.has_value());
 
-        /*
-        The project contains 3 code files:
-        - main.cpp (includes 'f_3.hh')
-        - f_1.cpp (includes 'f_3.hh')
-        - f_2.cpp (doesn't include 'f_3.hh')
+    /*
+    The project contains 3 code files:
+    - main.cpp (includes 'f_3.hh')
+    - f_1.cpp (includes 'f_3.hh')
+    - f_2.cpp (doesn't include 'f_3.hh')
 
-        We create 'f_3.hh' and compile.
-        Compilation is expected to be successful.
-        */
-        file_creator.create();
-        REQUIRE_EQ(commands::build(info, *configurations, root_path).num_of_compilation_failures, 0);
+    We create 'f_3.hh' and compile.
+    Compilation is expected to be successful.
+    */
+    file_creator.create();
+    REQUIRE_EQ(commands::build(info, *configurations, root_path).num_of_compilation_failures, 0);
 
-        /*
-        Now we remove 'f_3.hh'.
-        Only the 2 affected files should be recompiled.
-        */
-        file_creator.remove();
-        REQUIRE_EQ(commands::build(info, *configurations, root_path).num_of_compilation_failures, 2);
-    }
+    /*
+    Now we remove 'f_3.hh'.
+    Only the 2 affected files should be recompiled.
+    */
+    file_creator.remove();
+    REQUIRE_EQ(commands::build(info, *configurations, root_path).num_of_compilation_failures, 2);
 }
