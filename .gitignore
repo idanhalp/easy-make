@@ -8,6 +8,7 @@
 
 # Executables
 easy-make
+easy-make-debug
 test
 
 # Build info

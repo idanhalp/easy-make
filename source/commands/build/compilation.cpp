@@ -3,16 +3,28 @@
 #include <algorithm>
 #include <cstdlib>
 #include <format>
-#include <iterator>
+#include <future>
+#include <iterator> // std::istreambuf_iterator
 #include <print>
 #include <ranges>
+#include <string>
 #include <string_view>
 #include <system_error> // std::error_code
+#include <thread>       // std::thread::hardware_concurrency
 
 #include "source/parameters/parameters.hpp"
 #include "source/utils/macros/assert.hpp"
 #include "source/utils/print.hpp"
 #include "source/utils/utils.hpp"
+
+namespace
+{
+    struct CompilationInfo
+    {
+        bool is_successful;
+        std::string compiler_output;
+    };
+}
 
 static auto print_number_of_files_to_compile(const int number_of_files,
                                              const std::string_view configuration_name) -> void
@@ -109,23 +121,57 @@ auto create_compilation_flags_string(const Configuration& configuration) -> std:
     return result;
 }
 
-/// @brief  Compiles a single source file into an object file.
-/// @return true if compilation succeeded, false otherwise.
-static auto compile(const std::filesystem::path& file_name,
-                    const std::filesystem::path& object_files_directory,
-                    const std::string_view compilation_flags,
-                    const Configuration& configuration) -> bool
+static auto compile_file(const std::filesystem::path& file_name,
+                         const std::filesystem::path& object_files_directory,
+                         const std::string_view compilation_flags,
+                         const Configuration& configuration) -> CompilationInfo
 {
     ASSERT(utils::is_source_file(file_name));
     ASSERT(configuration.compiler.has_value());
 
     const auto object_file_path    = object_files_directory / utils::get_object_file_name(file_name);
-    const auto compilation_command = std::format(
-        "{} {} -c {} -o {}", *configuration.compiler, compilation_flags, file_name.native(), object_file_path.native());
+    const auto temporary_file_path = std::filesystem::temp_directory_path() / utils::get_object_file_name(file_name);
+
+    // Compile the file with the given flag
+    // and redirect stdout and stderr to the temporary file.
+    const auto compilation_command = std::format("{} {} -fdiagnostics-color=always -c {} -o {} > {} 2>&1",
+                                                 *configuration.compiler,
+                                                 compilation_flags,
+                                                 file_name.native(),
+                                                 object_file_path.native(),
+                                                 temporary_file_path.native());
 
     const auto file_compiled_successfully = std::system(compilation_command.c_str()) == EXIT_SUCCESS;
+    const auto compiler_output            = [&]
+    {
+        auto temporary_file = std::ifstream(temporary_file_path);
 
-    return file_compiled_successfully;
+        return std::string(std::istreambuf_iterator<char>(temporary_file), std::istreambuf_iterator<char>());
+    }();
+
+    std::filesystem::remove(temporary_file_path);
+
+    return {
+        .is_successful   = file_compiled_successfully,
+        .compiler_output = compiler_output,
+    };
+}
+
+static auto compile_batch(const std::span<const std::filesystem::path> batch,
+                          const std::filesystem::path& object_files_directory,
+                          const std::string_view compilation_flags,
+                          const Configuration& configuration) -> std::vector<std::future<CompilationInfo>>
+{
+    std::vector<std::future<CompilationInfo>> futures;
+    futures.reserve(batch.size());
+
+    for (const auto& file : batch)
+    {
+        futures.push_back(std::async(
+            std::launch::async, compile_file, file, object_files_directory, compilation_flags, configuration));
+    }
+
+    return futures;
 }
 
 static auto print_compilation_result(const std::vector<std::filesystem::path>& failed_compilation) -> void
@@ -157,7 +203,8 @@ static auto print_compilation_result(const std::vector<std::filesystem::path>& f
 auto compile_files(const Configuration& configuration,
                    const std::filesystem::path& path_to_root,
                    const std::vector<std::filesystem::path>& files_to_compile,
-                   const bool is_quiet) -> int
+                   const bool is_quiet,
+                   const bool use_parallel_compilation) -> int
 {
     ASSERT(configuration.name.has_value());
     ASSERT(std::ranges::is_sorted(files_to_compile));
@@ -174,30 +221,41 @@ auto compile_files(const Configuration& configuration,
     const auto object_files_directory = path_to_root / params::BUILD_DIRECTORY_NAME / *configuration.name;
     remove_outdated_object_files(object_files_directory, files_to_compile);
 
+    const auto batch_size        = use_parallel_compilation ? std::max(1U, std::thread::hardware_concurrency()) : 1;
     const auto compilation_flags = create_compilation_flags_string(configuration);
     const auto max_index_width   = utils::count_digits(files_to_compile.size()); // For formatting.
     std::vector<std::filesystem::path> failed_compilation;
 
-    for (const auto& [index, file_name] : std::views::enumerate(files_to_compile) | std::views::as_const)
+    for (auto batch_start = 0UZ; batch_start < files_to_compile.size(); batch_start += batch_size)
     {
-        if (!is_quiet)
-        {
-            // Print current info, for example:
-            // 12/20 [ 60%] path/to/file.cpp
-            const auto completion_percentage = 100 * (index + 1) / files_to_compile.size();
-            std::println("{0:>{2}}/{1} [{3:>3}%] {4}",
-                         index + 1,
-                         files_to_compile.size(),
-                         max_index_width,
-                         completion_percentage,
-                         file_name.native());
-        }
+        const auto batch_end = std::min(batch_start + batch_size, files_to_compile.size());
+        const auto batch     = std::span(files_to_compile.begin() + batch_start, files_to_compile.begin() + batch_end);
+        auto futures         = compile_batch(batch, object_files_directory, compilation_flags, configuration);
 
-        const auto compilation_failed = !compile(file_name, object_files_directory, compilation_flags, configuration);
-
-        if (compilation_failed)
+        for (auto index = 0UZ; index < batch.size(); ++index)
         {
-            failed_compilation.push_back(file_name);
+            if (!is_quiet)
+            {
+                // Print current info, for example:
+                // 12/20 [ 60%] path/to/file.cpp
+                const auto actual_index          = batch_start + index + 1;
+                const auto completion_percentage = 100 * actual_index / files_to_compile.size();
+                std::println("{0:>{2}}/{1} [{3:>3}%] {4}",
+                             actual_index,
+                             files_to_compile.size(),
+                             max_index_width,
+                             completion_percentage,
+                             batch[index].native());
+            }
+
+            const auto result = futures[index].get();
+
+            if (!result.is_successful)
+            {
+                failed_compilation.push_back(batch[index]);
+            }
+
+            std::print("{}", result.compiler_output);
         }
     }
 

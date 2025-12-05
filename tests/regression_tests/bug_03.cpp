@@ -46,7 +46,11 @@ TEST_SUITE("Regression tests - bug #3" * doctest::test_suite(test_type::regressi
         const auto root_path = std::filesystem::current_path();
         FileCreator file_creator;
 
-        const auto info           = BuildCommandInfo{.configuration_name = "config", .is_quiet = true};
+        const auto info = BuildCommandInfo{
+            .configuration_name       = "config",
+            .is_quiet                 = true,
+            .use_parallel_compilation = false,
+        };
         const auto configurations = parse_configurations(root_path);
         REQUIRE(configurations.has_value());
 

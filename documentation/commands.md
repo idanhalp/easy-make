@@ -16,6 +16,7 @@ This document specifies the commands which can be supplied to the program.
 
 ### `build`
 
+- `--parallel`: Compile multiple files simultaneously in batches to improve build performance.
 - `--quiet`: Prevents printing information. Compiler warning and errors are still printed.
 
 ### `clean`

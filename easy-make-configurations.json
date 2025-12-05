@@ -9,7 +9,10 @@
       "directories": ["."]
     },
     "exclude": {
-      "directories": ["tests/unit_tests/resources", "tests/regression_tests/resources"]
+      "directories": [
+        "tests/unit_tests/resources",
+        "tests/regression_tests/resources"
+      ]
     }
   },
   {
@@ -29,22 +32,25 @@
     "parent": "default",
     "exclude": {
       "directories": ["tests/", "third_party/"]
-    },
-    "output": {
-      "name": "easy-make"
     }
   },
   {
     "name": "debug",
     "parent": "easy-make",
     "optimization": "0",
-    "defines": ["DEBUG"]
+    "defines": ["DEBUG"],
+    "output": {
+      "name": "easy-make-debug"
+    }
   },
   {
     "name": "release",
     "parent": "easy-make",
     "optimization": "3",
     "defines": ["NDEBUG", "RELEASE"],
-    "warnings": ["-Wall", "-Wextra", "-Werror"]
+    "warnings": ["-Wall", "-Wextra", "-Werror"],
+    "output": {
+      "name": "easy-make"
+    }
   }
 ]

@@ -9,8 +9,12 @@ TEST_SUITE("Regression tests - bug #4" * doctest::test_suite(test_type::regressi
 {
     TEST_CASE_FIXTURE(TestEnvironmentGuard<4>, "Empty dependency graph")
     {
-        const auto root_path      = std::filesystem::current_path();
-        const auto info           = BuildCommandInfo{.configuration_name = "config", .is_quiet = true};
+        const auto root_path = std::filesystem::current_path();
+        const auto info      = BuildCommandInfo{
+                 .configuration_name       = "config",
+                 .is_quiet                 = true,
+                 .use_parallel_compilation = false,
+        };
         const auto configurations = parse_configurations(root_path);
         REQUIRE(configurations.has_value());
         REQUIRE_EQ(commands::build(info, *configurations, root_path).exit_status, EXIT_SUCCESS);

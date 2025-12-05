@@ -41,8 +41,12 @@ TEST_SUITE("Regression tests - bug #6" * doctest::test_suite(test_type::regressi
         using namespace nlohmann::json_literals;
 
         const auto root_path = std::filesystem::current_path();
-        const auto info      = BuildCommandInfo{.configuration_name = "config", .is_quiet = true};
-        auto json            = R"(
+        const auto info      = BuildCommandInfo{
+                 .configuration_name       = "config",
+                 .is_quiet                 = true,
+                 .use_parallel_compilation = false,
+        };
+        auto json = R"(
         [
             {
                 "compiler": "g++",

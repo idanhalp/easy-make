@@ -24,6 +24,9 @@ match argument:
     case None:
         print("Running all tests.")
         subprocess.run("./test", shell=True)
+    case "p":
+        print("Running performance tests.")
+        subprocess.run('./test --test-case="*[performance]*"', shell=True)
     case "r":
         print("Running regression tests.")
         subprocess.run("./test --test-suite=regression", shell=True)

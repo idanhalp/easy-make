@@ -10,9 +10,11 @@
 
 using namespace std::literals;
 
-static const auto QUIET_FLAG = "--quiet"sv;
+static const auto PARALLEL_COMPILATION_FLAG = "--parallel"sv;
+static const auto QUIET_FLAG                = "--quiet"sv;
 
 static const std::flat_set FLAGS = {
+    PARALLEL_COMPILATION_FLAG,
     QUIET_FLAG,
 };
 
@@ -22,6 +24,13 @@ static auto parse_flag(const std::string_view flag,
                        const std::string_view command_name,
                        BuildCommandInfo& info) -> std::optional<std::string>
 {
+    if (flag == PARALLEL_COMPILATION_FLAG)
+    {
+        info.use_parallel_compilation = true;
+
+        return std::nullopt;
+    }
+
     if (flag == QUIET_FLAG)
     {
         info.is_quiet = true;

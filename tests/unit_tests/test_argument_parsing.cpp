@@ -22,11 +22,12 @@ TEST_SUITE("argument_parsing" * doctest::test_suite(test_type::unit))
             const auto& build_command_info = std::get<BuildCommandInfo>(*command_info);
             CHECK_EQ(build_command_info.configuration_name, "config-name");
             CHECK_FALSE(build_command_info.is_quiet);
+            CHECK_FALSE(build_command_info.use_parallel_compilation);
         }
 
         SUBCASE("Valid case with flag")
         {
-            const std::vector arguments = {"./easy-make", "build", "config-name", "--quiet"};
+            const std::vector arguments = {"./easy-make", "build", "config-name", "--quiet", "--parallel"};
             const auto command_info     = parse_arguments(arguments);
 
             REQUIRE(command_info.has_value());
@@ -35,6 +36,7 @@ TEST_SUITE("argument_parsing" * doctest::test_suite(test_type::unit))
             const auto& build_command_info = std::get<BuildCommandInfo>(*command_info);
             CHECK_EQ(build_command_info.configuration_name, "config-name");
             CHECK(build_command_info.is_quiet);
+            CHECK(build_command_info.use_parallel_compilation);
         }
 
         SUBCASE("Missing configuration name")
@@ -68,13 +70,22 @@ TEST_SUITE("argument_parsing" * doctest::test_suite(test_type::unit))
                      "instead got 'config-name' more than once.");
         }
 
-        SUBCASE("Duplicate flag")
+        SUBCASE("Duplicate '--quiet' flag")
         {
             const std::vector arguments = {"./easy-make", "build", "config-name", "--quiet", "--quiet"};
             const auto command_info     = parse_arguments(arguments);
 
             REQUIRE_FALSE(command_info.has_value());
             CHECK_EQ(command_info.error(), "Error: Flag '--quiet' was provided to command 'build' more than once.");
+        }
+
+        SUBCASE("Duplicate '--parallel' flag")
+        {
+            const std::vector arguments = {"./easy-make", "build", "config-name", "--parallel", "--parallel"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(), "Error: Flag '--parallel' was provided to command 'build' more than once.");
         }
 
         SUBCASE("Invalid flag")

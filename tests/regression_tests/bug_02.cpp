@@ -62,7 +62,11 @@ TEST_SUITE("Regression tests - bug #2" * doctest::test_suite(test_type::regressi
     {
         FileCreator file_creator{}; // Creates main.cpp; can be modified; removed on destruction.
 
-        const auto info           = BuildCommandInfo{.configuration_name = "config", .is_quiet = true};
+        const auto info = BuildCommandInfo{
+            .configuration_name       = "config",
+            .is_quiet                 = true,
+            .use_parallel_compilation = false,
+        };
         const auto configurations = parse_configurations(std::filesystem::current_path());
 
         REQUIRE(configurations.has_value());

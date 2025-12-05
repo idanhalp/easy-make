@@ -382,8 +382,11 @@ auto commands::build(const BuildCommandInfo& info,
     // which can cause linker errors or violate the ODR.
     remove_object_files_of_deleted_files(info.configuration_name, build_info->files_to_delete, path_to_root);
 
-    const auto num_of_compilation_failures =
-        compile_files(*actual_configuration, path_to_root, build_info->files_to_compile, info.is_quiet);
+    const auto num_of_compilation_failures = compile_files(*actual_configuration,
+                                                           path_to_root,
+                                                           build_info->files_to_compile,
+                                                           info.is_quiet,
+                                                           info.use_parallel_compilation);
 
     ASSERT(num_of_compilation_failures >= 0);
     const auto compilation_successful = (num_of_compilation_failures == 0);
