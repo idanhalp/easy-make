@@ -8,7 +8,7 @@
 #include "third_party/doctest/doctest.hpp"
 
 #include "source/argument_parsing/command_info.hpp"
-#include "source/commands/build/compilation.hpp"
+#include "source/commands/build/compilation/compilation.hpp"
 #include "source/configuration_parsing/configuration.hpp"
 #include "source/parameters/parameters.hpp"
 

@@ -1,4 +1,4 @@
-#include "source/commands/build/compilation.hpp"
+#include "source/commands/build/compilation/compilation.hpp"
 
 #include <algorithm>
 #include <cstdlib>

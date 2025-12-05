@@ -1,5 +1,5 @@
-#ifndef SOURCE_COMMANDS_BUILD_COMPILATION_HPP
-#define SOURCE_COMMANDS_BUILD_COMPILATION_HPP
+#ifndef SOURCE_COMMANDS_BUILD_COMPILATION_COMPILATION_HPP
+#define SOURCE_COMMANDS_BUILD_COMPILATION_COMPILATION_HPP
 
 #include <filesystem>
 #include <string>
@@ -15,4 +15,4 @@ auto compile_files(const Configuration& configuration,
                    bool is_quiet,
                    bool use_parallel_compilation) -> int;
 
-#endif // SOURCE_COMMANDS_BUILD_COMPILATION_HPP
+#endif // SOURCE_COMMANDS_BUILD_COMPILATION_COMPILATION_HPP
