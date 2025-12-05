@@ -158,23 +158,6 @@ static auto compile_file(const std::filesystem::path& file_name,
     };
 }
 
-// static auto compile_batch(const std::span<const std::filesystem::path> batch,
-//                           const std::filesystem::path& object_files_directory,
-//                           const std::string_view compilation_flags,
-//                           const Configuration& configuration) -> std::vector<std::future<CompilationInfo>>
-// {
-//     std::vector<std::future<CompilationInfo>> futures;
-//     futures.reserve(batch.size());
-
-//     for (const auto& file : batch)
-//     {
-//         futures.push_back(std::async(
-//             std::launch::async, compile_file, file, object_files_directory, compilation_flags, configuration));
-//     }
-
-//     return futures;
-// }
-
 static auto print_compilation_result(const std::vector<std::filesystem::path>& failed_compilation) -> void
 {
     ASSERT(std::ranges::is_sorted(failed_compilation));
