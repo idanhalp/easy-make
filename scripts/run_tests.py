@@ -10,7 +10,7 @@ if too_many_arguments:
     sys.exit(1)
 
 compilation_successful = (
-    subprocess.run("./easy-make build debug", shell=True).returncode == 0
+    subprocess.run("./easy-make build release", shell=True).returncode == 0
     and subprocess.run("./easy-make build test", shell=True).returncode == 0
 )
 
