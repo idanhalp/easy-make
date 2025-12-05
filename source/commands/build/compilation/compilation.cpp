@@ -158,6 +158,26 @@ static auto compile_file(const std::filesystem::path& file_name,
     };
 }
 
+static auto print_file_compilation_status(const std::filesystem::path& file_name,
+                                          const int index,
+                                          const int total_num_of_files,
+                                          const int width,
+                                          const bool before_completion) -> void
+{
+    if (before_completion)
+    {
+        std::print("{0:>{2}}/{1} [    ] {3}", index, total_num_of_files, width, file_name.native());
+        std::fflush(stdout);
+    }
+    else
+    {
+        const auto completion_percentage = 100 * index / total_num_of_files;
+        std::print("\r"); // Undo previous print.
+        std::println(
+            "{0:>{2}}/{1} [{3:>3}%] {4}", index, total_num_of_files, width, completion_percentage, file_name.native());
+    }
+}
+
 static auto print_compilation_result(const std::vector<std::filesystem::path>& failed_compilation) -> void
 {
     ASSERT(std::ranges::is_sorted(failed_compilation));
@@ -221,29 +241,29 @@ auto compile_files(const Configuration& configuration,
 
     for (auto [index, future] : std::views::enumerate(futures))
     {
-        const auto result     = future.get();
         const auto& file_name = files_to_compile[index];
 
         if (!is_quiet)
         {
-            // Print current info, for example:
-            // 12/20 [ 60%] path/to/file.cpp
-            const auto actual_index          = index + 1;
-            const auto completion_percentage = 100 * actual_index / files_to_compile.size();
-            std::println("{0:>{2}}/{1} [{3:>3}%] {4}",
-                         actual_index,
-                         files_to_compile.size(),
-                         max_index_width,
-                         completion_percentage,
-                         file_name.native());
+            print_file_compilation_status(file_name, index + 1, files_to_compile.size(), max_index_width, true);
         }
+
+        const auto result = future.get(); // The call to `get` is blocking.
 
         if (!result.is_successful)
         {
             failed_compilation.push_back(file_name);
         }
 
-        std::print("{}", result.compiler_output);
+        if (!is_quiet)
+        {
+            print_file_compilation_status(file_name, index + 1, files_to_compile.size(), max_index_width, false);
+        }
+
+        if (!result.compiler_output.empty())
+        {
+            std::print("{}", result.compiler_output);
+        }
     }
 
     if (!is_quiet)
