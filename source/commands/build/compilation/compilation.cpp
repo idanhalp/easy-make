@@ -12,6 +12,7 @@
 #include <system_error> // std::error_code
 #include <thread>       // std::thread::hardware_concurrency
 
+#include "source/commands/build/compilation/thread_pool.hpp"
 #include "source/parameters/parameters.hpp"
 #include "source/utils/macros/assert.hpp"
 #include "source/utils/print.hpp"
@@ -157,22 +158,22 @@ static auto compile_file(const std::filesystem::path& file_name,
     };
 }
 
-static auto compile_batch(const std::span<const std::filesystem::path> batch,
-                          const std::filesystem::path& object_files_directory,
-                          const std::string_view compilation_flags,
-                          const Configuration& configuration) -> std::vector<std::future<CompilationInfo>>
-{
-    std::vector<std::future<CompilationInfo>> futures;
-    futures.reserve(batch.size());
+// static auto compile_batch(const std::span<const std::filesystem::path> batch,
+//                           const std::filesystem::path& object_files_directory,
+//                           const std::string_view compilation_flags,
+//                           const Configuration& configuration) -> std::vector<std::future<CompilationInfo>>
+// {
+//     std::vector<std::future<CompilationInfo>> futures;
+//     futures.reserve(batch.size());
 
-    for (const auto& file : batch)
-    {
-        futures.push_back(std::async(
-            std::launch::async, compile_file, file, object_files_directory, compilation_flags, configuration));
-    }
+//     for (const auto& file : batch)
+//     {
+//         futures.push_back(std::async(
+//             std::launch::async, compile_file, file, object_files_directory, compilation_flags, configuration));
+//     }
 
-    return futures;
-}
+//     return futures;
+// }
 
 static auto print_compilation_result(const std::vector<std::filesystem::path>& failed_compilation) -> void
 {
@@ -221,42 +222,45 @@ auto compile_files(const Configuration& configuration,
     const auto object_files_directory = path_to_root / params::BUILD_DIRECTORY_NAME / *configuration.name;
     remove_outdated_object_files(object_files_directory, files_to_compile);
 
-    const auto batch_size        = use_parallel_compilation ? std::max(1U, std::thread::hardware_concurrency()) : 1;
     const auto compilation_flags = create_compilation_flags_string(configuration);
     const auto max_index_width   = utils::count_digits(files_to_compile.size()); // For formatting.
+    const auto num_of_threads    = use_parallel_compilation ? std::max(1U, std::thread::hardware_concurrency() / 2) : 1;
+    ThreadPool thread_pool(num_of_threads);
+    std::vector<std::future<CompilationInfo>> futures;
+
+    for (const auto& file : files_to_compile)
+    {
+        futures.push_back(thread_pool.add_task(
+            [&] { return compile_file(file, object_files_directory, compilation_flags, configuration); }));
+    }
+
     std::vector<std::filesystem::path> failed_compilation;
 
-    for (auto batch_start = 0UZ; batch_start < files_to_compile.size(); batch_start += batch_size)
+    for (auto [index, future] : std::views::enumerate(futures))
     {
-        const auto batch_end = std::min(batch_start + batch_size, files_to_compile.size());
-        const auto batch     = std::span(files_to_compile.begin() + batch_start, files_to_compile.begin() + batch_end);
-        auto futures         = compile_batch(batch, object_files_directory, compilation_flags, configuration);
+        const auto result     = future.get();
+        const auto& file_name = files_to_compile[index];
 
-        for (auto index = 0UZ; index < batch.size(); ++index)
+        if (!is_quiet)
         {
-            if (!is_quiet)
-            {
-                // Print current info, for example:
-                // 12/20 [ 60%] path/to/file.cpp
-                const auto actual_index          = batch_start + index + 1;
-                const auto completion_percentage = 100 * actual_index / files_to_compile.size();
-                std::println("{0:>{2}}/{1} [{3:>3}%] {4}",
-                             actual_index,
-                             files_to_compile.size(),
-                             max_index_width,
-                             completion_percentage,
-                             batch[index].native());
-            }
-
-            const auto result = futures[index].get();
-
-            if (!result.is_successful)
-            {
-                failed_compilation.push_back(batch[index]);
-            }
-
-            std::print("{}", result.compiler_output);
+            // Print current info, for example:
+            // 12/20 [ 60%] path/to/file.cpp
+            const auto actual_index          = index + 1;
+            const auto completion_percentage = 100 * actual_index / files_to_compile.size();
+            std::println("{0:>{2}}/{1} [{3:>3}%] {4}",
+                         actual_index,
+                         files_to_compile.size(),
+                         max_index_width,
+                         completion_percentage,
+                         file_name.native());
         }
+
+        if (!result.is_successful)
+        {
+            failed_compilation.push_back(file_name);
+        }
+
+        std::print("{}", result.compiler_output);
     }
 
     if (!is_quiet)
