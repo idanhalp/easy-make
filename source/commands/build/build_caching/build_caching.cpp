@@ -227,7 +227,7 @@ auto build_caching::get_new_file_hashes(const std::vector<std::filesystem::path>
 {
     std::unordered_map<std::filesystem::path, std::uint64_t> file_hashes;
     std::string buffer;
-    auto previous_capacity = buffer.size();
+    [[maybe_unused]] auto previous_capacity = buffer.capacity();
 
     for (const auto& file : code_files)
     {

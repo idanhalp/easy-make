@@ -18,7 +18,7 @@ SOURCE_FILES = \
     source/argument_parsing/utils.cpp \
     source/commands/build/build_caching/build_caching.cpp \
     source/commands/build/build_caching/dependency_graph.cpp \
-    source/commands/build/compilation.cpp \
+    source/commands/build/compilation/compilation.cpp \
     source/commands/build/build.cpp \
     source/commands/build/linking.cpp \
     source/commands/list_configurations/list_configurations.cpp \

@@ -3,12 +3,13 @@
 #include <filesystem>
 #include <format>
 #include <fstream>
+#include <print>
 #include <string>
 
 #include "third_party/doctest/doctest.hpp"
 
 #include "source/argument_parsing/command_info.hpp"
-#include "source/commands/build/compilation.hpp"
+#include "source/commands/build/compilation/compilation.hpp"
 #include "source/configuration_parsing/configuration.hpp"
 #include "source/parameters/parameters.hpp"
 
@@ -140,5 +141,9 @@ TEST_CASE_FIXTURE(ProjectBuilder, "Make sure parallel compilation is faster [per
 {
     const auto average_sequential_compilation_duration = get_average_sequential_compilation_duration();
     const auto average_parallel_compilation_duration   = get_average_parallel_compilation_duration();
+
+    std::println("sequential compilation duration == {}", average_sequential_compilation_duration);
+    std::println("parallel compilation duration == {}", average_parallel_compilation_duration);
+
     CHECK_GE(average_sequential_compilation_duration, average_parallel_compilation_duration);
 }

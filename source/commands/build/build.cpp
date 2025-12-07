@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "source/commands/build/build_caching/build_caching.hpp"
-#include "source/commands/build/compilation.hpp"
+#include "source/commands/build/compilation/compilation.hpp"
 #include "source/commands/build/linking.hpp"
 #include "source/parameters/parameters.hpp"
 #include "source/utils/find_closest_word.hpp"

@@ -5,7 +5,7 @@
 #include "third_party/doctest/doctest.hpp"
 
 #include "source/commands/build/build.hpp"
-#include "source/commands/build/compilation.hpp"
+#include "source/commands/build/compilation/compilation.hpp"
 #include "source/configuration_parsing/configuration.hpp"
 #include "source/configuration_parsing/configuration_parsing.hpp"
 #include "source/parameters/parameters.hpp"
