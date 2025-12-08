@@ -84,6 +84,24 @@ Each configuration must contain the following fields:
     "warnings": ["-Wall", "-Wextra", "-Wpedantic"]
     ```
 
+- `compilationFlags`
+
+  - Additional compilation flags. Must not contain some optimization flags or warnings.
+  - Example:
+
+  ```json
+  "compilationFlags": ["-pg", "-g"]
+  ```
+
+- `linkFlags`
+
+  - Additional link flags.
+  - Example:
+
+  ```json
+  "linkFlags": ["-pg", "-lm"]
+  ```
+
 - `optimization`
 
   - Compiler optimization flag. Equivalent to using `-O` with `g++`.

@@ -86,6 +86,14 @@ auto create_compilation_flags_string(const Configuration& configuration) -> std:
         }
     }
 
+    if (configuration.compilation_flags.has_value())
+    {
+        for (const auto& compilation_flag : *configuration.compilation_flags)
+        {
+            std::format_to(std::back_inserter(result), "{} ", compilation_flag);
+        }
+    }
+
     if (configuration.optimization.has_value())
     {
         if (*configuration.compiler == "cl") // MSVC.

@@ -1,45 +1,43 @@
 [
-	{
-		"name": "default",
-		"compiler": "g++",
-		"standard": "c++17",
-		"warnings": [
-			"-Wall",
-			"-Wextra"
-		],
-		"optimization": "-O2",
-		"sources": {
-			"files": [
-				"src/main.cpp",
-				"src/utils.cpp"
-			],
-			"directories": [
-				"src"
-			]
-		},
-		"exclude": {
-			"files": [
-				"src/legacy.cpp"
-			],
-			"directories": [
-				"third_party"
-			]
-		},
-		"output": {
-			"name": "my_app",
-			"path": "build"
-		}
-	},
-	{
-		"name": "debug",
-		"optimization": "-O0",
-		"defines": [
-			"DDEBUG"
-		],
-		"includeDirectories": [".", "source"],
-		"output": {
-			"name": "my_app_debug",
-			"path": "build"
-		}
-	}
+  {
+    "name": "default",
+    "compiler": "g++",
+    "standard": "c++17",
+    "warnings": ["-Wall", "-Wextra"],
+    "optimization": "-O2",
+    "sources": {
+      "files": ["src/main.cpp", "src/utils.cpp"],
+      "directories": ["src"]
+    },
+    "exclude": {
+      "files": ["src/legacy.cpp"],
+      "directories": ["third_party"]
+    },
+    "output": {
+      "name": "my_app",
+      "path": "build"
+    }
+  },
+  {
+    "name": "debug",
+    "optimization": "-O0",
+    "defines": ["DDEBUG"],
+    "includeDirectories": [".", "source"],
+    "output": {
+      "name": "my_app_debug",
+      "path": "build"
+    }
+  },
+  {
+    "name": "perf",
+    "optimization": "-O0",
+    "defines": ["DDEBUG"],
+    "includeDirectories": [".", "source"],
+	"compilationFlags": ["-pg"],
+	"linkFlags": ["-pg"],
+    "output": {
+      "name": "my_app_debug",
+      "path": "build"
+    }
+  }
 ]

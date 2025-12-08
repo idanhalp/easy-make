@@ -34,6 +34,37 @@ check_for_errors_in_configuration_json(const nlohmann::json& configuration_json)
                                  key);
     }
 
+    if (configuration_json.contains(key_to_string(JsonKey::CompilationFlags)))
+    {
+        const auto compiler_flags = configuration_json[key_to_string(JsonKey::CompilationFlags)];
+        const auto is_array_of_strings =
+            compiler_flags.is_array() && std::ranges::all_of(compiler_flags, &nlohmann::json::is_string);
+
+        if (!is_array_of_strings)
+        {
+            return std::format("Error: Invalid JSON in '{}' - the value of '{}' must be an array of strings.",
+                               params::CONFIGURATIONS_FILE_NAME.native(),
+                               key_to_string(JsonKey::CompilationFlags));
+        }
+
+        for (const std::string flag : compiler_flags)
+        {
+            static_assert(!params::ENABLE_MSVC, "The following checks assume no MSVC.");
+            const auto is_optimization = flag.starts_with("-O");
+            const auto is_warning      = flag.starts_with("-W");
+            const auto description     = is_optimization ? "optimization" : is_warning ? "warning" : "";
+
+            if (is_optimization || is_warning)
+            {
+                return std::format("Error: Invalid JSON in '{}' - '{}' must not contain any {} ({}).",
+                                   params::CONFIGURATIONS_FILE_NAME.native(),
+                                   key_to_string(JsonKey::CompilationFlags),
+                                   description,
+                                   flag);
+            }
+        }
+    }
+
     if (configuration_json.contains(key_to_string(JsonKey::Source)))
     {
         const auto sources = configuration_json[key_to_string(JsonKey::Source)];
@@ -200,6 +231,16 @@ static auto parse_configuration(const nlohmann::json& json) -> Configuration
     if (json.contains(key_to_string(JsonKey::Warnings)))
     {
         configuration.warnings = json[key_to_string(JsonKey::Warnings)];
+    }
+
+    if (json.contains(key_to_string(JsonKey::CompilationFlags)))
+    {
+        configuration.compilation_flags = json[key_to_string(JsonKey::CompilationFlags)];
+    }
+
+    if (json.contains(key_to_string(JsonKey::LinkFlags)))
+    {
+        configuration.link_flags = json[key_to_string(JsonKey::LinkFlags)];
     }
 
     if (json.contains(key_to_string(JsonKey::Defines)))

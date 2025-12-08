@@ -2,11 +2,14 @@
 
 #include <cstdlib>
 #include <format>
+#include <ranges>
 #include <string_view>
 
 #include "source/parameters/parameters.hpp"
 #include "source/utils/macros/assert.hpp"
 #include "source/utils/print.hpp"
+
+using namespace std::literals;
 
 static auto print_linking_result(const bool linking_successful, const std::string_view output_path) -> void
 {
@@ -22,6 +25,7 @@ static auto print_linking_result(const bool linking_successful, const std::strin
 
 auto link_object_files(const Configuration& configuration,
                        const std::filesystem::path& path_to_root,
+                       const std::vector<std::string>& flags,
                        const bool is_quiet) -> bool
 {
     ASSERT(configuration.name.has_value());
@@ -42,7 +46,10 @@ auto link_object_files(const Configuration& configuration,
         std::println("Linking...");
     }
 
-    const auto link_command = std::format("{} {}/*.o -o {}", *configuration.compiler, object_files_path, output_path);
+    const auto flag_string = flags | std::views::join_with(" "sv) | std::ranges::to<std::string>();
+    const auto link_command =
+        std::format("{} {} {}/*.o -o {}", *configuration.compiler, flag_string, object_files_path, output_path);
+
     const auto linking_successful = std::system(link_command.c_str()) == EXIT_SUCCESS;
 
     if (!is_quiet)

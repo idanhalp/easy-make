@@ -400,7 +400,8 @@ auto commands::build(const BuildCommandInfo& info,
         };
     }
 
-    const auto linking_successful = link_object_files(*actual_configuration, path_to_root, info.is_quiet);
+    const auto linking_successful = link_object_files(
+        *actual_configuration, path_to_root, actual_configuration->link_flags.value_or({}), info.is_quiet);
 
     if (!linking_successful)
     {

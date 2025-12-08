@@ -11,6 +11,8 @@ namespace json_keys
         Name,
         Parent,
         Warnings,
+        CompilationFlags,
+        LinkFlags,
         Optimization,
         Compiler,
         Standard,

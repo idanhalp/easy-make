@@ -15,7 +15,7 @@ TEST_SUITE("configuration_parsing" * doctest::test_suite(test_type::unit))
         const auto configurations = parse_configurations(project_2_path);
 
         REQUIRE(configurations.has_value());
-        CHECK_EQ(configurations->size(), 2);
+        CHECK_EQ(configurations->size(), 3);
 
         const auto& default_configuration = configurations->at(0);
         CHECK_EQ(default_configuration.name, "default");
@@ -36,6 +36,10 @@ TEST_SUITE("configuration_parsing" * doctest::test_suite(test_type::unit))
         CHECK_EQ(debug_configuration.include_directories.value(), std::vector<std::string>{".", "source"});
         CHECK_EQ(debug_configuration.output_name.value(), "my_app_debug");
         CHECK_EQ(debug_configuration.output_path.value(), "build");
+
+        const auto& performance_configuration = configurations->at(2);
+        CHECK_EQ(performance_configuration.compilation_flags, std::vector<std::string>{"-pg"});
+        CHECK_EQ(performance_configuration.link_flags, std::vector<std::string>{"-pg"});
     }
 
     TEST_CASE("Configuration with missing fields is handled correctly")
