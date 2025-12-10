@@ -1,0 +1,16 @@
+[
+    {
+        "name": "config-1",
+        "standard": "20",
+        "warnings": "-Wall",
+        "output": {
+            "name": "build"
+        }
+    },
+    {
+        "name": "config-2",
+        "output": {
+            "name": "build"
+        }
+    }
+]

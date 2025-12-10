@@ -56,17 +56,11 @@ static const std::flat_set<std::string> valid_outer_json_keys = {
     key_to_string(JsonKey::Output),
 };
 
-static const std::flat_set<std::string> valid_source_json_keys = {
+static const std::flat_set<std::string> valid_inner_json_keys = {
     key_to_string(JsonKey::SourceFiles),
     key_to_string(JsonKey::SourceDirectories),
-};
-
-static const std::flat_set<std::string> valid_excludes_json_keys = {
     key_to_string(JsonKey::ExcludedFiles),
     key_to_string(JsonKey::ExcludedDirectories),
-};
-
-static const std::flat_set<std::string> valid_output_json_keys = {
     key_to_string(JsonKey::OutputName),
     key_to_string(JsonKey::OutputPath),
 };
@@ -91,32 +85,30 @@ auto json_keys::get_valid_outer_keys() -> std::vector<std::string>
     return valid_outer_json_keys | std::ranges::to<std::vector>();
 }
 
-auto json_keys::is_valid_source_key(const std::string& s) -> bool
+auto json_keys::get_related_inner_key_names(const std::string& key_name) -> std::vector<std::string>
 {
-    return valid_source_json_keys.contains(s);
-}
+    const auto key                    = string_to_key_map.at(key_name);
+    std::vector<JsonKey> related_keys = {};
 
-auto json_keys::get_valid_source_keys() -> std::vector<std::string>
-{
-    return valid_source_json_keys | std::ranges::to<std::vector>();
-}
+    switch (key)
+    {
+    case JsonKey::Source:
+        related_keys = {JsonKey::SourceFiles, JsonKey::SourceDirectories};
+        break;
 
-auto json_keys::is_valid_excludes_key(const std::string& s) -> bool
-{
-    return valid_excludes_json_keys.contains(s);
-}
+    case JsonKey::Excludes:
+        related_keys = {JsonKey::ExcludedFiles, JsonKey::ExcludedDirectories};
+        break;
 
-auto json_keys::get_valid_excludes_keys() -> std::vector<std::string>
-{
-    return valid_excludes_json_keys | std::ranges::to<std::vector>();
-}
+    case JsonKey::Output:
+        related_keys = {JsonKey::OutputName, JsonKey::OutputPath};
+        break;
 
-auto json_keys::is_valid_output_key(const std::string& s) -> bool
-{
-    return valid_output_json_keys.contains(s);
-}
+    default:
+        related_keys = {};
+    }
 
-auto json_keys::get_valid_output_keys() -> std::vector<std::string>
-{
-    return valid_output_json_keys | std::ranges::to<std::vector>();
+    return related_keys                            //
+           | std::views::transform(&key_to_string) //
+           | std::ranges::to<std::vector>();       //
 }

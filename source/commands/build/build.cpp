@@ -2,6 +2,7 @@
 
 #include <cstdlib> // `std::system`
 #include <format>
+#include <iterator> // std::back_inserter
 #include <print>
 #include <ranges>
 #include <string>
@@ -18,113 +19,6 @@
 #include "source/utils/graph.hpp"
 #include "source/utils/print.hpp"
 #include "source/utils/utils.hpp"
-
-/// @brief  Validates that all configurations have unique names.
-/// @param  configurations  A collection of configuration objects to validate.
-/// @return `std::nullopt` if all names are valid, or a `std::string` with the relevant error otherwise.
-auto check_names_validity(const std::vector<Configuration>& configurations) -> std::optional<std::string>
-{
-    std::unordered_map<std::string, std::ptrdiff_t> configuration_to_index;
-
-    for (const auto [index, configuration] : std::views::enumerate(configurations) | std::views::as_const)
-    {
-        const auto actual_index = index + 1;
-
-        if (!configuration.name.has_value())
-        {
-            return std::format("Error: The {}{} configuration does not have a name.",
-                               actual_index,
-                               utils::get_ordinal_indicator(actual_index));
-        }
-
-        const auto& name = *configuration.name;
-
-        if (configuration_to_index.contains(name))
-        {
-            return std::format("Error: Both the {}{} and {}{} configurations have '{}' as name.",
-                               configuration_to_index.at(name),
-                               utils::get_ordinal_indicator(configuration_to_index.at(name)),
-                               actual_index,
-                               utils::get_ordinal_indicator(actual_index),
-                               name);
-        }
-
-        configuration_to_index[name] = actual_index;
-    }
-
-    return std::nullopt;
-}
-
-static auto check_for_parent_cycles(const std::unordered_map<std::string, Configuration>& name_to_configuration)
-    -> std::optional<std::string>
-{
-    utils::DirectedGraph<std::string> parent_graph;
-
-    for (const auto& [name, configuration] : name_to_configuration)
-    {
-        if (configuration.parent.has_value())
-        {
-            parent_graph.add_edge(name, *configuration.parent);
-        }
-    }
-
-    return parent_graph.check_for_cycle();
-}
-
-auto check_parents_validity(const std::unordered_map<std::string, Configuration>& name_to_configuration)
-    -> std::optional<std::string>
-{
-    for (const auto& configuration : std::views::values(name_to_configuration))
-    {
-        const auto configuration_has_parent = configuration.parent.has_value();
-
-        if (!configuration_has_parent)
-        {
-            continue;
-        }
-
-        const auto configuration_is_its_own_parent = configuration.name == configuration.parent;
-
-        if (configuration_is_its_own_parent)
-        {
-            return std::format("Error: Configuration '{}' has itself as a parent.", *configuration.name);
-        }
-
-        const auto parent_exists = name_to_configuration.contains(*configuration.parent);
-
-        if (!parent_exists)
-        {
-            const auto configuration_names = std::views::keys(name_to_configuration) | std::ranges::to<std::vector>();
-            const auto closest_parent      = utils::find_closest_word(*configuration.parent, configuration_names);
-
-            return closest_parent.has_value()
-                       ? std::format("Error: Configuration '{}' has a non-existent configuration as its parent ('{}'). "
-                                     "Did you mean '{}'?",
-                                     *configuration.name,
-                                     *configuration.parent,
-                                     *closest_parent)
-                       : std::format("Error: Configuration '{}' has a non-existent configuration as its parent ('{}').",
-                                     *configuration.name,
-                                     *configuration.parent);
-        }
-    }
-
-    const auto cycle_info   = check_for_parent_cycles(name_to_configuration);
-    const auto cycle_exists = cycle_info.has_value();
-
-    if (cycle_exists)
-    {
-        return std::format("Error: Circular parent dependency detected.\n\n"
-                           "The following configurations form a cycle:\n"
-                           "{}\n\n"
-                           "Consider restructuring the code to break the circular dependency.",
-                           *cycle_info);
-    }
-    else
-    {
-        return std::nullopt;
-    }
-}
 
 /// @brief  Creates a new configuration by merging fields from a parent hierarchy.
 ///         Missing fields in `original` are populated from `parent`. If `parent`
@@ -202,49 +96,49 @@ static auto merge_configuration_with_parent(const Configuration& original, const
     return result;
 }
 
-auto get_actual_configuration(const std::string& configuration_name, const std::vector<Configuration>& configurations)
-    -> std::expected<Configuration, std::string>
+static auto check_for_missing_values(const Configuration& configuration) -> std::optional<std::string>
 {
-    const auto name_error        = check_names_validity(configurations);
-    const auto name_error_exists = name_error.has_value();
+    const auto missing_compiler            = !configuration.compiler.has_value();
+    const auto missing_output_name         = !configuration.output_name.has_value();
+    const auto all_critical_fields_present = !missing_compiler && !missing_output_name;
 
-    if (name_error_exists)
+    if (all_critical_fields_present)
     {
-        return std::unexpected(*name_error);
+        return std::nullopt;
     }
 
+    const auto missing_field = missing_compiler ? "compiler" : missing_output_name ? "output.name" : "";
+
+    return std::format("Error: Could not resolve {} for configuration '{}'.", missing_field, *configuration.name);
+}
+
+auto get_actual_configuration(const std::string& target_configuration_name,
+                              const std::vector<Configuration>& configurations)
+    -> std::expected<Configuration, std::string>
+{
     const auto get_name_configuration_pair = [](const auto& config) { return std::make_pair(*config.name, config); };
     const auto name_to_configuration =
         configurations | std::views::transform(get_name_configuration_pair) | std::ranges::to<std::unordered_map>();
 
-    const auto parent_error        = check_parents_validity(name_to_configuration);
-    const auto parent_error_exists = parent_error.has_value();
-
-    if (parent_error_exists)
-    {
-        return std::unexpected(*parent_error);
-    }
-
-    const auto configuration_exists = name_to_configuration.contains(configuration_name);
+    const auto configuration_exists = name_to_configuration.contains(target_configuration_name);
 
     if (!configuration_exists)
     {
         const auto configuration_names = std::views::keys(name_to_configuration) | std::ranges::to<std::vector>();
-        const auto closest_name        = utils::find_closest_word(configuration_name, configuration_names);
-        const auto error_message =
-            closest_name.has_value()
-                ? std::format("'{}' does not contain a configuration named '{}'. Did you mean '{}'?",
-                              params::CONFIGURATIONS_FILE_NAME.native(),
-                              configuration_name,
-                              *closest_name)
-                : std::format("'{}' does not contain a configuration named '{}'.",
-                              params::CONFIGURATIONS_FILE_NAME.native(),
-                              configuration_name);
+        auto error_message             = std::format("'{}' does not contain a configuration named '{}'.",
+                                         params::CONFIGURATIONS_FILE_NAME.native(),
+                                         target_configuration_name);
+
+        if (const auto closest_name = utils::find_closest_word(target_configuration_name, configuration_names);
+            closest_name.has_value())
+        {
+            std::format_to(std::back_inserter(error_message), " Did you mean '{}'?", *closest_name);
+        }
 
         return std::unexpected(error_message);
     }
 
-    auto current_configuration = name_to_configuration.at(configuration_name);
+    auto current_configuration = name_to_configuration.at(target_configuration_name);
 
     while (current_configuration.parent.has_value())
     {
@@ -252,11 +146,10 @@ auto get_actual_configuration(const std::string& configuration_name, const std::
         current_configuration            = merge_configuration_with_parent(current_configuration, parent_configuration);
     }
 
-    const auto error_with_merged_configuration = current_configuration.check_for_errors();
-
-    if (error_with_merged_configuration.has_value())
+    if (const auto missing_values_error = check_for_missing_values(current_configuration);
+        missing_values_error.has_value())
     {
-        return std::unexpected(*error_with_merged_configuration);
+        return std::unexpected(*missing_values_error);
     }
 
     return current_configuration;

@@ -27,9 +27,10 @@ SOURCE_FILES = \
     source/commands/clean_all/clean_all.cpp \
     source/commands/init/init.cpp \
     source/commands/print_version/print_version.cpp \
-    source/configuration_parsing/configuration.cpp \
     source/configuration_parsing/configuration_parsing.cpp \
     source/configuration_parsing/json_keys.cpp \
+    source/configuration_parsing/structure_validation.cpp \
+    source/configuration_parsing/value_validation.cpp \
     source/main.cpp \
     source/utils/find_closest_word.cpp \
     source/utils/utils.cpp

@@ -12,12 +12,8 @@
 #include "source/argument_parsing/command_info.hpp"
 #include "source/configuration_parsing/configuration.hpp"
 
-auto check_names_validity(const std::vector<Configuration>& configurations) -> std::optional<std::string>;
-
-auto check_parents_validity(const std::unordered_map<std::string, Configuration>& name_to_configuration)
-    -> std::optional<std::string>;
-
-auto get_actual_configuration(const std::string& configuration_name, const std::vector<Configuration>& configurations)
+auto get_actual_configuration(const std::string& target_configuration_name,
+                              const std::vector<Configuration>& configurations)
     -> std::expected<Configuration, std::string>;
 
 auto get_code_files(const Configuration& configuration,

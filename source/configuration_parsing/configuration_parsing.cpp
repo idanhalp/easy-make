@@ -3,199 +3,15 @@
 #include <algorithm>
 #include <format>
 #include <fstream>
+#include <ranges>
+#include <string>
 
 #include "third_party/nlohmann/json.hpp"
 
 #include "source/configuration_parsing/json_keys.hpp"
+#include "source/configuration_parsing/structure_validation.hpp"
+#include "source/configuration_parsing/value_validation.hpp"
 #include "source/parameters/parameters.hpp"
-#include "source/utils/find_closest_word.hpp"
-
-static auto
-check_for_errors_in_configuration_json(const nlohmann::json& configuration_json) -> std::optional<std::string>
-{
-    using namespace json_keys;
-
-    for (const auto& [key, _] : configuration_json.items())
-    {
-        if (is_valid_outer_key(key))
-        {
-            continue;
-        }
-
-        const auto closest_valid_key = utils::find_closest_word(key, get_valid_outer_keys());
-
-        return closest_valid_key.has_value()
-                   ? std::format("Error: Invalid JSON in '{}' - '{}' is not a valid outer key. Did you mean '{}'?",
-                                 params::CONFIGURATIONS_FILE_NAME.native(),
-                                 key,
-                                 *closest_valid_key)
-                   : std::format("Error: Invalid JSON in '{}' - '{}' is not a valid outer key.",
-                                 params::CONFIGURATIONS_FILE_NAME.native(),
-                                 key);
-    }
-
-    if (configuration_json.contains(key_to_string(JsonKey::CompilationFlags)))
-    {
-        const auto compiler_flags = configuration_json[key_to_string(JsonKey::CompilationFlags)];
-        const auto is_array_of_strings =
-            compiler_flags.is_array() && std::ranges::all_of(compiler_flags, &nlohmann::json::is_string);
-
-        if (!is_array_of_strings)
-        {
-            return std::format("Error: Invalid JSON in '{}' - the value of '{}' must be an array of strings.",
-                               params::CONFIGURATIONS_FILE_NAME.native(),
-                               key_to_string(JsonKey::CompilationFlags));
-        }
-
-        for (const std::string flag : compiler_flags)
-        {
-            static_assert(!params::ENABLE_MSVC, "The following checks assume no MSVC.");
-            const auto is_optimization = flag.starts_with("-O");
-            const auto is_warning      = flag.starts_with("-W");
-            const auto description     = is_optimization ? "optimization" : is_warning ? "warning" : "";
-
-            if (is_optimization || is_warning)
-            {
-                return std::format("Error: Invalid JSON in '{}' - '{}' must not contain any {} ({}).",
-                                   params::CONFIGURATIONS_FILE_NAME.native(),
-                                   key_to_string(JsonKey::CompilationFlags),
-                                   description,
-                                   flag);
-            }
-        }
-    }
-
-    if (configuration_json.contains(key_to_string(JsonKey::Source)))
-    {
-        const auto sources = configuration_json[key_to_string(JsonKey::Source)];
-
-        if (!sources.is_object())
-        {
-            return std::format("Error: Invalid JSON in '{}' - the value of '{}' must be an object.",
-                               params::CONFIGURATIONS_FILE_NAME.native(),
-                               key_to_string(JsonKey::Source));
-        }
-
-        for (const auto& [key, _] : sources.items())
-        {
-            if (is_valid_source_key(key))
-            {
-                continue;
-            }
-
-            const auto closest_valid_key = utils::find_closest_word(key, get_valid_source_keys());
-
-            return closest_valid_key.has_value()
-                       ? std::format("Error: Invalid JSON in '{}' - '{}.{}' is not a valid key. Did you mean '{}.{}'?",
-                                     params::CONFIGURATIONS_FILE_NAME.native(),
-                                     key_to_string(JsonKey::Source),
-                                     key,
-                                     key_to_string(JsonKey::Source),
-                                     *closest_valid_key)
-                       : std::format("Error: Invalid JSON in '{}' - '{}.{}' is not a valid key.",
-                                     params::CONFIGURATIONS_FILE_NAME.native(),
-                                     key_to_string(JsonKey::Source),
-                                     key);
-        }
-    }
-
-    if (configuration_json.contains(key_to_string(JsonKey::Excludes)))
-    {
-        const auto excludes = configuration_json[key_to_string(JsonKey::Excludes)];
-
-        if (!excludes.is_object())
-        {
-            return std::format("Error: Invalid JSON in '{}' - the value of '{}' must be an object.",
-                               params::CONFIGURATIONS_FILE_NAME.native(),
-                               key_to_string(JsonKey::Excludes));
-        }
-
-        for (const auto& [key, _] : excludes.items())
-        {
-            if (is_valid_excludes_key(key))
-            {
-                continue;
-            }
-
-            const auto closest_valid_key = utils::find_closest_word(key, get_valid_excludes_keys());
-
-            return closest_valid_key.has_value()
-                       ? std::format("Error: Invalid JSON in '{}' - '{}.{}' is not a valid key. Did you mean '{}.{}'?",
-                                     params::CONFIGURATIONS_FILE_NAME.native(),
-                                     key_to_string(JsonKey::Excludes),
-                                     key,
-                                     key_to_string(JsonKey::Excludes),
-                                     *closest_valid_key)
-                       : std::format("Error: Invalid JSON in '{}' - '{}.{}' is not a valid key.",
-                                     params::CONFIGURATIONS_FILE_NAME.native(),
-                                     key_to_string(JsonKey::Excludes),
-                                     key);
-        }
-    }
-
-    if (configuration_json.contains(key_to_string(JsonKey::Output)))
-    {
-        const auto output = configuration_json[key_to_string(JsonKey::Output)];
-
-        if (!output.is_object())
-        {
-            return std::format("Error: Invalid JSON in '{}' - the value of '{}' must be an object.",
-                               params::CONFIGURATIONS_FILE_NAME.native(),
-                               key_to_string(JsonKey::Output));
-        }
-
-        for (const auto& [key, _] : output.items())
-        {
-            if (is_valid_output_key(key))
-            {
-                continue;
-            }
-
-            const auto closest_valid_key = utils::find_closest_word(key, get_valid_output_keys());
-
-            return closest_valid_key.has_value()
-                       ? std::format("Error: Invalid JSON in '{}' - '{}.{}' is not a valid key. Did you mean '{}.{}'?",
-                                     params::CONFIGURATIONS_FILE_NAME.native(),
-                                     key_to_string(JsonKey::Output),
-                                     key,
-                                     key_to_string(JsonKey::Output),
-                                     *closest_valid_key)
-                       : std::format("Error: Invalid JSON in '{}' - '{}.{}' is not a valid key.",
-                                     params::CONFIGURATIONS_FILE_NAME.native(),
-                                     key_to_string(JsonKey::Output),
-                                     key);
-        }
-    }
-
-    return std::nullopt;
-}
-
-static auto check_for_errors_in_json(const nlohmann::json& json) -> std::optional<std::string>
-{
-    if (!json.is_array())
-    {
-        return std::format("Error: Invalid JSON in '{}' - Must be an array.",
-                           params::CONFIGURATIONS_FILE_NAME.native());
-    }
-
-    const auto is_array_of_objects = std::ranges::all_of(json, &nlohmann::json::is_object);
-
-    if (!is_array_of_objects)
-    {
-        return std::format("Error: Invalid JSON in '{}' - All elements of the array must be objects.",
-                           params::CONFIGURATIONS_FILE_NAME.native());
-    }
-
-    for (const auto& configuration_object : json)
-    {
-        if (const auto error = check_for_errors_in_configuration_json(configuration_object); error.has_value())
-        {
-            return *error;
-        }
-    }
-
-    return std::nullopt;
-}
 
 static auto parse_configuration(const nlohmann::json& json) -> Configuration
 {
@@ -301,67 +117,9 @@ static auto parse_configuration(const nlohmann::json& json) -> Configuration
     return configuration;
 }
 
-static auto
-check_for_error_in_sources_and_excludes(const Configuration& configuration,
-                                        const std::filesystem::path& path_to_root) -> std::optional<std::string>
+static auto read_json(const std::filesystem::path& path_to_root) -> std::expected<nlohmann::json, std::string>
 {
-    if (configuration.source_files.has_value())
-    {
-        for (const auto& file : *configuration.source_files)
-        {
-            if (!std::filesystem::is_regular_file(path_to_root / file))
-            {
-                return std::format(
-                    "Error: Configuration '{}' - source file '{}' does not exist.", *configuration.name, file);
-            }
-        }
-    }
-
-    if (configuration.source_directories.has_value())
-    {
-        for (const auto& directory : *configuration.source_directories)
-        {
-            if (!std::filesystem::is_directory(path_to_root / directory))
-            {
-                return std::format("Error: Configuration '{}' - source directory '{}' does not exist.",
-                                   *configuration.name,
-                                   directory);
-            }
-        }
-    }
-
-    if (configuration.excluded_files.has_value())
-    {
-        for (const auto& file : *configuration.excluded_files)
-        {
-            if (!std::filesystem::is_regular_file(path_to_root / file))
-            {
-                return std::format(
-                    "Error: Configuration '{}' - excluded file '{}' does not exist.", *configuration.name, file);
-            }
-        }
-    }
-
-    if (configuration.excluded_directories.has_value())
-    {
-        for (const auto& directory : *configuration.excluded_directories)
-        {
-            if (!std::filesystem::is_directory(path_to_root / directory))
-            {
-                return std::format("Error: Configuration '{}' - excluded directory '{}' does not exist.",
-                                   *configuration.name,
-                                   directory);
-            }
-        }
-    }
-
-    return std::nullopt;
-}
-
-auto parse_configurations(const std::filesystem::path& path_to_root)
-    -> std::expected<std::vector<Configuration>, std::string>
-{
-    std::ifstream configurations_file(path_to_root / params::CONFIGURATIONS_FILE_NAME);
+    auto configurations_file = std::ifstream(path_to_root / params::CONFIGURATIONS_FILE_NAME);
     nlohmann::json json;
 
     try
@@ -374,34 +132,35 @@ auto parse_configurations(const std::filesystem::path& path_to_root)
             std::format("Error: Invalid JSON in '{}' - {}", params::CONFIGURATIONS_FILE_NAME.native(), e.what()));
     }
 
-    const auto error_in_json       = check_for_errors_in_json(json);
-    const auto found_error_in_json = error_in_json.has_value();
+    return json;
+}
 
-    if (found_error_in_json)
+auto parse_configurations(const std::filesystem::path& path_to_root)
+    -> std::expected<std::vector<Configuration>, std::string>
+{
+    const auto json                           = read_json(path_to_root);
+    const auto encountered_error_reading_json = !json.has_value();
+
+    if (encountered_error_reading_json)
     {
-        return std::unexpected(*error_in_json);
+        return std::unexpected(json.error());
     }
 
-    std::vector<Configuration> configurations;
-    configurations.reserve(json.size());
+    const auto json_structure_error = validate_json_structure(*json);
+    const auto structure_is_valid   = !json_structure_error.has_value();
 
-    for (const auto& configuration_object : json)
+    if (!structure_is_valid)
     {
-        auto configuration = parse_configuration(configuration_object);
+        return std::unexpected(*json_structure_error);
+    }
 
-        // Even after calling `check_for_errors_in_json`, we still need to check that all
-        // the source and excluded files and directories specified in the configuration file actually exist.
-        const auto error_in_sources_and_excludes = check_for_error_in_sources_and_excludes(configuration, path_to_root);
-        const auto found_error_in_sources_and_excludes = error_in_sources_and_excludes.has_value();
+    const auto configurations = *json | std::views::transform(parse_configuration) | std::ranges::to<std::vector>();
+    const auto configuration_value_error              = validate_configuration_values(configurations, path_to_root);
+    const auto found_configuration_with_invalid_value = configuration_value_error.has_value();
 
-        if (found_error_in_sources_and_excludes)
-        {
-            return std::unexpected(*error_in_sources_and_excludes);
-        }
-        else
-        {
-            configurations.push_back(std::move(configuration));
-        }
+    if (found_configuration_with_invalid_value)
+    {
+        return std::unexpected(*configuration_value_error);
     }
 
     return configurations;

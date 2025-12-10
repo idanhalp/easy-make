@@ -23,8 +23,6 @@ struct Configuration
     std::optional<std::vector<std::string>> excluded_directories;
     std::optional<std::string> output_name;
     std::optional<std::string> output_path;
-
-    auto check_for_errors() const -> std::optional<std::string>;
 };
 
 #endif // SOURCE_CONFIGURATION_PARSING_CONFIGURATION_HPP

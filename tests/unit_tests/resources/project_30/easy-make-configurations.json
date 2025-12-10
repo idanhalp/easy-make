@@ -1,0 +1,21 @@
+[
+  {
+    "name": "config-1",
+    "compiler": "g++",
+    "output": {
+      "name": "output.exe"
+    }
+  },
+  {
+    "name": "config-2",
+    "compiler": "g++",
+    "output": {
+      "name": "output.exe"
+    }
+  },
+  {
+    "name": "config-3",
+    "compiler": "g++",
+    "output": "output.exe"
+  }
+]

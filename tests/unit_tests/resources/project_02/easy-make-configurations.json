@@ -2,9 +2,9 @@
   {
     "name": "default",
     "compiler": "g++",
-    "standard": "c++17",
+    "standard": "17",
     "warnings": ["-Wall", "-Wextra"],
-    "optimization": "-O2",
+    "optimization": "2",
     "sources": {
       "files": ["src/main.cpp", "src/utils.cpp"],
       "directories": ["src"]
@@ -20,7 +20,7 @@
   },
   {
     "name": "debug",
-    "optimization": "-O0",
+    "optimization": "0",
     "defines": ["DDEBUG"],
     "includeDirectories": [".", "source"],
     "output": {
@@ -30,7 +30,7 @@
   },
   {
     "name": "perf",
-    "optimization": "-O0",
+    "optimization": "0",
     "defines": ["DDEBUG"],
     "includeDirectories": [".", "source"],
 	"compilationFlags": ["-pg"],

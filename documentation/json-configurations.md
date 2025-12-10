@@ -78,7 +78,7 @@ Each configuration must contain the following fields:
 - `warnings`
 
   - Compiler warning flags.
-  - Warnings must start with `-W` (except `-pedantic` and `-pedantic-errors`).
+  - Warnings must start with `-W` and not be empty (just `-W` is outright invalid).
   - Example:
     ```json
     "warnings": ["-Wall", "-Wextra", "-Wpedantic"]
@@ -86,7 +86,7 @@ Each configuration must contain the following fields:
 
 - `compilationFlags`
 
-  - Additional compilation flags. Must not contain some optimization flags or warnings.
+  - Additional compilation flags.
   - Example:
 
   ```json

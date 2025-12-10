@@ -1,0 +1,6 @@
+{
+    "name": "config",
+    "output": {
+        "name": "build"
+    } 
+}
