@@ -27,7 +27,7 @@ auto commands::print_version([[maybe_unused]] const PrintVersionCommandInfo& inf
 
     const auto current_version = VersionInfo{
         .major = 1,
-        .minor = 1,
+        .minor = 2,
         .patch = 0,
     };
 
