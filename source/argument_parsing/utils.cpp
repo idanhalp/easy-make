@@ -11,13 +11,13 @@ auto utils::check_for_duplicate_flags(const std::span<const char* const> argumen
 {
     std::unordered_set<std::string_view> seen;
 
-    for (const std::string_view flag : arguments)
+    for (const std::string_view argument : arguments)
     {
-        const auto flag_already_seen = !seen.insert(flag).second;
+        const auto found_duplicate_flag = utils::is_flag(argument) && !seen.insert(argument).second;
 
-        if (flag_already_seen)
+        if (found_duplicate_flag)
         {
-            return flag;
+            return argument;
         }
     }
 

@@ -96,6 +96,20 @@ TEST_SUITE("argument_parsing" * doctest::test_suite(test_type::unit))
             REQUIRE_FALSE(command_info.has_value());
             CHECK_EQ(command_info.error(), "Error: Unknown flag '--fast' provided to command 'build'.");
         }
+
+        SUBCASE("configuration name is 'build'")
+        {
+            const std::vector arguments = {"./easy-make", "build", "build"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<BuildCommandInfo>(*command_info));
+
+            const auto& build_command_info = std::get<BuildCommandInfo>(*command_info);
+            CHECK_EQ(build_command_info.configuration_name, "build");
+            CHECK_FALSE(build_command_info.is_quiet);
+            CHECK_FALSE(build_command_info.use_parallel_compilation);
+        }
     }
 
     TEST_CASE("'clean' command")
@@ -184,6 +198,19 @@ TEST_SUITE("argument_parsing" * doctest::test_suite(test_type::unit))
 
             REQUIRE_FALSE(command_info.has_value());
             CHECK_EQ(command_info.error(), "Error: Flag '--quiet' was provided to command 'clean' more than once.");
+        }
+
+        SUBCASE("Configuration's name is 'clean'")
+        {
+            const std::vector arguments = {"./easy-make", "clean", "clean"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<CleanCommandInfo>(*command_info));
+
+            const auto& clean_command_info = std::get<CleanCommandInfo>(*command_info);
+            CHECK_EQ(clean_command_info.configuration_name, "clean");
+            CHECK_FALSE(clean_command_info.is_quiet);
         }
     }
 
@@ -596,6 +623,22 @@ TEST_SUITE("argument_parsing" * doctest::test_suite(test_type::unit))
             REQUIRE_FALSE(command_info.has_value());
             CHECK_EQ(command_info.error(),
                      "Error: Flag '--count' was provided to command 'list-files' more than once.");
+        }
+
+        SUBCASE("Configuration's name is 'list-files'")
+        {
+            const std::vector arguments = {"./easy-make", "list-files", "list-files"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<ListFilesCommandInfo>(*command_info));
+
+            const auto& list_files_command_info = std::get<ListFilesCommandInfo>(*command_info);
+            CHECK_EQ(list_files_command_info.configuration_name, "list-files");
+            CHECK_FALSE(list_files_command_info.count);
+            CHECK_FALSE(list_files_command_info.header_only);
+            CHECK_FALSE(list_files_command_info.porcelain_output);
+            CHECK_FALSE(list_files_command_info.source_only);
         }
     }
 

@@ -48,13 +48,13 @@ auto parse_init_command_arguments(const std::span<const char* const> arguments)
 {
     // The first 2 elements are the program name and the command (which is "init").
     ASSERT(arguments.size() >= 2);
-    const auto command_name       = std::string_view(arguments[1]);
-    const auto relevant_arguments = std::span(arguments.begin() + 2, arguments.end());
+    const auto command_name     = std::string_view(arguments[1]);
+    const auto actual_arguments = std::span(arguments.begin() + 2, arguments.end());
 
     ASSERT(std::ranges::all_of(FLAGS, &utils::is_flag)); // Make sure all the flags are valid.
     InitCommandInfo info{};
 
-    for (const std::string_view argument : relevant_arguments)
+    for (const std::string_view argument : actual_arguments)
     {
         if (!utils::is_flag(argument))
         {
@@ -70,7 +70,7 @@ auto parse_init_command_arguments(const std::span<const char* const> arguments)
         }
     }
 
-    const auto duplicate_flag        = utils::check_for_duplicate_flags(arguments);
+    const auto duplicate_flag        = utils::check_for_duplicate_flags(actual_arguments);
     const auto duplicate_flag_exists = duplicate_flag.has_value();
 
     if (duplicate_flag_exists)
