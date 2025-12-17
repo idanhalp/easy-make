@@ -62,6 +62,7 @@ TEST_CASE_FIXTURE(TestEnvironmentGuard<2>, "Recompilation after failure [regress
 
     const auto info = BuildCommandInfo{
         .configuration_name       = "config",
+        .build_all_configurations = false,
         .is_quiet                 = true,
         .use_parallel_compilation = false,
     };

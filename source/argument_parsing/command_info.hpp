@@ -1,12 +1,14 @@
 #ifndef SOURCE_ARGUMENT_PARSING_COMMAND_INFO_HPP
 #define SOURCE_ARGUMENT_PARSING_COMMAND_INFO_HPP
 
+#include <optional>
 #include <string>
 #include <variant>
 
 struct BuildCommandInfo
 {
-    std::string configuration_name;
+    std::optional<std::string> configuration_name;
+    bool build_all_configurations;
     bool is_quiet;
     bool use_parallel_compilation;
 };

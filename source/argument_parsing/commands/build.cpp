@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <flat_set>
+#include <format>
 #include <string_view>
 
 #include "source/argument_parsing/error_formatting.hpp"
@@ -10,10 +11,12 @@
 
 using namespace std::literals;
 
-static const auto PARALLEL_COMPILATION_FLAG = "--parallel"sv;
-static const auto QUIET_FLAG                = "--quiet"sv;
+static const auto BUILD_ALL_CONFIGURATIONS_FLAG = "--all"sv;
+static const auto PARALLEL_COMPILATION_FLAG     = "--parallel"sv;
+static const auto QUIET_FLAG                    = "--quiet"sv;
 
 static const std::flat_set FLAGS = {
+    BUILD_ALL_CONFIGURATIONS_FLAG,
     PARALLEL_COMPILATION_FLAG,
     QUIET_FLAG,
 };
@@ -24,6 +27,13 @@ static auto parse_flag(const std::string_view flag,
                        const std::string_view command_name,
                        BuildCommandInfo& info) -> std::optional<std::string>
 {
+    if (flag == BUILD_ALL_CONFIGURATIONS_FLAG)
+    {
+        info.build_all_configurations = true;
+
+        return std::nullopt;
+    }
+
     if (flag == PARALLEL_COMPILATION_FLAG)
     {
         info.use_parallel_compilation = true;
@@ -44,6 +54,25 @@ static auto parse_flag(const std::string_view flag,
     return create_unknown_flag_error(command_name, flag, FLAGS);
 }
 
+static auto check_for_conflicting_flags(const BuildCommandInfo& info,
+                                        const std::string_view command_name) -> std::optional<std::string>
+{
+    if (info.configuration_name.has_value() && info.build_all_configurations)
+    {
+        return std::format("Error: Cannot use both a configuration name ('{}') and the '{}' flag with command '{}'.",
+                           *info.configuration_name,
+                           BUILD_ALL_CONFIGURATIONS_FLAG,
+                           command_name);
+    }
+
+    if (!info.configuration_name.has_value() && !info.build_all_configurations)
+    {
+        return create_missing_configuration_name_error(command_name);
+    }
+
+    return std::nullopt;
+}
+
 auto parse_build_command_arguments(std::span<const char* const> arguments)
     -> std::expected<BuildCommandInfo, std::string>
 {
@@ -54,7 +83,6 @@ auto parse_build_command_arguments(std::span<const char* const> arguments)
 
     ASSERT(std::ranges::all_of(FLAGS, &utils::is_flag)); // Make sure all the flags are valid.
     BuildCommandInfo info{};
-    auto configuration_name_provided = false;
 
     for (const std::string_view argument : actual_arguments)
     {
@@ -74,25 +102,28 @@ auto parse_build_command_arguments(std::span<const char* const> arguments)
         }
 
         // Assume `argument` is a configuration name.
-        // If `configuration_name_provided` was already set before handling the current argument,
-        // it means that multiple configuration names were provided.
-        const auto multiple_configuration_names_provided = configuration_name_provided;
+        const auto configuration_name_provided_before    = info.configuration_name.has_value();
+        const auto multiple_configuration_names_provided = configuration_name_provided_before;
 
         if (multiple_configuration_names_provided)
         {
-            const auto& name_1 = info.configuration_name;
+            const auto& name_1 = *info.configuration_name;
             const auto& name_2 = argument;
 
             return std::unexpected(create_multiple_configuration_names_error(command_name, name_1, name_2));
         }
-
-        info.configuration_name     = argument;
-        configuration_name_provided = true;
+        else
+        {
+            info.configuration_name = argument;
+        }
     }
 
-    if (!configuration_name_provided)
+    const auto conflicting_flags_error        = check_for_conflicting_flags(info, command_name);
+    const auto conflicting_flags_error_exists = conflicting_flags_error.has_value();
+
+    if (conflicting_flags_error_exists)
     {
-        return std::unexpected(create_missing_configuration_name_error(command_name));
+        return std::unexpected(*conflicting_flags_error);
     }
 
     const auto duplicate_flag        = utils::check_for_duplicate_flags(actual_arguments);

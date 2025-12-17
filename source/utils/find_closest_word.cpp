@@ -19,7 +19,7 @@ static auto get_weighted_distance_between_words(const std::string_view word_1,
     if (word_1.size() < word_2.size())
     {
         return get_weighted_distance_between_words(
-            word_2, word_1, swap_penalty, substitution_penalty, insertion_penalty, deletion_penalty);
+            word_2, word_1, swap_penalty, substitution_penalty, deletion_penalty, insertion_penalty);
     }
 
     std::vector<int> before_previous(word_2.size() + 1);
@@ -60,10 +60,9 @@ static auto get_weighted_distance_between_words(const std::string_view word_1,
 
 static auto get_distance_between_words(const std::string_view word_1, const std::string_view word_2) -> int
 {
-    // Git-style penalty values for weighted Damerau–Levenshtein distance.
     const auto swap_penalty         = 0;
-    const auto substitution_penalty = 2;
-    const auto insertion_penalty    = 1;
+    const auto substitution_penalty = 3;
+    const auto insertion_penalty    = 3;
     const auto deletion_penalty     = 3;
 
     return get_weighted_distance_between_words(
@@ -89,7 +88,7 @@ static auto find_closest_word_implementation(const std::string_view target_word,
     const auto distance_from_target = [&](const T& s) { return get_distance_between_words(s, target_word); };
     const auto closest_word         = std::ranges::min_element(candidates, std::ranges::less{}, distance_from_target);
 
-    const auto MAX_SIMILARITY_DIFFERENCE = 7;
+    const auto MAX_SIMILARITY_DIFFERENCE = 6;
     const auto candidate_is_close_enough = distance_from_target(*closest_word) <= MAX_SIMILARITY_DIFFERENCE;
 
     if (candidate_is_close_enough)

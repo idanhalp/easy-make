@@ -10,6 +10,7 @@ TEST_CASE_FIXTURE(TestEnvironmentGuard<4>, "Empty dependency graph [regression]"
     const auto root_path = std::filesystem::current_path();
     const auto info      = BuildCommandInfo{
              .configuration_name       = "config",
+             .build_all_configurations = false,
              .is_quiet                 = true,
              .use_parallel_compilation = false,
     };

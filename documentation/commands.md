@@ -16,6 +16,7 @@ This document specifies the commands which can be supplied to the program.
 
 ### `build`
 
+- `--all`: Compile all complete configurations. If this flag is present, a configuration name must not be specified.
 - `--parallel`: Compile multiple files simultaneously.
 - `--quiet`: Prevents printing information. Compiler warning and errors are still printed.
 

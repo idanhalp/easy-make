@@ -5,7 +5,7 @@
 #include <ranges>
 #include <string>
 
-#include "source/commands/build/build.hpp" // `get_actual_configuration`
+#include "source/commands/build/configuration_resolution.hpp"
 #include "source/parameters/parameters.hpp"
 #include "source/utils/macros/assert.hpp"
 
@@ -13,22 +13,14 @@ static auto
 get_relevant_configuration_names(const ListConfigurationsCommandInfo& info,
                                  const std::vector<Configuration>& configurations) -> std::vector<std::string>
 {
-    const auto is_complete = [&](const Configuration& configuration)
-    { return get_actual_configuration(*configuration.name, configurations).has_value(); };
-
     std::vector<std::string> relevant_configuration_names;
+    const auto configuration_type = info.complete_configurations_only     ? ConfigurationType::COMPLETE
+                                    : info.incomplete_configurations_only ? ConfigurationType::INCOMPLETE
+                                                                          : ConfigurationType::ALL;
 
-    for (const auto& configuration : configurations)
+    for (auto& configuration : get_resolved_configurations(configurations, configuration_type))
     {
-        const auto configuration_is_relevant =
-            (info.complete_configurations_only && is_complete(configuration)) ||
-            (info.incomplete_configurations_only && !is_complete(configuration)) ||
-            (!info.complete_configurations_only && !info.incomplete_configurations_only);
-
-        if (configuration_is_relevant)
-        {
-            relevant_configuration_names.push_back(*configuration.name);
-        }
+        relevant_configuration_names.push_back(std::move(*configuration.name));
     }
 
     return relevant_configuration_names;

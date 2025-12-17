@@ -20,6 +20,7 @@ SOURCE_FILES = \
     source/commands/build/build_caching/dependency_graph.cpp \
     source/commands/build/compilation/compilation.cpp \
     source/commands/build/build.cpp \
+	source/commands/build/configuration_resolution.cpp \
     source/commands/build/linking.cpp \
     source/commands/list_configurations/list_configurations.cpp \
     source/commands/list_files/list_files.cpp \

@@ -6,6 +6,7 @@
 
 #include "source/commands/build/build.hpp"
 #include "source/commands/build/compilation/compilation.hpp"
+#include "source/commands/build/configuration_resolution.hpp"
 #include "source/configuration_parsing/configuration.hpp"
 #include "source/configuration_parsing/configuration_parsing.hpp"
 #include "source/parameters/parameters.hpp"
@@ -14,119 +15,183 @@
 
 TEST_SUITE("commands::build" * doctest::test_suite(test_type::unit))
 {
-    TEST_CASE("Get actual configuration")
+    TEST_CASE("get_resolved_configurations")
     {
+        SUBCASE("no parents")
         {
-            Configuration configuration;
-            configuration.output_name = "output";
-            configuration.output_path = "build";
+            std::vector<Configuration> configurations(2);
 
-            Configuration configuration_1 = configuration;
-            Configuration configuration_2 = configuration;
-            Configuration configuration_3 = configuration;
+            configurations[0].name        = "config-0";
+            configurations[0].compiler    = "g++";
+            configurations[0].output_name = "output-0.exe";
 
-            configuration_1.name = "aaaa";
-            configuration_2.name = "bbbb";
-            configuration_3.name = "cccc";
+            configurations[1].name        = "config-1";
+            configurations[1].compiler    = "clang++";
+            configurations[1].output_name = "output-1.exe";
 
-            const auto result = get_actual_configuration("dddd", {configuration_1, configuration_2, configuration_3});
-            REQUIRE_FALSE(result.has_value());
-            CHECK_EQ(result.error(), "'easy-make-configurations.json' does not contain a configuration named 'dddd'.");
+            const auto resolved = get_resolved_configurations(configurations, ConfigurationType::ALL);
+
+            CHECK_EQ(resolved.size(), 2);
+            CHECK_EQ(*resolved[0].compiler, "g++");
+            CHECK_EQ(*resolved[1].compiler, "clang++");
         }
 
+        SUBCASE("single parent inheritance")
         {
-            Configuration configuration;
-            configuration.output_name = "output";
-            configuration.output_path = "build";
+            std::vector<Configuration> configurations(2);
 
-            Configuration configuration_1 = configuration;
-            Configuration configuration_2 = configuration;
-            Configuration configuration_3 = configuration;
+            configurations[0].name        = "base";
+            configurations[0].compiler    = "g++";
+            configurations[0].output_name = "base.exe";
 
-            configuration_1.name = "aaaa";
-            configuration_2.name = "bbbb";
-            configuration_3.name = "cccc";
+            configurations[1].name        = "child";
+            configurations[1].parent      = "base";
+            configurations[1].output_name = "child.exe";
 
-            const auto result = get_actual_configuration("ccdc", {configuration_1, configuration_2, configuration_3});
-            REQUIRE_FALSE(result.has_value());
-            CHECK_EQ(
-                result.error(),
-                "'easy-make-configurations.json' does not contain a configuration named 'ccdc'. Did you mean 'cccc'?");
+            const auto resolved = get_resolved_configurations(configurations, ConfigurationType::ALL);
+
+            CHECK_EQ(*resolved[1].compiler, "g++");          // inherited
+            CHECK_EQ(*resolved[1].output_name, "child.exe"); // overridden
         }
 
+        SUBCASE("child overrides parent field")
         {
-            Configuration configuration;
-            configuration.name        = "test-configuration";
-            configuration.output_name = "output";
-            configuration.output_path = "build";
+            std::vector<Configuration> configurations(2);
 
-            const auto result = get_actual_configuration(*configuration.name, {configuration});
-            REQUIRE_FALSE(result.has_value());
-            CHECK_EQ(result.error(), "Error: Could not resolve compiler for configuration 'test-configuration'.");
+            configurations[0].name     = "base";
+            configurations[0].compiler = "g++";
+
+            configurations[1].name     = "child";
+            configurations[1].parent   = "base";
+            configurations[1].compiler = "clang++";
+
+            const auto resolved = get_resolved_configurations(configurations, ConfigurationType::ALL);
+
+            CHECK_EQ(*resolved[1].compiler, "clang++");
         }
 
+        SUBCASE("multi-level inheritance")
         {
-            Configuration configuration;
-            configuration.name        = "test-configuration";
-            configuration.compiler    = "g++";
-            configuration.output_path = "build";
+            std::vector<Configuration> configurations(3);
 
-            const auto result = get_actual_configuration(*configuration.name, {configuration});
-            REQUIRE_FALSE(result.has_value());
-            CHECK_EQ(result.error(), "Error: Could not resolve output.name for configuration 'test-configuration'.");
-        }
-    }
+            configurations[0].name     = "base";
+            configurations[0].compiler = "g++";
+            configurations[0].standard = "c++20";
 
-    TEST_CASE("Actual configuration with overridden fields")
-    {
-        {
-            Configuration default_configuration;
-            default_configuration.name         = "default";
-            default_configuration.compiler     = "clang++";
-            default_configuration.output_name  = "output";
-            default_configuration.output_path  = "build";
-            default_configuration.optimization = "2";
+            configurations[1].name         = "mid";
+            configurations[1].parent       = "base";
+            configurations[1].optimization = "O2";
 
-            Configuration test_configuration;
-            test_configuration.name         = "test";
-            test_configuration.parent       = "default";
-            test_configuration.optimization = "3";
-            test_configuration.output_name  = "test-output";
+            configurations[2].name   = "leaf";
+            configurations[2].parent = "mid";
 
-            const auto actual_configuration =
-                get_actual_configuration("test", {test_configuration, default_configuration});
-            REQUIRE(actual_configuration.has_value());
-            CHECK_EQ(actual_configuration->name, "test");
-            CHECK_EQ(actual_configuration->compiler, "clang++");
-            CHECK_EQ(actual_configuration->output_name, "test-output");
-            CHECK_EQ(actual_configuration->output_path, "build");
-            CHECK_EQ(actual_configuration->optimization, "3");
+            const auto resolved = get_resolved_configurations(configurations, ConfigurationType::ALL);
+
+            CHECK_EQ(*resolved[2].compiler, "g++");
+            CHECK_EQ(*resolved[2].standard, "c++20");
+            CHECK_EQ(*resolved[2].optimization, "O2");
         }
 
+        SUBCASE("parent defined after child")
         {
-            Configuration configuration_0;
-            configuration_0.name        = "config-0";
-            configuration_0.compiler    = "g++";
-            configuration_0.defines     = {"DEF0"};
-            configuration_0.output_name = "output.exe";
+            std::vector<Configuration> configurations(2);
 
-            Configuration configuration_1;
-            configuration_1.name    = "config-1";
-            configuration_1.parent  = "config-0";
-            configuration_1.defines = {"DEF0", "DEF1"};
+            configurations[0].name   = "child";
+            configurations[0].parent = "parent";
 
-            Configuration configuration_2;
-            configuration_2.name     = "config-2";
-            configuration_2.parent   = "config-1";
-            configuration_2.compiler = "clang++";
+            configurations[1].name     = "parent";
+            configurations[1].compiler = "clang++";
 
-            const auto actual_configuration =
-                get_actual_configuration("config-2", {configuration_0, configuration_1, configuration_2});
-            REQUIRE(actual_configuration.has_value());
-            CHECK_EQ(actual_configuration->name, configuration_2.name);
-            CHECK_EQ(actual_configuration->compiler, configuration_2.compiler);
-            CHECK_EQ(actual_configuration->defines, configuration_1.defines);
-            CHECK_EQ(actual_configuration->output_name, configuration_0.output_name);
+            const auto resolved = get_resolved_configurations(configurations, ConfigurationType::ALL);
+
+            CHECK_EQ(*resolved[0].compiler, "clang++");
+        }
+
+        SUBCASE("vector fields inherited")
+        {
+            std::vector<Configuration> configurations(2);
+
+            configurations[0].name     = "base";
+            configurations[0].warnings = std::vector<std::string>{"-Wall", "-Wextra"};
+
+            configurations[1].name   = "child";
+            configurations[1].parent = "base";
+
+            const auto resolved = get_resolved_configurations(configurations, ConfigurationType::ALL);
+
+            REQUIRE(resolved[1].warnings.has_value());
+            CHECK_EQ(resolved[1].warnings->size(), 2);
+            CHECK_EQ((*resolved[1].warnings)[0], "-Wall");
+        }
+
+        SUBCASE("vector fields are replaced, not merged")
+        {
+            std::vector<Configuration> configurations(2);
+
+            configurations[0].name    = "base";
+            configurations[0].defines = std::vector<std::string>{"A", "B"};
+
+            configurations[1].name    = "child";
+            configurations[1].parent  = "base";
+            configurations[1].defines = std::vector<std::string>{"C"};
+
+            const auto resolved = get_resolved_configurations(configurations, ConfigurationType::ALL);
+
+            CHECK_EQ(resolved[1].defines->size(), 1);
+            CHECK_EQ((*resolved[1].defines)[0], "C");
+        }
+
+        SUBCASE("unrelated configurations remain independent")
+        {
+            std::vector<Configuration> configurations(2);
+
+            configurations[0].name     = "a";
+            configurations[0].compiler = "g++";
+
+            configurations[1].name     = "b";
+            configurations[1].compiler = "clang++";
+
+            const auto resolved = get_resolved_configurations(configurations, ConfigurationType::ALL);
+
+            CHECK_EQ(*resolved[0].compiler, "g++");
+            CHECK_EQ(*resolved[1].compiler, "clang++");
+        }
+
+        SUBCASE("output order matches input order")
+        {
+            std::vector<Configuration> configurations(3);
+
+            configurations[0].name = "first";
+            configurations[1].name = "second";
+            configurations[2].name = "third";
+
+            const auto resolved = get_resolved_configurations(configurations, ConfigurationType::ALL);
+
+            CHECK_EQ(*resolved[0].name, "first");
+            CHECK_EQ(*resolved[1].name, "second");
+            CHECK_EQ(*resolved[2].name, "third");
+        }
+
+        SUBCASE("return only complete/incomplete configurations")
+        {
+            std::vector<Configuration> configurations(3);
+            configurations[0].name = "config-0";
+            configurations[1].name = "config-1";
+            configurations[2].name = "config-2";
+
+            configurations[0].compiler    = "g++";
+            configurations[0].output_name = "output.exe";
+
+            configurations[2].parent = configurations[0].name;
+
+            const auto complete_configs = get_resolved_configurations(configurations, ConfigurationType::COMPLETE);
+            CHECK_EQ(complete_configs.size(), 2);
+            CHECK_EQ(complete_configs[0].name, "config-0");
+            CHECK_EQ(complete_configs[1].name, "config-2");
+
+            const auto incomplete_configs = get_resolved_configurations(configurations, ConfigurationType::INCOMPLETE);
+            CHECK_EQ(incomplete_configs.size(), 1);
+            CHECK_EQ(incomplete_configs[0].name, "config-1");
         }
     }
 
@@ -137,8 +202,7 @@ TEST_SUITE("commands::build" * doctest::test_suite(test_type::unit))
 
         REQUIRE(configurations.has_value());
 
-        const auto actual_configuration = get_actual_configuration("default", *configurations);
-
+        const auto actual_configuration = get_resolved_configuration(*configurations, "default");
         REQUIRE(actual_configuration.has_value());
 
         const auto files_to_compile = get_code_files(*actual_configuration, project_5_path);

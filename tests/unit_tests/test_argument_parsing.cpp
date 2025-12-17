@@ -21,6 +21,7 @@ TEST_SUITE("argument_parsing" * doctest::test_suite(test_type::unit))
 
             const auto& build_command_info = std::get<BuildCommandInfo>(*command_info);
             CHECK_EQ(build_command_info.configuration_name, "config-name");
+            CHECK_FALSE(build_command_info.build_all_configurations);
             CHECK_FALSE(build_command_info.is_quiet);
             CHECK_FALSE(build_command_info.use_parallel_compilation);
         }
@@ -35,7 +36,23 @@ TEST_SUITE("argument_parsing" * doctest::test_suite(test_type::unit))
 
             const auto& build_command_info = std::get<BuildCommandInfo>(*command_info);
             CHECK_EQ(build_command_info.configuration_name, "config-name");
+            CHECK_FALSE(build_command_info.build_all_configurations);
             CHECK(build_command_info.is_quiet);
+            CHECK(build_command_info.use_parallel_compilation);
+        }
+
+        SUBCASE("Valid case with '--all' flag")
+        {
+            const std::vector arguments = {"./easy-make", "build", "--parallel", "--all"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE(command_info.has_value());
+            REQUIRE(std::holds_alternative<BuildCommandInfo>(*command_info));
+
+            const auto& build_command_info = std::get<BuildCommandInfo>(*command_info);
+            CHECK_FALSE(build_command_info.configuration_name.has_value());
+            CHECK(build_command_info.build_all_configurations);
+            CHECK_FALSE(build_command_info.is_quiet);
             CHECK(build_command_info.use_parallel_compilation);
         }
 
@@ -109,6 +126,17 @@ TEST_SUITE("argument_parsing" * doctest::test_suite(test_type::unit))
             CHECK_EQ(build_command_info.configuration_name, "build");
             CHECK_FALSE(build_command_info.is_quiet);
             CHECK_FALSE(build_command_info.use_parallel_compilation);
+        }
+
+        SUBCASE("Specifying configuration name together with '--all' flag")
+        {
+            const std::vector arguments = {"./easy-make", "build", "config-name", "--all"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(),
+                     "Error: Cannot use both a configuration name ('config-name') and the '--all' flag with command "
+                     "'build'.");
         }
     }
 

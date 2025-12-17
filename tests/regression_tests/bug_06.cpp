@@ -41,6 +41,7 @@ TEST_CASE_FIXTURE(TestEnvironmentGuard<6>, "Change in configuration file [regres
     const auto root_path = std::filesystem::current_path();
     const auto info      = BuildCommandInfo{
              .configuration_name       = "config",
+             .build_all_configurations = false,
              .is_quiet                 = true,
              .use_parallel_compilation = false,
     };

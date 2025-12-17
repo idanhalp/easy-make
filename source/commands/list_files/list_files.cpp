@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "source/commands/build/build.hpp"
+#include "source/commands/build/configuration_resolution.hpp"
 #include "source/utils/macros/assert.hpp"
 #include "source/utils/print.hpp"
 #include "source/utils/utils.hpp"
@@ -80,7 +81,7 @@ auto commands::list_files(const ListFilesCommandInfo& info,
                           const std::filesystem::path& path_to_root,
                           std::ostream& output) -> int
 {
-    const auto configuration                  = get_actual_configuration(info.configuration_name, configurations);
+    const auto configuration                  = get_resolved_configuration(configurations, info.configuration_name);
     const auto found_error_with_configuration = !configuration.has_value();
 
     if (found_error_with_configuration)
