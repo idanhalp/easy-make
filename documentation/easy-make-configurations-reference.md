@@ -1,4 +1,4 @@
-# easy-make JSON Specifications
+# easy-make Configurations Reference
 
 This document explains the structure and fields of the easy-make JSON configuration file (`easy-make-configurations.json`).  
 It serves as a complete reference for creating and customizing easy-make builds.
@@ -6,11 +6,7 @@ It serves as a complete reference for creating and customizing easy-make builds.
 ## 1. File Structure
 
 The `easy-make-configurations.json` is composed of an array of object, where each project is a configuration.  
-Each configuration must contain the following fields:
-
-- `name`
-- `compiler`
-- `output.name`
+Each configuration must contain the `name` field.
 
 ## 2. Fields
 
@@ -214,14 +210,22 @@ Each configuration must contain the following fields:
   ]
   ```
 
+## Note - Complete Configurations
+
 To compile a specific configuration, run `easy-make build <configuration-name>`.  
 In this example, we can run `easy-make build debug` or `easy-make build release`.
 
-Note that running `easy-make build default` is invalid as the configuration is incomplete (no value for `output.name`).  
-Running this invalid command will cause the following error to be printed:
+In order for a configuration to be compiled, it must be **complete**.
+A complete configuration is a configuration that defines (or inherits from one of its ancestors) the following fields:
 
-<picture>
-  <source srcset="./assets/incomplete-config-error-dark.png" media="(prefers-color-scheme: dark)">
-  <source srcset="./assets/incomplete-config-error-light.png" media="(prefers-color-scheme: light)">
-  <img src="./assets/incomplete-config-error-dark.png" alt="Incomplete configuration error">
-</picture>
+- `name`
+- `compiler`
+- `output.name`
+
+So running `easy-make build default` is invalid as the configuration is incomplete (no value for `output.name`):
+
+```
+$ easy-make build default
+
+Error: Could not resolve output.name for configuration 'default'.
+```

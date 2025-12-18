@@ -84,4 +84,4 @@ easy-make will create an executable in the specified output path.
 
 ## 4. Notes
 
-For details about what each key does, see [json_configurations.md](json-configurations.md).
+For details about what each key does, see [easy-make-configurations-reference.md](easy-make-configurations-reference.md).
