@@ -45,3 +45,17 @@ It helps you build your project using a clear, easy-to-read configuration file w
 - **Built-in Safety Checks:** Warns you if a file or folder is missing before things break.
 - **Custom Flags Made Easy:** Add defines, include paths, and extra compiler options effortlessly.
 - **Clean Output:** Clear, minimal logs so you can focus on your code and not worry abut your build system.
+
+## Installation
+
+Installing **easy-make** is simple. Run the following command to install the latest version:
+
+```bash
+sudo ./install_easy_make.py
+```
+
+To install a specific version, run:
+
+```bash
+sudo ./install_easy_make.py <version>
+```
