@@ -306,10 +306,12 @@ get_files_affected_by_removal(const DependencyGraph& old_dependency_graph,
 // Remove header files and sort `files`.
 static auto sanitize_code_files(const std::vector<std::filesystem::path>& files) -> std::vector<std::filesystem::path>
 {
-    return files                                        //
-           | std::views::filter(&utils::is_source_file) //
-           | std::ranges::to<std::set>()                // Sort and remove duplicates.
-           | std::ranges::to<std::vector>();            //
+    auto result = files;
+
+    std::erase_if(result, &utils::is_header_file);
+    std::ranges::sort(result);
+
+    return result;
 }
 
 auto build_caching::get_files_to_compile(const DependencyGraph& old_dependency_graph,
@@ -317,17 +319,19 @@ auto build_caching::get_files_to_compile(const DependencyGraph& old_dependency_g
                                          const std::vector<std::filesystem::path>& changed_files)
     -> std::vector<std::filesystem::path>
 {
-    std::vector<std::filesystem::path> files_to_compile;
+    auto files_affected_by_removal      = get_files_affected_by_removal(old_dependency_graph, new_dependency_graph);
+    auto files_affected_by_code_changes = new_dependency_graph.get_reachable_nodes(changed_files);
 
-    auto files_affected_by_removal = get_files_affected_by_removal(old_dependency_graph, new_dependency_graph);
+    std::vector<std::filesystem::path> files_to_compile;
+    files_to_compile.reserve(files_affected_by_removal.size() + files_affected_by_code_changes.size());
+
     files_to_compile.insert(files_to_compile.end(),
                             std::make_move_iterator(files_affected_by_removal.begin()),
                             std::make_move_iterator(files_affected_by_removal.end()));
 
-    auto files_affected_by_change = new_dependency_graph.get_reachable_nodes(changed_files);
     files_to_compile.insert(files_to_compile.end(),
-                            std::make_move_iterator(files_affected_by_change.begin()),
-                            std::make_move_iterator(files_affected_by_change.end()));
+                            std::make_move_iterator(files_affected_by_code_changes.begin()),
+                            std::make_move_iterator(files_affected_by_code_changes.end()));
 
     return sanitize_code_files(files_to_compile);
 }
@@ -479,7 +483,7 @@ auto build_caching::handle_build_caching(const Configuration& configuration,
     {
         return Info{
             .files_to_delete  = files_to_delete,
-            .files_to_compile = sanitize_code_files(code_files), // Compile all the files
+            .files_to_compile = sanitize_code_files(code_files), // Compile all the source files.
         };
     };
 
