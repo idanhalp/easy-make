@@ -18,6 +18,7 @@ def get_version() -> str:
         "1.0.0",
         "1.1.0",
         "1.2.0",
+        "1.3.0",
     ]
 
     num_of_arguments = len(sys.argv) - 1
