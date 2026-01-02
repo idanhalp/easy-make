@@ -468,14 +468,34 @@ TEST_SUITE("configuration_parsing" * doctest::test_suite(test_type::unit))
             CHECK_EQ(*error, "Error: Configuration 'config' has an unknown optimization '7'.");
         }
 
-        SUBCASE("invalid source files")
+        SUBCASE("header file in source files")
+        {
+            const auto project_31_path = tests::utils::get_path_to_resources_project(31);
+            const auto configurations  = parse_configurations(project_31_path);
+
+            REQUIRE_FALSE(configurations.has_value());
+            CHECK(configurations.error().starts_with(
+                "Error: Configuration 'default' lists 'f_1.hpp' in 'sources.files', which is a header file."));
+        }
+
+        SUBCASE("unsupported file extension in source files")
+        {
+            const auto project_32_path = tests::utils::get_path_to_resources_project(32);
+            const auto configurations  = parse_configurations(project_32_path);
+
+            REQUIRE_FALSE(configurations.has_value());
+            CHECK(configurations.error().starts_with("Error: Configuration 'default' lists 'f_1.py' in "
+                                                     "'sources.files', which has an unsupported file extension."));
+        }
+
+        SUBCASE("non-existent source file")
         {
             const auto project_21_path = tests::utils::get_path_to_resources_project(21);
             const auto configurations  = parse_configurations(project_21_path);
 
-            REQUIRE(!configurations.has_value());
+            REQUIRE_FALSE(configurations.has_value());
             CHECK_EQ(configurations.error(),
-                     "Error: Configuration 'default' has a non-existent source file 'f_3.cpp'.");
+                     "Error: Configuration 'default' lists 'f_3.cpp' in 'sources.files', which could not be found.");
         }
 
         SUBCASE("invalid source directories")

@@ -234,10 +234,35 @@ static auto validate_sources_and_excludes(const Configuration& configuration,
     {
         for (const auto& file : *configuration.source_files)
         {
-            if (!std::filesystem::is_regular_file(path_to_root / file))
+            constexpr auto short_error_format = "Error: Configuration '{}' lists '{}' in 'sources.files', which {}.";
+            constexpr auto long_error_format  = "Error: Configuration '{}' lists '{}' in 'sources.files', which {}.\n"
+                                                "\n"
+                                                "The valid file extensions are:\n"
+                                                "* .cpp\n"
+                                                "* .cc\n"
+                                                "* .cxx\n"
+                                                "\n"
+                                                "See "
+                                                "<https://github.com/idanhalp/easy-make/blob/master/documentation/"
+                                                "easy-make-configurations-reference.md> for more information."sv;
+
+            static_assert(long_error_format.starts_with(short_error_format));
+
+            if (utils::is_header_file(file))
             {
-                return std::format(
-                    "Error: Configuration '{}' has a non-existent source file '{}'.", *configuration.name, file);
+                return std::format(long_error_format, *configuration.name, file, "is a header file");
+            }
+            if (!utils::is_source_file(file))
+            {
+                return std::format(long_error_format, *configuration.name, file, "has an unsupported file extension");
+            }
+
+            const auto full_path   = path_to_root / file;
+            const auto file_exists = std::filesystem::is_regular_file(full_path);
+
+            if (!file_exists)
+            {
+                return std::format(short_error_format, *configuration.name, file, "could not be found");
             }
         }
     }
