@@ -119,4 +119,4 @@ if __name__ == "__main__":
 
     print("easy-make installed successfully!")
     print(f"Location: {target_path}")
-    print("Run `easy-make --version` to verify the installation.")
+    print("Run `easy-make version` to verify the installation.")
