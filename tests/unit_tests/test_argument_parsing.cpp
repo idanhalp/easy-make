@@ -488,20 +488,29 @@ TEST_SUITE("argument_parsing" * doctest::test_suite(test_type::unit))
             const auto command_info = parse_arguments(arguments);
 
             REQUIRE_FALSE(command_info.has_value());
-            REQUIRE_EQ(
-                command_info.error(),
-                "Error: Both '--complete-only' and '--incomplete-only' flags were supplied to command 'list-configs'.");
+            CHECK_EQ(command_info.error(),
+                     "Error: The 'list-configs' command does not allow using '--complete-only' together with "
+                     "'--incomplete-only'.");
         }
 
         SUBCASE("Conflicting flags #2")
+        {
+            const std::vector arguments = {"./easy-make", "list-configs", "--porcelain", "--count"};
+            const auto command_info     = parse_arguments(arguments);
+
+            REQUIRE_FALSE(command_info.has_value());
+            CHECK_EQ(command_info.error(),
+                     "Error: The 'list-configs' command does not allow using '--count' together with '--porcelain'.");
+        }
+
+        SUBCASE("Conflicting flags #3")
         {
             const std::vector arguments = {"./easy-make", "list-configs", "--count", "--sorted"};
             const auto command_info     = parse_arguments(arguments);
 
             REQUIRE_FALSE(command_info.has_value());
-            REQUIRE_EQ(
-                command_info.error(),
-                "Error: Cannot provide '--sorted' flag to command 'list-configs' when '--count' flag is provided.");
+            CHECK_EQ(command_info.error(),
+                     "Error: The 'list-configs' command does not allow using '--count' together with '--sorted'.");
         }
     }
 
@@ -619,8 +628,9 @@ TEST_SUITE("argument_parsing" * doctest::test_suite(test_type::unit))
             const auto command_info = parse_arguments(arguments);
 
             REQUIRE_FALSE(command_info.has_value());
-            REQUIRE_EQ(command_info.error(),
-                       "Error: Both '--header-only' and '--source-only' flags were supplied to command 'list-files'.");
+            CHECK_EQ(
+                command_info.error(),
+                "Error: The 'list-files' command does not allow using '--header-only' together with '--source-only'.");
         }
 
         SUBCASE("Conflicting flags #2")
@@ -629,9 +639,8 @@ TEST_SUITE("argument_parsing" * doctest::test_suite(test_type::unit))
             const auto command_info     = parse_arguments(arguments);
 
             REQUIRE_FALSE(command_info.has_value());
-            REQUIRE_EQ(
-                command_info.error(),
-                "Error: Cannot provide '--porcelain' flag to command 'list-files' when '--count' flag is provided.");
+            REQUIRE_EQ(command_info.error(),
+                       "Error: The 'list-files' command does not allow using '--count' together with '--porcelain'.");
         }
 
         SUBCASE("Invalid flag")

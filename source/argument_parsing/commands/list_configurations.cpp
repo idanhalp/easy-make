@@ -73,27 +73,21 @@ static auto check_for_conflicting_flags(const ListConfigurationsCommandInfo& inf
 {
     if (info.complete_configurations_only && info.incomplete_configurations_only)
     {
-        return std::format("Error: Both '{}' and '{}' flags were supplied to command '{}'.",
-                           COMPLETE_CONFIGURATIONS_ONLY_FLAG,
-                           INCOMPLETE_CONFIGURATIONS_ONLY_FLAG,
-                           command_name);
+        return create_conflicting_flags_error(
+            command_name, COMPLETE_CONFIGURATIONS_ONLY_FLAG, INCOMPLETE_CONFIGURATIONS_ONLY_FLAG);
     }
-
-    if (info.count && info.porcelain_output)
+    else if (info.count && info.porcelain_output)
     {
-        return std::format(
-            "Error: Cannot provide '{}' flag to command '{}' with '{}' flag", PORCELAIN_FLAG, command_name, COUNT_FLAG);
+        return create_conflicting_flags_error(command_name, COUNT_FLAG, PORCELAIN_FLAG);
     }
-
-    if (info.count && info.sorted_output)
+    else if (info.count && info.sorted_output)
     {
-        return std::format("Error: Cannot provide '{}' flag to command '{}' when '{}' flag is provided.",
-                           SORTED_FLAG,
-                           command_name,
-                           COUNT_FLAG);
+        return create_conflicting_flags_error(command_name, COUNT_FLAG, SORTED_FLAG);
     }
-
-    return std::nullopt;
+    else
+    {
+        return std::nullopt;
+    }
 }
 
 auto parse_list_configurations_command_arguments(std::span<const char* const> arguments)

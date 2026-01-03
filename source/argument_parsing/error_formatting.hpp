@@ -6,6 +6,10 @@
 #include <string_view>
 #include <vector>
 
+auto create_conflicting_flags_error(std::string_view command_name,
+                                    std::string_view flag_1,
+                                    std::string_view flag_2) -> std::string;
+
 auto create_missing_configuration_name_error(std::string_view command_name) -> std::string;
 
 auto create_multiple_configuration_names_error(std::string_view command_name,

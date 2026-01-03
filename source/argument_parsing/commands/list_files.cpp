@@ -65,21 +65,16 @@ static auto check_for_conflicting_flags(const ListFilesCommandInfo& info,
 {
     if (info.header_only && info.source_only)
     {
-        return std::format("Error: Both '{}' and '{}' flags were supplied to command '{}'.",
-                           HEADER_FILES_ONLY_FLAG,
-                           SOURCE_FILES_ONLY_FLAG,
-                           command_name);
+        return create_conflicting_flags_error(command_name, HEADER_FILES_ONLY_FLAG, SOURCE_FILES_ONLY_FLAG);
     }
-
-    if (info.count && info.porcelain_output)
+    else if (info.count && info.porcelain_output)
     {
-        return std::format("Error: Cannot provide '{}' flag to command '{}' when '{}' flag is provided.",
-                           PORCELAIN_FLAG,
-                           command_name,
-                           COUNT_FLAG);
+        return create_conflicting_flags_error(command_name, COUNT_FLAG, PORCELAIN_FLAG);
     }
-
-    return std::nullopt;
+    else
+    {
+        return std::nullopt;
+    }
 }
 
 auto parse_list_files_command_arguments(std::span<const char* const> arguments)

@@ -4,6 +4,15 @@
 
 #include "source/utils/find_closest_word.hpp"
 
+auto create_conflicting_flags_error(const std::string_view command_name,
+                                    const std::string_view flag_1,
+                                    const std::string_view flag_2) -> std::string
+{
+    constexpr auto format = "Error: The '{}' command does not allow using '{}' together with '{}'.";
+
+    return std::format(format, command_name, flag_1, flag_2);
+}
+
 auto create_missing_configuration_name_error(const std::string_view command_name) -> std::string
 {
     return std::format("Error: Must specify a configuration name when using '{}' command.", command_name);
