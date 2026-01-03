@@ -28,7 +28,7 @@ auto commands::print_version([[maybe_unused]] const PrintVersionCommandInfo& inf
     const auto current_version = VersionInfo{
         .major = 1,
         .minor = 3,
-        .patch = 0,
+        .patch = 1,
     };
 
     std::println("Current easy-make version: {}", current_version.to_string());
