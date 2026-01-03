@@ -17,11 +17,6 @@ class TestEnvironmentGuard
     TestEnvironmentGuard();  // Called before the test.
     ~TestEnvironmentGuard(); // Called after the test.
 
-    auto get_path_to_exe() const -> std::filesystem::path
-    {
-        return original_path / "easy-make";
-    }
-
   private:
     const std::filesystem::path original_path;
 };
